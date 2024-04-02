@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Futsal League Name</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <header>
+    <h1>Your Futsal League Name</h1>
+  </header>
+
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">Schedule & Standings</a>
+    <a href="#">Registration</a>
+    <a href="#">Contact</a>
+  </nav>
+
+  <main>
+    <h2>Welcome to the League!</h2>
+    <p>Here you'll find all the information about our Indoor Futsal league.
+      We offer a fun and competitive environment for players of all skill levels.</p>
+  </main>
+
+  <div>
+    <script src ="https://script.google.com/macros/s/AKfycbyBXmHNZPlNtstZbdlSjwLtitSqVdXA88XLSgLpCZvorqpKiaBtw_MoMroa27er-VS6/exec"></script>
+  </div>
+
+  <base target="_top">
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <script>
+    google.charts.load('table', 'current', { 'packages': ['core'] });
+    google.charts.setOnLoadCallback(drawTable);
+
+    function drawTable() {
+      var year = document.getElementById("year").value;
+      var season = document.getElementById("season").value;
+      var division = document.getElementById("division").value;
+
+      var data = google.visualization.arrayToDataTable(getTableData(year, season, division));
+
+      var table = new google.visualization.Table(document.getElementById('table_div'));
+
+      table.draw(data, { showRowNumber: true });
+    }
+
+    function getTableData(year, season, division) {
+      var url = "https://script.google.com/macros/s/SCRIPT_ID/exec?year=" + year + "&season=" + season + "&division=" + division;
+      var response = UrlFetchApp.fetch(url);
+      var data = JSON.parse(response.getContentText());
+      return data;
+    }
+  </script>
+  </head>
+
+  <body>
+    <h2>League Table</h2>
+    <select id="year">
+      <option value="">All Years</option>
+      <option value="2021-2022">2021-2022</option>
+      <option value="2022-2023">2022-2023</option>
+      <option value="2023-2024">2023-2024</option>
+    </select>
+    <select id="season">
+      <option value="">All Seasons</option>
+      <option value="Spring">Spring</option>
+      <option value="Winter">Winter</option>
+    </select>
+    <select id="division">
+      <option value="">All Divisions</option>
+      <option value="A">Division A</option>
+      <option value="B">Division B</option>
+    </select>
+    <button onclick="drawTable()">Filter</button>
+    <div id="table_div"></div>
+  </body>
+
+  <footer>
+    <p>&copy; 2024 Your Futsal League Name</p>
+  </footer>
+</body>
+
+</html>
