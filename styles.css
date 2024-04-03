@@ -18,9 +18,3 @@ a {
 a:hover {
     color: #111;
 }
-
-.Grid{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    width: 300px;
-}
