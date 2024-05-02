@@ -1,75 +1,9 @@
 /*CSS variables section*/
 :root {
-    background-color: rgb(38, 38, 150);
+    background-color: rgb(170, 170, 170);
 }
 
 /*Extra Large screens - Extra large desktops*/
-.header {}
-
-.heeder-large-screen {
-    display: flex !important;
-    justify-content: space-evenly !important;
-    color: orange;
-    font-size: 18px !important;
-
-
-}
-
-#navDemo {
-    background-color: #4a4a9a;
-
-}
-
-#navDemo a {
-    font-size: 13px !important;
-    color: orange;
-}
-
-.hero {
-    height: 650px;
-    background-image: url("https://spaces.w3schools.com/images/HVYepJYeHdQ.jpg");
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center;
-    background-color: #000015;
-}
-
-.hero-description {
-    height: 650px;
-    background-color: rgba(77, 233, 77, 1);
-    display: flex;
-}
-
-.hero-text {
-    width: 70% !important;
-    margin: auto !important;
-    display: flex;
-    flex-wrap: wrap;
-}
-
-.hero-text p {
-    color: white;
-    width: 50%;
-}
-
-.hero-title {
-    /* padding-top:80px; */
-    font-weight: 800;
-    text-transform: uppercase;
-    font-size: 80px;
-    color: orange;
-    text-align: center;
-
-}
-
-.social {
-    width: 100%;
-}
-
-.icons {
-    font-size: 20px;
-    letter-spacing: 5px;
-}
 
 main {
     width: 80% !important;
@@ -119,13 +53,7 @@ html {
 /*MEDIA QUERIES*/
 
 /*Large screens - Desktop*/
-@media screen and (max-width: 1300) {
-    .hero {
-        height: 550px !important;
-        ;
-        background-image: url("https://spaces.w3schools.com/images/HVYepJYeHdQ_1200_600.jpg");
-    }
-}
+@media screen and (max-width: 1300) {}
 
 /*medium screens - Laptops*/
 @media screen and (max-width: 1024px) {
@@ -133,7 +61,6 @@ html {
         width: 100% !important;
         margin: auto !important;
     }
-
 }
 
 /*Small screens - tablets*/
@@ -144,7 +71,6 @@ html {
 
     .hero {
         height: 400px !important;
-        background-image: url("https://spaces.w3schools.com/images/HVYepJYeHdQ_480_300.jpg");
     }
 
     .hero-description {
@@ -162,7 +88,6 @@ html {
 @media screen and (max-width: 480px) {
     .hero {
         height: 450px !important;
-        background-image: url("https://spaces.w3schools.com/images/HVYepJYeHdQ_480_300.jpg");
     }
 
     p {

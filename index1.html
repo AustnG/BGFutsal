@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdn.rawgit.com/Keyang/node-csvtojson/d41f44aa/browser/csvtojson.min.js"></script>
+  <title>BG Futsal</title>
+</head>
+
+<body>
+
+  <!-- CURRENT SEASON TABLE -->
+  <main>
+    <div>
+      <h2>Dynamic Table</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>RANK</th>
+            <th>TEAM</th>
+            <th>GP</th>
+            <th>W</th>
+            <th>D</th>
+            <th>L</th>
+            <th>GF</th>
+            <th>GA</th>
+            <th>GD</th>
+            <th>PTS</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="/buildDynamicLeagueTable.js"></script>
+
+</body>
+
+</html>
