@@ -3,37 +3,58 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Futsal League Name - Home</title>
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.rawgit.com/Keyang/node-csvtojson/d41f44aa/browser/csvtojson.min.js"></script>
+
+  <title>BG Futsal</title>
 </head>
 
 <body>
+
   <div id="header-container"></div>
 
-  <main>
-    <h2>Welcome to the League!</h2>
-    <p>Here you'll find all the information about our Indoor Futsal league.
-      We offer a fun and competitive environment for players of all skill levels.</p>
-
-
-    <iframe width="80%" height="550px"
-      src="https://lookerstudio.google.com/embed/reporting/dbfcb41d-dd65-4f64-a80f-6593e62b502f/page/rIYvD"
-      frameborder="0" style="border:0" allowfullscreen
-      sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
-
-    <!--
-    <div id="filters">
-      <select id="yearDropdown"></select>
-      <select id="seasonDropdown"></select>
-      <select id="divisionDropdown"></select>
+  <!-- HERO -->
+  <section>
+    <div class="hero" id="about">
+      <div class="hero-description">
+        <div class="hero-text">
+          <h1 class="hero-title">Adding Fun to your Life</h1>
+          <p>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Officiis, impedit quo. Officia nisi corrupti iste
+            asperiores accusamus quisquam quod perspiciatis vitae? Esse eum molestiae ab quasi omnis quidem officia
+            eaque.
+          </p>
+          <span class="w3-text-white social" style="margin-top:050px">
+            <p>Follow us on Social media</p>
+            <div class="w3-margin-top">
+              <a href="#"> <i class="fa fa-facebook-official w3-hover-opacity icons"></i></a>
+              <a href="#"><i class="fa fa-instagram w3-hover-opacity icons"></i></a>
+              <a href="#"><i class="fa fa-snapchat w3-hover-opacity icons"></i></a>
+              <a href="#"><i class="fa fa-pinterest-p w3-hover-opacity icons"></i></a>
+              <a href="#"><i class="fa fa-twitter w3-hover-opacity icons"></i></a>
+              <a href="#"><i class="fa fa-linkedin w3-hover-opacity icons"></i></a>
+            </div>
+          </span>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <div id="tableContainer">
-      <table>
+  <!-- CURRENT SEASON TABLE -->
+  <main>
+    <!--
+    <p>Hello World</p>
+    <div id="table-container">
+      <h2>Current Season Standings</h2>
+      <table id="standingsTable">
         <thead>
           <tr>
-            <th>Team</th>
+            <th>Rank</th>
+            <th>TEAM</th>
             <th>GP</th>
             <th>W</th>
             <th>D</th>
@@ -44,18 +65,37 @@
             <th>PTS</th>
           </tr>
         </thead>
-        <tbody id="tableData">
-        </tbody>
+        <tbody></tbody>
       </table>
     </div>
--->
+    -->
   </main>
 
+  <!-- FOOTER -->
   <div id="footer-container"></div>
 
+
+  <script>
+    // const url = "https://docs.google.com/spreadsheets/d/1C4SkhAN0BS-wRu6uRTXu_TmoFEKzkXkiFt5BiXR5v-E/export?format=csv"; // BG Futsal Database; needs to use Games sheet
+    const url = "https://docs.google.com/spreadsheets/d/1glXoyj4HhNK7nGb5CARdTqyTckub-bUkMlqLab0ySkA/export?format=csv"; // TestSheet
+    const main = document.querySelector("main");
+    // main.innerHTML = "<p>Loading...</p>";
+    fetch(url).then(result => result.text()).then(function (csvtext) {
+      return csv().fromString(csvtext);
+    }).then(function (csv) {
+      // main.innerHTML = "<code>" + JSON.stringify(csv) + "<code>"; // csv
+      csv.forEach(function (row) {
+        main.innerHTML += "<th>" + row.Name + " </th>";
+        // main.innerHTML += "<td>" + row.Desc + "</td>";
+        // main.innerHTML += "<td>" + row.Price + "</td>";
+      })
+    });
+  </script>
+
+  <script src="tableData.js"></script>
   <script src="loadContent.js"></script>
   <script src="https://www.gstatic.com/charts/loader.js"></script>
-  <script src="LeagueTable.js"></script>
+
 </body>
 
 </html>
