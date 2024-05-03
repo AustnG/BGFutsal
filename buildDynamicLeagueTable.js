@@ -3,54 +3,62 @@
 
 // BG Futsal Database -> "Teams" sheet
 const googleSheetURL = "https://docs.google.com/spreadsheets/d/1C4SkhAN0BS-wRu6uRTXu_TmoFEKzkXkiFt5BiXR5v-E/export?format=csv&gid=898919565";
-const googleSheetDataFilter = "&sq=filter(SEASON = '2024 Spring B')";
-const dynamicUrl = googleSheetURL + googleSheetDataFilter;
 
+const seasonSelector = document.getElementById('seasonSelector');
 const tableBuilder = document.querySelector("tbody");
-tableBuilder.innerHTML = "<p>Loading...</p>";
 
-fetch(dynamicUrl).then(result => result.text()).then(function (csvtext) {
-    tableBuilder.innerHTML = "";
-    return csv().fromString(csvtext);
-}).then(function (csv) {
-    // tableBuilder.innerHTML = "<code>" + JSON.stringify(csv) + "</code>";
-    csv.forEach(function (row) {
-        tableBuilder.innerHTML +=
-            "<td>" + row.SEASON + " </td>" +
-            "<td>" + row.RANK + " </td>" +
-            "<td>" + row.TEAM + "</td>" +
-            "<td>" + row.GP + "</td>" +
-            "<td>" + row.W + "</td>" +
-            "<td>" + row.D + "</td>" +
-            "<td>" + row.L + "</td>" +
-            "<td>" + row.GF + "</td>" +
-            "<td>" + row.GA + "</td>" +
-            "<td>" + row.GD + "</td>" +
-            "<td>" + row.PTS + "</td>";
-    })
-});
+function updateTableData() {
+    const selectedSeason = seasonSelector.value;
+    tableBuilder.innerHTML = "<p>Retrieving latest stats..</p>";
 
-/*
-const desiredSeason = "2024 Spring B"; // Replace with your desired season
+    fetch(googleSheetURL)
+        .then(result => result.text())
+        .then(csvText => {
+            tableBuilder.innerHTML = "";
+            return csv().fromString(csvText);
+        })
+        .then(csv => {
+            const filteredData = csv.filter(row => row.SEASON === selectedSeason);
 
-function filterBySeason(data) {
-    return data.filter(row => row.SEASON === desiredSeason);
+            filteredData.sort((rowA, rowB) => {
+                // Sort by PTS (DESC)
+                if (rowB.PTS - rowA.PTS !== 0) {
+                    return rowB.PTS - rowA.PTS;
+                }
+                // If PTS are equal, sort by GD (DESC)
+                if (rowB.GD - rowA.GD !== 0) {
+                    return rowB.GD - rowA.GD;
+                }
+                // Does this need to be changed to DESC as well??
+                // If PTS and GD are equal, sort by GA (ASC)
+                return rowA.GA - rowB.GA;
+            });
+
+            const desiredColumns = ['TEAM', 'GP', 'W', 'D', 'L', 'GF', 'GA', 'GD', 'PTS'];
+
+            let rank = 1;
+            filteredData.forEach(row => {
+                const tableRow = document.createElement('tr');
+
+                const positionCell = document.createElement('td');
+                positionCell.innerText = rank;
+                tableRow.appendChild(positionCell);
+                rank++;
+
+                desiredColumns.forEach(columnName => {
+                    const tableCell = document.createElement('td');
+                    tableCell.innerText = row[columnName];
+                    tableRow.appendChild(tableCell);
+                });
+
+                tableBuilder.appendChild(tableRow);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching or parsing data:', error);
+            tableBuilder.innerHTML = "<p>Error retrieving stats. Please try again later.</p>";
+        });
 }
 
-csv.then(function (data) {
-    const filteredData = filterBySeason(data);
-    filteredData.forEach(function (row) {
-        tableBuilder.innerHTML +=
-            "<td>" + row.RANK + " </td>" +
-            "<td>" + row.TEAM + "</td>" +
-            "<td>" + row.GP + "</td>" +
-            "<td>" + row.W + "</td>" +
-            "<td>" + row.D + "</td>" +
-            "<td>" + row.L + "</td>" +
-            "<td>" + row.GF + "</td>" +
-            "<td>" + row.GA + "</td>" +
-            "<td>" + row.GD + "</td>" +
-            "<td>" + row.PTS + "</td>";
-    });
-});
-*/
+// Call updateTableData initially to populate with default selection ("2024 Spring B")
+updateTableData();
