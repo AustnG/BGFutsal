@@ -1,0 +1,41 @@
+.league-table {
+    border-collapse: separate;
+    width: 100%;
+    border-spacing: 0 3px;
+}
+
+.league-table th,
+.league-table td {
+    padding: 8px 16px;
+    border: none;
+}
+
+.league-table th,
+.league-table td:first-child {
+    width: 3%;
+}
+
+.league-table td:nth-child(2) {
+    width: 37%;
+}
+
+.league-table tbody td {
+    border-top: 1px solid lightgray; /* Light-grey top border for all rows */
+  }
+
+.league-table tbody tr:nth-child(-n+8) td:first-child {
+    border-left: 5px solid #2e5fff;
+}
+
+.league-table th,
+.league-table td:not(:nth-child(2)) {
+    text-align: center;
+}
+
+.league-table td:nth-child(10) {
+    font-weight: bold;
+}
+
+.league-table tbody tr:not(:last-child) {
+    margin-bottom: 4px;
+}
