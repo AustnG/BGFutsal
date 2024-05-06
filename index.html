@@ -5,8 +5,10 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/styles/main.css">
+
   <script src="https://cdn.rawgit.com/Keyang/node-csvtojson/d41f44aa/browser/csvtojson.min.js"></script>
+
   <title>BG Futsal</title>
 </head>
 
@@ -15,11 +17,11 @@
   <header id="header-container"></header>
 
   <main class="main">
+
     <h2>Welcome to your website!</h2>
     <p>This is a basic example of a website that you can customize to fit your needs. You can add text, images, and
       videos to your website. You can also create links to other pages on your website.</p>
 
-    <!--
     <div>
       <table class="color-pallet" style="margin: 50px auto;">
         <caption>Site Hex Values</caption>
@@ -55,36 +57,6 @@
         </tr>
       </table>
     </div>
-    -->
-
-    <div class="dropdown">
-      <select id="seasonSelector" onchange="updateTableData()">
-        <option value="2024 Spring A">2024 Spring A</option>
-        <option value="2024 Spring B">2024 Spring B</option>
-        <option value="2023 Winter A">2023 Winter A</option>
-        <option value="2023 Winter B">2023 Winter B</option>
-      </select>
-    </div>
-
-    <div>
-      <table class="futsal-table">
-        <thead>
-          <tr>
-            <th>RANK</th>
-            <th>TEAM</th>
-            <th>GP</th>
-            <th>W</th>
-            <th>D</th>
-            <th>L</th>
-            <th>GF</th>
-            <th>GA</th>
-            <th>GD</th>
-            <th>PTS</th>
-          </tr>
-        </thead>
-        <tbody id="tableBuilder"></tbody>
-      </table>
-    </div>
 
   </main>
 
@@ -92,7 +64,6 @@
 
 </body>
 
-<script src="/loadHeaderFooter.js"></script>
-<script src="/buildDynamicLeagueTable.js"></script>
+<script src="/scripts/loadHeaderFooter.js"></script>
 
 </html>

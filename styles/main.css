@@ -1,0 +1,65 @@
+:root {
+    background-color: rgb(170, 170, 170);
+    --table-bg-color: #fff;
+    /* Table background color */
+    --table-border-color: #ddd;
+    /* Table border color */
+    --table-header-bg-color: #f1f1f1;
+    /* Table header background color */
+    --table-text-color: #333;
+    /* Text color for table cells */
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+}
+
+.main {
+    padding: 20px 16px;
+}
+
+.footer {
+    background-color: #f1f1f1;
+    padding: 10px;
+    text-align: center;
+}
+
+/*-------------*/
+/*MEDIA QUERIES*/
+/*-------------*/
+/*Extra small screens - phones*/
+@media screen and (min-width: 480px) {
+    main {
+        background-color: blue;
+        width: 90% !important;
+        margin: auto !important;
+    }
+}
+
+/*Small screens - tablets*/
+@media screen and (min-width: 768px) {
+    main {
+        background-color: green;
+        width: 80% !important;
+        margin: auto !important;
+    }
+}
+
+/*medium screens - Laptops*/
+@media screen and (min-width: 1024px) {
+    main {
+        background-color: inherit;
+        width: 768px !important;
+        margin: auto !important;
+    }
+}
