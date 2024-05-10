@@ -1,8 +1,21 @@
+#divisionSelector,
+#seasonSelector {
+    background-color: inherit;
+    border: none;
+    color: black;
+    font-weight: bold;
+}
+
 .filters {
+    background-color: lightgrey;
+    border: 1px solid black;
+    border-radius: 4px;
     color: white;
     display: flex;
+    height: 20px;
     flex-wrap: wrap;
-    margin-bottom: 10px;
+    padding: 10px;
+    margin: 10px 0px;
 }
 
 .filters h4,
@@ -15,10 +28,17 @@
     margin-right: 0;
 }
 
-#divisionSelector,
-#seasonSelector {
-    background-color: inherit;
-    border: none;
+.filters ul {
+    color: #2e5fff;
+    list-style-position: inside;
+    list-style-type: square;
+}
+
+.filters li {
+    
+}
+
+.filters li span {
     color: black;
-    font-weight: bold;
+    font-style: italic;
 }

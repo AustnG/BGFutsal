@@ -10,7 +10,7 @@ function updateTableData() {
   const selectedDivision = divisionSelector.value;
 
   // update: add animation here eventually
-  tableBuilder.innerHTML = "<p>Retrieving latest stats...</p>";
+  tableBuilder.innerHTML = "<td colspan='10' style='border:none; color:lightgrey;'><span class='loader'></span></br>Retrieving data...</td>";
 
   fetch(googleSheetURL)
     .then(result => result.text())

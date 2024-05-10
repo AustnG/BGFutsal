@@ -40,18 +40,20 @@ body {
 /*Extra small screens - phones*/
 @media screen and (min-width: 480px) {
     main {
-        background-color: blue;
-        width: 90% !important;
+        /* background-color: blue; */
+        font-size: small;
         margin: auto !important;
+        width: 90% !important;
     }
 }
 
 /*Small screens - tablets*/
 @media screen and (min-width: 768px) {
     main {
-        background-color: green;
-        width: 80% !important;
+        /* background-color: green; */
         margin: auto !important;
+        font-size: medium;
+        width: 80% !important;
     }
 }
 
@@ -59,7 +61,7 @@ body {
 @media screen and (min-width: 1024px) {
     main {
         background-color: inherit;
-        width: 768px !important;
         margin: auto !important;
+        width: 768px !important;
     }
 }
