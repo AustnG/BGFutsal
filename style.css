@@ -1,5 +1,5 @@
 :root {
-    background-color: rgb(170, 170, 170);
+    background-color: rgb(161, 161, 161);
     --table-bg-color: #fff;
     /* Table background color */
     --table-border-color: #ddd;
@@ -34,13 +34,41 @@ body {
     text-align: center;
 }
 
+#divisionSelector,
+#seasonSelector {
+    background-color: inherit;
+    border: none;
+    color: black;
+    font-weight: bold;
+}
+
+.filters {
+    background-color: lightgrey;
+    border-radius: 4px;
+    color: white;
+    display: flex;
+    height: 20px;
+    flex-wrap: wrap;
+    padding: 10px;
+    margin: 10px 0px;
+}
+
+.filters h4,
+.filters select {
+    margin-right: 10px;
+}
+
+.filters h4:last-child,
+.filters select:last-child {
+    margin-right: 0;
+}
+
 /*-------------*/
 /*MEDIA QUERIES*/
 /*-------------*/
 /*Extra small screens - phones*/
 @media screen and (min-width: 480px) {
     main {
-        /* background-color: blue; */
         font-size: small;
         margin: auto !important;
         width: 90% !important;
@@ -50,7 +78,6 @@ body {
 /*Small screens - tablets*/
 @media screen and (min-width: 768px) {
     main {
-        /* background-color: green; */
         margin: auto !important;
         font-size: medium;
         width: 80% !important;

@@ -6,7 +6,6 @@ function loadContent(url, containerElement) {
       })
       .catch(error => {
         console.error('Error fetching content:', error);
-        // Implement user-friendly error handling here (optional)
       });
   }
   
