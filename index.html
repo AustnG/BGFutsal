@@ -2,16 +2,27 @@
 <html lang="en">
 
 <head>
+  <title>BG Futsal | Bowling Greens Premier Futsal League</title>
+
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>BG Futsal | Tables & Standings</title>
-
   <link rel="stylesheet" href="./css/style.css">
-  <link rel="stylesheet" href="./css/league-table.css">
 
-  <script src="https://cdn.rawgit.com/Keyang/node-csvtojson/d41f44aa/browser/csvtojson.min.js"></script>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border: 1px solid black;
+      padding: 8px;
+      text-align: center;
+    }
+  </style>
 </head>
 
 <body>
@@ -27,29 +38,70 @@
 
   <main class="main">
 
-    <div class="filters">
-      <h4>Season:</h4>
-      <select id="seasonSelector" onchange="updateTableData()">
-        <option value="2024 Spring">2024 Spring</option>
-        <option value="2023 Winter">2023 Winter</option>
-        <option value="2023 Spring">2023 Spring</option>
-      </select>
-      <h4>Division:</h4>
-      <select id="divisionSelector" onchange="updateTableData()">
-        <option value="A">Division A</option>
-        <option value="B">Division B</option>
-      </select>
+    <!-- === Upcoming Matches === -->
+    <div>
+      <h2>MATCHES (+eventually Playoffs)</h2>*do these in cards? (Pull these from spreadsheet dynamically)
+      <p style="text-align: center;">
+        <br />
+        TEAM 01 v TEAM 02
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        TEAM 03 v TEAM 04<br />
+        <br />
+        TEAM 05 v TEAM 06
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        TEAM 07 v TEAM 08<br />
+        <br />
+        TEAM 09 v TEAM 10
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        TEAM 11 v TEAM 12<br />
+        <br />
+        TEAM 13 v TEAM 14
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        TEAM 15 v TEAM 16
+      </p>
     </div>
 
-    <!-- LEAGUE TABLE -->
+    <br />
+    <hr />
+    <br />
+
+    <!-- === HERO === -->
+    <div class="hero">
+      <h1>BOWLING GREEN'S PREMIER FUTSAL LEAGUE</h1>
+      <h3>- HOSTED BY BOWLING GREEN PARKS & REC -</h3>
+      BGF Logo ---- BGP&R Logo<br />
+      FB --- Inst --- Email<br />
+      <br />
+      <br />
+      <br />
+      <br />
+      <br />
+      <br />
+      <br />
+      <br />
+      <br />
+      <br />
+      <br />
+      <br />
+      <br />
+      <br />
+      *Owensboro Street Soccer site?<br />
+      **Connect w/ BG Soccercast
+    </div>
+
+    <br />
+    <hr />
+    <br />
+
+    <!-- === Current Season table === -->
     <div>
-      <div id="data-loader"></div>
-      <table class="league-table">
+      <h2>YYYY Table</h2>(division selector tab)
+      <table>
         <thead>
           <tr>
             <th>RANK</th>
             <th>TEAM</th>
-            <th>GP</th>
+            <th>MP</th>
             <th>W</th>
             <th>D</th>
             <th>L</th>
@@ -59,27 +111,166 @@
             <th>PTS</th>
           </tr>
         </thead>
-        <tbody id="tableBuilder"></tbody>
+        <tbody>
+          <!-- Row 1 -->
+          <tr>
+            <td>Row 1, Col 1</td>
+            <td>Row 1, Col 2</td>
+            <td>Row 1, Col 3</td>
+            <td>Row 1, Col 4</td>
+            <td>Row 1, Col 5</td>
+            <td>Row 1, Col 6</td>
+            <td>Row 1, Col 7</td>
+            <td>Row 1, Col 8</td>
+            <td>Row 1, Col 9</td>
+            <td>Row 1, Col 10</td>
+          </tr>
+          <!-- Row 2 -->
+          <tr>
+            <td>Row 2, Col 1</td>
+            <td>Row 2, Col 2</td>
+            <td>Row 2, Col 3</td>
+            <td>Row 2, Col 4</td>
+            <td>Row 2, Col 5</td>
+            <td>Row 2, Col 6</td>
+            <td>Row 2, Col 7</td>
+            <td>Row 2, Col 8</td>
+            <td>Row 2, Col 9</td>
+            <td>Row 2, Col 10</td>
+          </tr>
+          <!-- Row 3 -->
+          <tr>
+            <td>Row 3, Col 1</td>
+            <td>Row 3, Col 2</td>
+            <td>Row 3, Col 3</td>
+            <td>Row 3, Col 4</td>
+            <td>Row 3, Col 5</td>
+            <td>Row 3, Col 6</td>
+            <td>Row 3, Col 7</td>
+            <td>Row 3, Col 8</td>
+            <td>Row 3, Col 9</td>
+            <td>Row 3, Col 10</td>
+          </tr>
+          <!-- Row 4 -->
+          <tr>
+            <td>Row 4, Col 1</td>
+            <td>Row 4, Col 2</td>
+            <td>Row 4, Col 3</td>
+            <td>Row 4, Col 4</td>
+            <td>Row 4, Col 5</td>
+            <td>Row 4, Col 6</td>
+            <td>Row 4, Col 7</td>
+            <td>Row 4, Col 8</td>
+            <td>Row 4, Col 9</td>
+            <td>Row 4, Col 10</td>
+          </tr>
+          <!-- Row 5 -->
+          <tr>
+            <td>Row 5, Col 1</td>
+            <td>Row 5, Col 2</td>
+            <td>Row 5, Col 3</td>
+            <td>Row 5, Col 4</td>
+            <td>Row 5, Col 5</td>
+            <td>Row 5, Col 6</td>
+            <td>Row 5, Col 7</td>
+            <td>Row 5, Col 8</td>
+            <td>Row 5, Col 9</td>
+            <td>Row 5, Col 10</td>
+          </tr>
+          <!-- Row 6 -->
+          <tr>
+            <td>Row 6, Col 1</td>
+            <td>Row 6, Col 2</td>
+            <td>Row 6, Col 3</td>
+            <td>Row 6, Col 4</td>
+            <td>Row 6, Col 5</td>
+            <td>Row 6, Col 6</td>
+            <td>Row 6, Col 7</td>
+            <td>Row 6, Col 8</td>
+            <td>Row 6, Col 9</td>
+            <td>Row 6, Col 10</td>
+          </tr>
+          <!-- Row 7 -->
+          <tr>
+            <td>Row 7, Col 1</td>
+            <td>Row 7, Col 2</td>
+            <td>Row 7, Col 3</td>
+            <td>Row 7, Col 4</td>
+            <td>Row 7, Col 5</td>
+            <td>Row 7, Col 6</td>
+            <td>Row 7, Col 7</td>
+            <td>Row 7, Col 8</td>
+            <td>Row 7, Col 9</td>
+            <td>Row 7, Col 10</td>
+          </tr>
+          <!-- Row 8 -->
+          <tr>
+            <td>Row 8, Col 1</td>
+            <td>Row 8, Col 2</td>
+            <td>Row 8, Col 3</td>
+            <td>Row 8, Col 4</td>
+            <td>Row 8, Col 5</td>
+            <td>Row 8, Col 6</td>
+            <td>Row 8, Col 7</td>
+            <td>Row 8, Col 8</td>
+            <td>Row 8, Col 9</td>
+            <td>Row 8, Col 10</td>
+          </tr>
+          <!-- Row 9 -->
+          <tr>
+            <td>Row 9, Col 1</td>
+            <td>Row 9, Col 2</td>
+            <td>Row 9, Col 3</td>
+            <td>Row 9, Col 4</td>
+            <td>Row 9, Col 5</td>
+            <td>Row 9, Col 6</td>
+            <td>Row 9, Col 7</td>
+            <td>Row 9, Col 8</td>
+            <td>Row 9, Col 9</td>
+            <td>Row 9, Col 10</td>
+          </tr>
+          <!-- Row 10 -->
+          <tr>
+            <td>Row 10, Col 1</td>
+            <td>Row 10, Col 2</td>
+            <td>Row 10, Col 3</td>
+            <td>Row 10, Col 4</td>
+            <td>Row 10, Col 5</td>
+            <td>Row 10, Col 6</td>
+            <td>Row 10, Col 7</td>
+            <td>Row 10, Col 8</td>
+            <td>Row 10, Col 9</td>
+            <td>Row 10, Col 10</td>
+          </tr>
+        </tbody>
       </table>
-    </div>
 
-    <div class="filters">
-      <table style="border-left: 5px solid #2e5fff; color: black;">
-        <tr>
-          <td><i>&nbsp;* Playoffs</i></td>
-        </tr>
-      </table>
+      <br />
+      <hr />
+      <br />
+
+      <!-- === Image // Story Carousel === -->
+      <div class="hero">
+        +Image // Story Carousel
+      </div>
+
+      <br />
+      <hr />
+      <br />
+
+      <!-- === 3 Card Links to About // Stats // Contact === -->
+      <div class="hero">
+        === 3 Card Links to About // Stats // Contact ===
+      </div>
+
     </div>
 
   </main>
 
-  <!--
   <footer id="footer-container"></footer>
-  -->
 
 </body>
 
 <script src="./scripts/loadHeaderFooter.js"></script>
-<script src="./scripts/buildDynamicLeagueTable.js"></script>
 
 </html>
