@@ -1,13 +1,9 @@
 :root {
     background-color: rgb(161, 161, 161);
-    --table-bg-color: #fff;
-    /* Table background color */
-    --table-border-color: #ddd;
-    /* Table border color */
-    --table-header-bg-color: #f1f1f1;
-    /* Table header background color */
-    --table-text-color: #333;
-    /* Text color for table cells */
+    --table-bg-color: #fff; /* Table background color */
+    --table-border-color: #ddd; /* Table border color */
+    --table-header-bg-color: #f1f1f1; /* Table header background color */
+    --table-text-color: #333; /* Text color for table cells */
 }
 
 html {
@@ -26,6 +22,12 @@ body {
 
 .main {
     padding: 20px 16px;
+}
+
+.hero {
+    background-color: aquamarine;
+    height: 400px;
+    width: 100%;
 }
 
 .footer {
