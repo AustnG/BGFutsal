@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-T">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BG Futsal | Bowling Green Futsal League</title>
+  <link rel="icon" type="image/png" href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiNRwWE_BLwGLGC1q961MbnXnpEQ3DdwUMMtNvQrThrmTYx4uwvlDzD7IfLy6uz1BNxoiuegW9oLI_3WWgUPHwRczZDI_uHKxchhLtWfL_hn79NEA5Easdt4M4zOzPhzcFZs26w083zFJjzjHMZUJvfn3YAaZUgJFJ26ATSmnU-murkGsyM3yKHIxHeSSA/s320/bgif1100x1100-white.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Oswald', 'sans-serif'],
+          },
+          colors: {
+            'dark-bg': '#111827', // Tailwind gray-900
+            'dark-card': '#1F2937', // Tailwind gray-800
+            'dark-border': '#374151', // Tailwind gray-700
+            'main-green': '#4A7C59',
+            'main-green-dark': '#3A6348',
+            'highlight-gold': '#FFD700',
+            'light-text': '#F3F4F6', // Tailwind gray-100
+            'secondary-text': '#9CA3AF', // Tailwind gray-400
+            // Old colors for reference or potential use
+            'secondary-gray': '#6b7280', 
+            'dark-text': '#1f2937', 
+            'light-accent': '#F3F7F9',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #111827; /* dark-bg */
+      color: #F3F4F6; /* light-text */
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    *:focus-visible {
+        outline: 2px solid #FFD700; /* highlight-gold */
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+    .font-display {
+      font-family: 'Oswald', sans-serif;
+    }
+    .prose {
+      color: #9CA3AF; /* secondary-text */
+    }
+    .prose strong {
+      color: #F3F4F6; /* light-text */
+    }
+    .prose a {
+      color: #4A7C59; /* main-green */
+      text-decoration: none;
+      border-bottom: 1px solid #4A7C59;
+      transition: color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    }
+    .prose a:hover {
+      color: #FFD700; /* highlight-gold */
+      border-bottom-color: #FFD700;
+    }
+    .prose h1, .prose h2, .prose h3, .prose h4 {
+      font-family: 'Oswald', sans-serif;
+      color: #F3F4F6; /* light-text */
+      letter-spacing: 0.025em;
+    }
+     .prose h2 {
+      border-bottom: 1px solid #374151; /* dark-border */
+      padding-bottom: 0.3em;
+      margin-bottom: 0.8em;
+    }
+    .prose h3 {
+      border-bottom: 1px solid rgba(55, 65, 81, 0.5); /* dark-border with opacity */
+      padding-bottom: 0.2em;
+      margin-bottom: 0.7em;
+    }
+    .prose ul > li::before {
+      background-color: #4A7C59; /* main-green */
+    }
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.6.1"
+  }
+}
+</script>
+</head>
+<body class="bg-dark-bg text-light-text font-sans">
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
