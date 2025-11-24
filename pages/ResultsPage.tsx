@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PageTitle from '../components/PageTitle';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -188,6 +189,7 @@ const ResultsPage: React.FC = () => {
           twoWeekResult: getString(rawTeam['2WeekResult']),
           lastWeekResult: getString(rawTeam['LastWeekResult']),
           currentWeekResult: getString(rawTeam['CurrentWeekResult']),
+          teamColor: getString(rawTeam.TeamColor),
         };
       }).filter(team => team.division !== Division.Unknown && team.year && team.seasonName && team.teamName);
       setAllStandingsDataFromSheet(processedStandingsFromSheet);
@@ -259,6 +261,7 @@ const ResultsPage: React.FC = () => {
         twoWeekResult: sheetDataForTeam?.twoWeekResult,
         lastWeekResult: sheetDataForTeam?.lastWeekResult,
         currentWeekResult: sheetDataForTeam?.currentWeekResult,
+        teamColor: sheetDataForTeam?.teamColor,
       };
     });
     

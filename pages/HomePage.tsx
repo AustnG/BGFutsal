@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -277,6 +278,7 @@ const HomePage: React.FC = () => {
           twoWeekResult: getString(rawTeam['2WeekResult']),
           lastWeekResult: getString(rawTeam['LastWeekResult']),
           currentWeekResult: getString(rawTeam['CurrentWeekResult']),
+          teamColor: getString(rawTeam.TeamColor),
         };
       }).filter(team => team.division !== Division.Unknown && team.teamName && team.year && team.seasonName);
       setAllStandingsDataFromSheet(processedStandingsFromSheet);
@@ -362,6 +364,7 @@ const HomePage: React.FC = () => {
         twoWeekResult: sheetDataForTeam?.twoWeekResult,
         lastWeekResult: sheetDataForTeam?.lastWeekResult,
         currentWeekResult: sheetDataForTeam?.currentWeekResult,
+        teamColor: sheetDataForTeam?.teamColor,
       };
     });
 
@@ -625,7 +628,18 @@ const HomePage: React.FC = () => {
                         {index + 1}
                       </td>
                       <td className="px-2 py-3 whitespace-nowrap text-sm text-center">{getRankChangeIcon(row.rankChange)}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-light-text">{row.teamName}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-light-text">
+                        <div className="flex items-center">
+                          {row.teamColor && (
+                            <span 
+                              className="w-3 h-3 rounded-full mr-2 flex-shrink-0 shadow-sm border border-white/10" 
+                              style={{ backgroundColor: row.teamColor }}
+                              aria-hidden="true"
+                            ></span>
+                          )}
+                          {row.teamName}
+                        </div>
+                      </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.played}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.wins}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.draws}</td>

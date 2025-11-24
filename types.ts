@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 export enum Division {
@@ -57,6 +58,7 @@ export interface SheetTeamWithStats {
   'LastWeekResult'?: string; // Updated field
   'CurrentWeekResult'?: string; // Updated field
   'Division'?: string; // Optional: If sheet *also* has a separate division column.
+  'TeamColor'?: string; // Hex value for team color
 }
 
 // This interface defines the structure of a row in the standings table.
@@ -76,6 +78,7 @@ export interface StandingRow {
   twoWeekResult?: string;
   lastWeekResult?: string;
   currentWeekResult?: string;
+  teamColor?: string;
 }
 
 // This is the processed data structure holding all stats for a team in a specific season/year/division.
