@@ -17,7 +17,7 @@ const FAVICON_URL = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsE
 
 const navItemsList: NavItem[] = [
   { name: 'Home', path: '/', icon: MaterialHomeIcon },
-  { name: 'Results', path: '/results', icon: MaterialEmojiEventsIcon },
+  { name: 'Matches', path: '/matches', icon: MaterialEmojiEventsIcon },
 ];
 
 const infoDropdownItems: NavDropdownItem = {

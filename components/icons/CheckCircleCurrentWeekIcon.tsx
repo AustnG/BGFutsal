@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 
 export const CheckCircleCurrentWeekIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
@@ -8,8 +9,9 @@ export const CheckCircleCurrentWeekIcon: React.FC<React.SVGProps<SVGSVGElement>>
     {/* Inner white ring */}
     <circle cx="12" cy="12" r="8.5" fill="none" stroke="white" strokeWidth="1.5" />
     {/* Checkmark symbol, filled white */}
+    {/* FIX: Replaced invalid SVG path data with a valid path for a checkmark. */}
     <path
-      d="M15.61 10.186a.75.75 0 10-1.06-1.06L10.5 12.19l-1.72-1.72a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.06 0l4.5-4.5z"
+      d="M9.7 15.3l-3.5-3.5c-.4-.4-.4-1 0-1.4s1-.4 1.4 0l2.8 2.8 6.3-6.3c.4-.4 1-.4 1.4 0s.4 1 0 1.4l-7 7c-.4.4-1 .4-1.4 0z"
       fill="white"
     />
   </svg>

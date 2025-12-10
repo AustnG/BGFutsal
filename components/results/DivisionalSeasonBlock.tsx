@@ -1,18 +1,13 @@
 
+
 import React from 'react';
 import { ProcessedSeason, ProcessedGame, TeamStatsData } from '../../types';
 import ChampionAwardsDisplay from './ChampionAwardsDisplay';
 import PlayoffDisplay from './PlayoffDisplay';
 import RegularSeasonResultsDisplay from './RegularSeasonResultsDisplay';
-import { ArrowUpIcon } from '../icons/ArrowUpIcon';
-import { ArrowDownIcon } from '../icons/ArrowDownIcon';
 import { MinusIcon } from '../icons/MinusIcon';
-import { CheckCircleIcon } from '../icons/CheckCircleIcon';
-import { MinusCircleIcon } from '../icons/MinusCircleIcon';
-import { XCircleIcon } from '../icons/XCircleIcon';
-import { CheckCircleCurrentWeekIcon } from '../icons/CheckCircleCurrentWeekIcon';
-import { MinusCircleCurrentWeekIcon } from '../icons/MinusCircleCurrentWeekIcon';
-import { XCircleCurrentWeekIcon } from '../icons/XCircleCurrentWeekIcon';
+import { ChevronUpIcon } from '../icons/ChevronUpIcon';
+import { ChevronDownIcon } from '../icons/ChevronDownIcon';
 
 interface DivisionalSeasonBlockProps {
   divisionalSeasonData: ProcessedSeason;
@@ -43,22 +38,46 @@ const DivisionalSeasonBlock: React.FC<DivisionalSeasonBlockProps> = ({ divisiona
     .sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const getRankChangeIcon = (rankChange?: string) => {
-    if (rankChange === 'Up') return <ArrowUpIcon className="w-5 h-5 text-green-500 mx-auto" aria-label="Rank up" />;
-    if (rankChange === 'Down') return <ArrowDownIcon className="w-5 h-5 text-red-500 mx-auto" aria-label="Rank down" />;
+    if (rankChange === 'Up') return <ChevronUpIcon className="w-5 h-5 text-green-500 mx-auto" aria-label="Rank up" />;
+    if (rankChange === 'Down') return <ChevronDownIcon className="w-5 h-5 text-red-500 mx-auto" aria-label="Rank down" />;
     if (rankChange === 'Same') return <MinusIcon className="w-5 h-5 text-secondary-text mx-auto" aria-label="Rank same" />;
     return <MinusIcon className="w-5 h-5 text-gray-600 mx-auto" aria-label="No change in rank" />;
   };
-  const getResultIcon = (result?: string) => {
-    if (result === 'W') return <CheckCircleIcon className="w-5 h-5 text-green-500 mx-auto" aria-label="Win" />;
-    if (result === 'D') return <MinusCircleIcon className="w-5 h-5 text-gray-500 mx-auto" aria-label="Draw" />;
-    if (result === 'L') return <XCircleIcon className="w-5 h-5 text-red-500 mx-auto" aria-label="Loss" />;
-    return <span className="text-gray-600 mx-auto">-</span>;
-  };
-  const getCurrentWeekResultIcon = (result?: string) => {
-    if (result === 'W') return <CheckCircleCurrentWeekIcon className="w-5 h-5 text-green-500 mx-auto" aria-label="Win (Current Week)" />;
-    if (result === 'D') return <MinusCircleCurrentWeekIcon className="w-5 h-5 text-gray-500 mx-auto" aria-label="Draw (Current Week)" />;
-    if (result === 'L') return <XCircleCurrentWeekIcon className="w-5 h-5 text-red-500 mx-auto" aria-label="Loss (Current Week)" />;
-    return null;
+
+  const getResultIndicator = (result?: string, isCurrentWeek = false) => {
+    if (!result || !['W', 'D', 'L'].includes(result.toUpperCase())) {
+        return <span className="text-secondary-text mx-auto">-</span>;
+    }
+
+    const upperResult = result.toUpperCase();
+    let bgColor = '';
+    let label = '';
+    switch (upperResult) {
+        case 'W':
+            bgColor = 'bg-green-500';
+            label = 'Win';
+            break;
+        case 'D':
+            bgColor = 'bg-gray-500';
+            label = 'Draw';
+            break;
+        case 'L':
+            bgColor = 'bg-red-500';
+            label = 'Loss';
+            break;
+    }
+
+    return (
+        <div className="relative flex justify-center">
+            <div 
+                className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold text-white ${bgColor}`} 
+                aria-label={label + (isCurrentWeek ? ' (Current Week)' : '')}
+            >
+                {upperResult}
+            </div>
+            {isCurrentWeek && <div className={`absolute -bottom-1 w-4 h-0.5 ${bgColor} rounded-md`} aria-hidden="true"></div>}
+        </div>
+    );
   };
 
   return (
@@ -84,17 +103,15 @@ const DivisionalSeasonBlock: React.FC<DivisionalSeasonBlockProps> = ({ divisiona
              <table className="min-w-full divide-y divide-dark-border">
               <thead className="bg-dark-bg/50">
                 <tr>
-                  <th scope="col" className="pl-5 pr-3 py-3 text-left text-xs font-semibold text-secondary-text uppercase tracking-wider">Rank</th>
+                  <th scope="col" className="pl-4 pr-2 py-3 text-left text-xs font-semibold text-secondary-text uppercase tracking-wider">Rank</th>
                   <th scope="col" className="px-2 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider" aria-label="Rank Change">Change</th>
                   <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-secondary-text uppercase tracking-wider">Team</th>
+                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">Pts</th>
                   <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">GP</th>
                   <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">W</th>
                   <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">D</th>
                   <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">L</th>
-                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">GF</th>
-                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">GA</th>
-                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">+/-</th>
-                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">Pts</th>
+                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">GD</th>
                   <th scope="col" colSpan={3} className="px-2 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">Last 3</th>
                 </tr>
               </thead>
@@ -102,10 +119,9 @@ const DivisionalSeasonBlock: React.FC<DivisionalSeasonBlockProps> = ({ divisiona
                 {standingsData.map((row, index) => {
                   const isPlayoffSpot = index < 8; 
                   const rowClass = `hover:bg-main-green/10 transition-colors duration-150`;
-                  const currentWeekIcon = getCurrentWeekResultIcon(row.currentWeekResult);
                   return (
                     <tr key={`${row.teamName}-${row.year}-${row.seasonName}-${row.division}-${index}`} className={rowClass}>
-                      <td className="relative pl-5 pr-3 py-3 whitespace-nowrap text-sm font-medium text-light-text">
+                      <td className="relative pl-4 pr-2 py-3 whitespace-nowrap text-sm font-medium text-light-text">
                         {isPlayoffSpot && (
                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-main-green" aria-hidden="true"></div>
                         )}
@@ -124,19 +140,15 @@ const DivisionalSeasonBlock: React.FC<DivisionalSeasonBlockProps> = ({ divisiona
                           {row.teamName}
                         </div>
                       </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-highlight-gold text-center">{row.points}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.played}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.wins}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.draws}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.losses}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.goalsFor}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.goalsAgainst}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.goalDifference}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-highlight-gold text-center">{row.points}</td>
-                      <td className="px-2 py-3 whitespace-nowrap text-sm text-secondary-text text-center" title="Two Weeks Ago Result">{getResultIcon(row.twoWeekResult)}</td>
-                      <td className="px-2 py-3 whitespace-nowrap text-sm text-secondary-text text-center" title="Last Week Result">{getResultIcon(row.lastWeekResult)}</td>
-                      <td className="px-2 py-3 whitespace-nowrap text-sm text-secondary-text text-center" title="Current Week Result">
-                        {currentWeekIcon ? currentWeekIcon : (row.currentWeekResult || '-')}
-                      </td>
+                      <td className="px-2 py-3 whitespace-nowrap text-sm text-secondary-text text-center" title="Two Weeks Ago Result">{getResultIndicator(row.twoWeekResult)}</td>
+                      <td className="px-2 py-3 whitespace-nowrap text-sm text-secondary-text text-center" title="Last Week Result">{getResultIndicator(row.lastWeekResult)}</td>
+                      <td className="px-2 py-3 whitespace-nowrap text-sm text-secondary-text text-center" title="Current Week Result">{getResultIndicator(row.currentWeekResult, true)}</td>
                     </tr>
                   );
                 })}

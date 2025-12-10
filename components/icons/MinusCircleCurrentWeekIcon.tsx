@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 
 export const MinusCircleCurrentWeekIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
@@ -8,8 +9,9 @@ export const MinusCircleCurrentWeekIcon: React.FC<React.SVGProps<SVGSVGElement>>
     {/* Inner white ring */}
     <circle cx="12" cy="12" r="8.5" fill="none" stroke="white" strokeWidth="1.5" />
     {/* Minus symbol, filled white */}
+    {/* FIX: Replaced invalid SVG path data with a valid path for a minus sign. */}
     <path
-      d="M8.25 10.5a.75.75 0 01.75-.75h6a.75.75 0 010 1.5h-6a.75.75 0 01-.75-.75z"
+      d="M17 11H7c-.6 0-1 .4-1 1s.4 1 1 1h10c.6 0 1-.4 1-1s-.4-1-1-1z"
       fill="white"
     />
   </svg>

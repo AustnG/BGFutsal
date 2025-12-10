@@ -57,7 +57,7 @@ const RulesFaqsPage: React.FC = () => {
             <li>Saturdays: 5:00 PM - 9:00 PM</li>
             <li>Sundays: 3:00 PM - 7:00 PM</li>
           </ul>
-          <p>*Game schedules will be posted on the Home and Results pages.</p>
+          <p>*Game schedules will be posted on the Home and Matches pages.</p>
         </>
       )
     },

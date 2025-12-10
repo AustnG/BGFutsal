@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PageTitle from '../components/PageTitle';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -10,7 +11,7 @@ import DivisionalSeasonBlock from '../components/results/DivisionalSeasonBlock';
 import { calculateStandings } from '../utils/standingsCalculator';
 
 
-const ResultsPage: React.FC = () => {
+const MatchesPage: React.FC = () => {
   const [allGames, setAllGames] = useState<ProcessedGame[]>([]);
   const [allProcessedSeasons, setAllProcessedSeasons] = useState<ProcessedSeason[]>([]);
   const [allStandingsDataFromSheet, setAllStandingsDataFromSheet] = useState<TeamStatsData[]>([]); // For RankChange, Last3
@@ -195,7 +196,7 @@ const ResultsPage: React.FC = () => {
       setAllStandingsDataFromSheet(processedStandingsFromSheet);
 
     } catch (err) {
-      console.error("Failed to fetch results page data:", err);
+      console.error("Failed to fetch matches page data:", err);
       setError('Failed to load data. Please try again later.');
     } finally {
       setLoading(false);
@@ -301,14 +302,14 @@ const ResultsPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <PageTitle title="League Archives" subtitle="Browse historical results, standings, and champions by year, season, and division." />
+      <PageTitle title="League Archives" subtitle="Browse historical matches, standings, and champions by year, season, and division." />
 
       <div className="mb-10 p-6 bg-dark-card shadow-xl rounded-xl border border-dark-border">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
           <div>
-            <label htmlFor="year-select-results" className="block text-sm font-semibold text-highlight-gold mb-1">Year</label>
+            <label htmlFor="year-select-matches" className="block text-sm font-semibold text-highlight-gold mb-1">Year</label>
             <select
-              id="year-select-results"
+              id="year-select-matches"
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
               disabled={availableYears.length === 0 && !loading}
@@ -321,9 +322,9 @@ const ResultsPage: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="season-select-results" className="block text-sm font-semibold text-highlight-gold mb-1">Season</label>
+            <label htmlFor="season-select-matches" className="block text-sm font-semibold text-highlight-gold mb-1">Season</label>
             <select
-              id="season-select-results"
+              id="season-select-matches"
               value={selectedSeasonName}
               onChange={(e) => setSelectedSeasonName(e.target.value)}
               disabled={availableSeasonNames.length === 0 && !loading}
@@ -336,9 +337,9 @@ const ResultsPage: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="division-select-results" className="block text-sm font-semibold text-highlight-gold mb-1">Division</label>
+            <label htmlFor="division-select-matches" className="block text-sm font-semibold text-highlight-gold mb-1">Division</label>
             <select
-              id="division-select-results"
+              id="division-select-matches"
               value={selectedDivision}
               onChange={(e) => setSelectedDivision(e.target.value as Division)}
               className="w-full mt-1 block pl-3 pr-10 py-2.5 text-base bg-dark-bg text-light-text border border-dark-border focus:outline-none focus:ring-2 focus:ring-highlight-gold focus:border-highlight-gold sm:text-sm rounded-lg shadow-md"
@@ -394,4 +395,4 @@ const ResultsPage: React.FC = () => {
   );
 };
 
-export default ResultsPage;
+export default MatchesPage;

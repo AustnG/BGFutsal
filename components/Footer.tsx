@@ -7,7 +7,7 @@ const Footer: React.FC = () => {
   
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Results', path: '/results' },
+    { name: 'Matches', path: '/matches' },
     { name: 'About', path: '/about' },
     { name: 'Rules & FAQs', path: '/rules-faqs' },
     { name: 'Sponsors', path: '/sponsors' },

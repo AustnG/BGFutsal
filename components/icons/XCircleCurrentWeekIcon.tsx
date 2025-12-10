@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 
 export const XCircleCurrentWeekIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
@@ -8,9 +9,12 @@ export const XCircleCurrentWeekIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
     {/* Inner white ring */}
     <circle cx="12" cy="12" r="8.5" fill="none" stroke="white" strokeWidth="1.5" />
     {/* X symbol, filled white */}
+    {/* FIX: Replaced invalid SVG path data with a valid path for an 'X' symbol. */}
     <path
-      d="M10.5 10.5a.75.75 0 011.06 0L12 11.44l.44-.44a.75.75 0 011.06 1.06L13.06 12l.44.44a.75.75 0 11-1.06 1.06L12 13.06l-.44.44a.75.75 0 01-1.06-1.06L11.44 12l-.44-.44a.75.75 0 010-1.06z"
-      fill="white"
+      d="M15.5 9.5l-6 6m0-6l6 6"
+      stroke="white"
+      strokeWidth="2"
+      strokeLinecap="round"
     />
   </svg>
 );

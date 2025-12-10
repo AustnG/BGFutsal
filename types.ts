@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export enum Division {
@@ -117,7 +116,8 @@ export interface ProcessedGame {
   seasonName: string; // Key for filtering, e.g., "2025 Spring A"
   location?: string;
   gameType: string; 
-  gameWeek: number | string; // Can be number for regular season, or string like 'Finals'
+  // FIX: Made gameWeek optional to match data processing logic which can result in `undefined`.
+  gameWeek?: number | string; // Can be number for regular season, or string like 'Finals'
   homePKs?: number; // Parsed Home Penalty Kicks score
   awayPKs?: number; // Parsed Away Penalty Kicks score
 }

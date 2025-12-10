@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -12,6 +13,8 @@ import {
 import { CalendarIcon } from '../components/icons/CalendarIcon';
 import { NewspaperIcon } from '../components/icons/NewspaperIcon';
 import { CameraIcon } from '../components/icons/CameraIcon';
+import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
+import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { fetchSheetData } from '../services/sheetService';
 import { parseCsvData } from '../utils/csvParser';
@@ -26,36 +29,10 @@ import {
   SheetNewsItem, 
   ProcessedNewsItem 
 } from '../types';
-import { ArrowUpIcon } from '../components/icons/ArrowUpIcon';
-import { ArrowDownIcon } from '../components/icons/ArrowDownIcon';
 import { MinusIcon } from '../components/icons/MinusIcon';
-import { CheckCircleIcon } from '../components/icons/CheckCircleIcon';
-import { MinusCircleIcon } from '../components/icons/MinusCircleIcon';
-import { XCircleIcon } from '../components/icons/XCircleIcon';
-import { CheckCircleCurrentWeekIcon } from '../components/icons/CheckCircleCurrentWeekIcon';
-import { MinusCircleCurrentWeekIcon } from '../components/icons/MinusCircleCurrentWeekIcon';
-import { XCircleCurrentWeekIcon } from '../components/icons/XCircleCurrentWeekIcon';
 import { calculateStandings } from '../utils/standingsCalculator';
-
-const parseTimeToMinutes = (timeStr?: string): number => {
-  if (!timeStr) return 24 * 60; // Sort games with no time to the end of the day
-  const timePart = timeStr.toUpperCase().match(/(\d+):(\d+)\s*(AM|PM)?/);
-  if (!timePart) return 24 * 60;
-
-  let hours = parseInt(timePart[1], 10);
-  const minutes = parseInt(timePart[2], 10);
-  const modifier = timePart[3];
-
-  if (isNaN(hours) || isNaN(minutes)) return 24 * 60;
-
-  if (modifier === 'PM' && hours !== 12) {
-    hours += 12;
-  }
-  if (modifier === 'AM' && hours === 12) { // Midnight case for 12 AM
-    hours = 0;
-  }
-  return hours * 60 + minutes;
-};
+import { ChevronUpIcon } from '../components/icons/ChevronUpIcon';
+import { ChevronDownIcon } from '../components/icons/ChevronDownIcon';
 
 const formatTo12HourTime = (timeStr?: string): string | undefined => {
   if (!timeStr) return undefined;
@@ -91,6 +68,13 @@ const SectionHeader: React.FC<{ title: string; icon: React.ElementType; }> = ({ 
   </h2>
 );
 
+const getDivStyle = (div: Division) => {
+    // Swapped colors: A is now Gold, B is now Green
+    if (div === Division.A) return "border-highlight-gold text-highlight-gold bg-highlight-gold/10";
+    if (div === Division.B) return "border-main-green text-main-green bg-main-green/10";
+    return "border-secondary-text text-secondary-text bg-gray-500/10";
+};
+
 const HomePage: React.FC = () => {
   const cardBaseStyle = "bg-dark-card p-6 rounded-xl shadow-lg border border-dark-border";
 
@@ -108,6 +92,10 @@ const HomePage: React.FC = () => {
   const [newsItems, setNewsItems] = useState<ProcessedNewsItem[]>([]);
   const [loadingNews, setLoadingNews] = useState<boolean>(true);
   const [newsError, setNewsError] = useState<string | null>(null);
+
+  // Matchweek state
+  const [matchweeks, setMatchweeks] = useState<(string | number)[]>([]);
+  const [selectedMatchweek, setSelectedMatchweek] = useState<string | number | null>(null);
 
   const divisionsForFilter = Object.values(Division).filter(
     value => value !== Division.Unknown
@@ -305,14 +293,18 @@ const HomePage: React.FC = () => {
     fetchData();
   }, [fetchData]);
 
+  // Combined effect for Standings and Matchweek calculation
   useEffect(() => {
-    if (!defaultYear || !defaultSeasonName || !selectedDivision || (allGames.length === 0 && allStandingsDataFromSheet.length === 0 && !loadingStandings)) {
+    if (loadingStandings || !defaultYear || !defaultSeasonName) {
       setCurrentStandings([]);
+      setMatchweeks([]);
+      setSelectedMatchweek(null);
       return;
     }
 
+    // --- Standings Calculation ---
     const targetSeasonKey = `${defaultYear} ${defaultSeasonName} ${selectedDivision}`;
-    const relevantRegularGames = allGames.filter(game =>
+    const relevantRegularGamesForStandings = allGames.filter(game =>
       game.seasonName.toLowerCase() === targetSeasonKey.toLowerCase() &&
       game.gameType === 'Regular' &&
       !isNaN(game.homeScore) && !isNaN(game.awayScore)
@@ -320,54 +312,26 @@ const HomePage: React.FC = () => {
 
     const uniqueTeamNames = new Set<string>();
     const knownTeamPlaceholders = ["unknown home", "unknown away", "tbd"];
-
-    relevantRegularGames.forEach(game => {
-      if (game.homeTeam && !knownTeamPlaceholders.includes(game.homeTeam.toLowerCase())) {
-        uniqueTeamNames.add(game.homeTeam);
-      }
-      if (game.awayTeam && !knownTeamPlaceholders.includes(game.awayTeam.toLowerCase())) {
-        uniqueTeamNames.add(game.awayTeam);
+    relevantRegularGamesForStandings.forEach(game => {
+      if (game.homeTeam && !knownTeamPlaceholders.includes(game.homeTeam.toLowerCase())) uniqueTeamNames.add(game.homeTeam);
+      if (game.awayTeam && !knownTeamPlaceholders.includes(game.awayTeam.toLowerCase())) uniqueTeamNames.add(game.awayTeam);
+    });
+    allStandingsDataFromSheet.forEach(sheetRow => {
+      if (sheetRow.year === defaultYear && sheetRow.seasonName.toLowerCase() === defaultSeasonName.toLowerCase() && sheetRow.division === selectedDivision && sheetRow.teamName && !knownTeamPlaceholders.includes(sheetRow.teamName.toLowerCase())) {
+        uniqueTeamNames.add(sheetRow.teamName);
       }
     });
-     allStandingsDataFromSheet.forEach(sheetRow => {
-        if( sheetRow.year === defaultYear &&
-            sheetRow.seasonName.toLowerCase() === defaultSeasonName.toLowerCase() &&
-            sheetRow.division === selectedDivision &&
-            sheetRow.teamName && !knownTeamPlaceholders.includes(sheetRow.teamName.toLowerCase())
-          ) {
-            uniqueTeamNames.add(sheetRow.teamName);
-        }
-     });
-
 
     const initialTeamRows: StandingRow[] = Array.from(uniqueTeamNames).map(name => ({
-      teamName: name,
-      division: selectedDivision,
-      played: 0, wins: 0, draws: 0, losses: 0,
-      goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0,
+      teamName: name, division: selectedDivision, played: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0,
     }));
-
-    const calculatedStandingsCore = calculateStandings(relevantRegularGames, initialTeamRows);
-
+    const calculatedStandingsCore = calculateStandings(relevantRegularGamesForStandings, initialTeamRows);
     const mergedStandings = calculatedStandingsCore.map(coreRow => {
       const sheetDataForTeam = allStandingsDataFromSheet.find(sheetRow =>
-        sheetRow.teamName === coreRow.teamName &&
-        sheetRow.year === defaultYear &&
-        sheetRow.seasonName.toLowerCase() === defaultSeasonName.toLowerCase() &&
-        sheetRow.division === selectedDivision
+        sheetRow.teamName === coreRow.teamName && sheetRow.year === defaultYear && sheetRow.seasonName.toLowerCase() === defaultSeasonName.toLowerCase() && sheetRow.division === selectedDivision
       );
-      return {
-        ...coreRow,
-        year: defaultYear,
-        seasonName: defaultSeasonName,
-        rankChange: sheetDataForTeam?.rankChange,
-        twoWeekResult: sheetDataForTeam?.twoWeekResult,
-        lastWeekResult: sheetDataForTeam?.lastWeekResult,
-        currentWeekResult: sheetDataForTeam?.currentWeekResult,
-        teamColor: sheetDataForTeam?.teamColor,
-      };
+      return { ...coreRow, year: defaultYear, seasonName: defaultSeasonName, rankChange: sheetDataForTeam?.rankChange, twoWeekResult: sheetDataForTeam?.twoWeekResult, lastWeekResult: sheetDataForTeam?.lastWeekResult, currentWeekResult: sheetDataForTeam?.currentWeekResult, teamColor: sheetDataForTeam?.teamColor };
     });
-
     const sortedData = mergedStandings.sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points;
       if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
@@ -375,88 +339,189 @@ const HomePage: React.FC = () => {
       if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
       return a.teamName.localeCompare(b.teamName);
     });
-
     setCurrentStandings(sortedData);
 
+    // --- Matchweek Calculation ---
+    const seasonGames = allGames.filter(game =>
+      game.seasonName.toLowerCase().startsWith(`${defaultYear} ${defaultSeasonName}`.toLowerCase())
+    );
+    
+    const playoffTypes = ['Quarter Finals', 'Semi Finals', 'Finals'];
+    const weekIdentifiers = new Set<string | number>();
+
+    seasonGames.forEach(g => {
+        if (g.gameWeek !== null && g.gameWeek !== undefined && String(g.gameWeek).trim() !== '') {
+            weekIdentifiers.add(g.gameWeek);
+        } else if (playoffTypes.includes(g.gameType)) {
+            weekIdentifiers.add(g.gameType);
+        }
+    });
+
+    const uniqueWeeks: (string | number)[] = Array.from(weekIdentifiers);
+
+    const playoffOrder: { [key: string]: number } = {
+        'Quarter Finals': 101,
+        'Semi Finals': 102,
+        'Finals': 103,
+    };
+
+    const sortedWeeks: (string | number)[] = uniqueWeeks.sort((a, b) => {
+        const getSortValue = (week: string | number): number => {
+            if (typeof week === 'string' && playoffOrder[week]) {
+                return playoffOrder[week];
+            }
+            const num = parseInt(String(week), 10);
+            return isNaN(num) ? Infinity : num;
+        };
+        return getSortValue(a) - getSortValue(b);
+    });
+    setMatchweeks(sortedWeeks);
+
+    if (sortedWeeks.length > 0) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      let defaultWeek: string | number | null = null;
+      for (const week of sortedWeeks) {
+        const hasFutureGame = seasonGames.some(g => {
+            const gameWeekIdentifier = (g.gameWeek !== null && g.gameWeek !== undefined && String(g.gameWeek).trim() !== '') ? g.gameWeek : (playoffTypes.includes(g.gameType) ? g.gameType : null);
+            return gameWeekIdentifier === week && g.date >= today;
+        });
+        if (hasFutureGame) {
+          defaultWeek = week;
+          break;
+        }
+      }
+      setSelectedMatchweek(defaultWeek || sortedWeeks[sortedWeeks.length - 1]);
+    } else {
+      setSelectedMatchweek(null);
+    }
   }, [allGames, allStandingsDataFromSheet, defaultYear, defaultSeasonName, selectedDivision, loadingStandings]);
   
-  const upcomingGamesList = useMemo(() => {
-    if (loadingStandings && allGames.length === 0) { 
-      return [];
+  // FIX: Define handlePrevMatchweek and handleNextMatchweek to navigate matchweeks.
+  const handlePrevMatchweek = () => {
+    if (selectedMatchweek) {
+      const currentIndex = matchweeks.indexOf(selectedMatchweek);
+      if (currentIndex > 0) {
+        setSelectedMatchweek(matchweeks[currentIndex - 1]);
+      }
     }
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); 
+  };
 
+  const handleNextMatchweek = () => {
+    if (selectedMatchweek) {
+      const currentIndex = matchweeks.indexOf(selectedMatchweek);
+      if (currentIndex < matchweeks.length - 1) {
+        setSelectedMatchweek(matchweeks[currentIndex + 1]);
+      }
+    }
+  };
+
+  const matchweekTitle = useMemo(() => {
+    if (!selectedMatchweek) return '-';
+    // Check if it's a string that's not a number (e.g., 'Finals')
+    if (typeof selectedMatchweek === 'string' && isNaN(parseInt(selectedMatchweek, 10))) {
+      return selectedMatchweek;
+    }
+    return `Matchweek ${selectedMatchweek}`;
+  }, [selectedMatchweek]);
+
+  const gamesForSelectedMatchweek = useMemo(() => {
+    if (!selectedMatchweek) return [];
+    const playoffTypes = ['Quarter Finals', 'Semi Finals', 'Finals'];
     return allGames
       .filter(game => {
-        const gameDay = new Date(game.date);
-        gameDay.setHours(0,0,0,0); 
-        const isUndecidedRegular = isNaN(game.homeScore) || isNaN(game.awayScore);
-        const isUndecidedPK = game.homeScore === game.awayScore && (game.homePKs === undefined || game.awayPKs === undefined || isNaN(game.homePKs) || isNaN(game.awayPKs));
+        const gameWeekIdentifier = (game.gameWeek !== null && game.gameWeek !== undefined && String(game.gameWeek).trim() !== '') 
+          ? game.gameWeek 
+          : (playoffTypes.includes(game.gameType) ? game.gameType : null);
         
-        return (isUndecidedRegular || (game.gameType !== 'Regular' && isUndecidedPK)) && gameDay >= today;
+        return game.seasonName.toLowerCase().startsWith(`${defaultYear} ${defaultSeasonName}`.toLowerCase()) && gameWeekIdentifier === selectedMatchweek;
       })
       .sort((a, b) => {
         const dateDiff = a.date.getTime() - b.date.getTime();
         if (dateDiff !== 0) return dateDiff;
-        return parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time);
+        // Simple time string comparison as fallback (e.g., "19:30" vs "20:30")
+        return (a.time || '').localeCompare(b.time || '');
       });
-  }, [allGames, loadingStandings]);
+  }, [allGames, defaultYear, defaultSeasonName, selectedMatchweek]);
 
-  const groupedUpcomingGames = useMemo(() => {
-    if (loadingStandings && upcomingGamesList.length === 0) {
-      return new Map<string, ProcessedGame[]>();
-    }
-    const groups = new Map<string, ProcessedGame[]>();
-    upcomingGamesList.forEach(game => {
-      const dayKey = game.date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-      if (!groups.has(dayKey)) {
-        groups.set(dayKey, []);
+  const groupedGamesByDate = useMemo(() => {
+    return gamesForSelectedMatchweek.reduce((acc, game) => {
+      const dateKey = game.date.toDateString();
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
       }
-      groups.get(dayKey)!.push(game);
-    });
-    return groups;
-  }, [upcomingGamesList, loadingStandings]);
+      acc[dateKey].push(game);
+      return acc;
+    }, {} as Record<string, ProcessedGame[]>);
+  }, [gamesForSelectedMatchweek]);
 
+  const matchweekDateRange = useMemo(() => {
+    if (gamesForSelectedMatchweek.length === 0) return '';
+    const dates = gamesForSelectedMatchweek.map(g => g.date);
+    const minDate = new Date(Math.min(...dates.map(d => d.getTime())));
+    const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
+    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+    if (minDate.toDateString() === maxDate.toDateString()) {
+      return minDate.toLocaleDateString('en-US', { weekday: 'short', ...options });
+    }
+    return `${minDate.toLocaleDateString('en-US', options)} - ${maxDate.toLocaleDateString('en-US', options)}`;
+  }, [gamesForSelectedMatchweek]);
 
   const getRankChangeIcon = (rankChange?: string) => {
-      if (rankChange === 'Up') return <ArrowUpIcon className="w-5 h-5 text-green-500 mx-auto" aria-label="Rank up" />;
-      if (rankChange === 'Down') return <ArrowDownIcon className="w-5 h-5 text-red-500 mx-auto" aria-label="Rank down" />;
+      if (rankChange === 'Up') return <ChevronUpIcon className="w-5 h-5 text-green-500 mx-auto" aria-label="Rank up" />;
+      if (rankChange === 'Down') return <ChevronDownIcon className="w-5 h-5 text-red-500 mx-auto" aria-label="Rank down" />;
       if (rankChange === 'Same') return <MinusIcon className="w-5 h-5 text-secondary-text mx-auto" aria-label="Rank same" />;
       return <MinusIcon className="w-5 h-5 text-gray-600 mx-auto" aria-label="No change in rank" />;
   };
-  const getResultIcon = (result?: string) => {
-      if (result === 'W') return <CheckCircleIcon className="w-5 h-5 text-green-500 mx-auto" aria-label="Win" />;
-      if (result === 'D') return <MinusCircleIcon className="w-5 h-5 text-gray-500 mx-auto" aria-label="Draw" />;
-      if (result === 'L') return <XCircleIcon className="w-5 h-5 text-red-500 mx-auto" aria-label="Loss" />;
-      return <span className="text-gray-600 mx-auto">-</span>;
-  };
-  const getCurrentWeekResultIcon = (result?: string) => {
-      if (result === 'W') return <CheckCircleCurrentWeekIcon className="w-5 h-5 text-green-500 mx-auto" aria-label="Win (Current Week)" />;
-      if (result === 'D') return <MinusCircleCurrentWeekIcon className="w-5 h-5 text-gray-500 mx-auto" aria-label="Draw (Current Week)" />;
-      if (result === 'L') return <XCircleCurrentWeekIcon className="w-5 h-5 text-red-500 mx-auto" aria-label="Loss (Current Week)" />;
-      return null;
+  
+  const getResultIndicator = (result?: string, isCurrentWeek = false) => {
+    if (!result || !['W', 'D', 'L'].includes(result.toUpperCase())) {
+        return <span className="text-secondary-text mx-auto">-</span>;
+    }
+
+    const upperResult = result.toUpperCase();
+    let bgColor = '';
+    let label = '';
+    switch (upperResult) {
+        case 'W':
+            bgColor = 'bg-green-500';
+            label = 'Win';
+            break;
+        case 'D':
+            bgColor = 'bg-gray-500';
+            label = 'Draw';
+            break;
+        case 'L':
+            bgColor = 'bg-red-500';
+            label = 'Loss';
+            break;
+    }
+
+    return (
+        <div className="relative flex justify-center">
+            <div 
+                className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold text-white ${bgColor}`} 
+                aria-label={label + (isCurrentWeek ? ' (Current Week)' : '')}
+            >
+                {upperResult}
+            </div>
+            {isCurrentWeek && <div className={`absolute -bottom-1 w-4 h-0.5 ${bgColor} rounded-md`} aria-hidden="true"></div>}
+        </div>
+    );
   };
 
+  const numDays = Object.keys(groupedGamesByDate).length;
+  let gridColsClass = 'grid-cols-1';
+  if (numDays === 2) {
+    gridColsClass = 'md:grid-cols-2';
+  } else if (numDays === 3) {
+    gridColsClass = 'md:grid-cols-3';
+  } else if (numDays >= 4) {
+    gridColsClass = 'md:grid-cols-2 lg:grid-cols-4';
+  }
 
   return (
     <div className="space-y-16">
-      <section 
-        aria-labelledby="hero-title" 
-        className="relative rounded-lg shadow-xl overflow-hidden min-h-[35vh] md:min-h-[50vh] flex flex-col justify-center items-center text-center text-light-text -mt-10 md:-mt-12 -mx-4 sm:-mx-6 lg:-mx-8"
-      >
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(https://blogger.googleusercontent.com/img/a/AVvXsEhbx0ILBCX3eBUQInZnhAinZZ1_tXsnJwYZb6zfrsEOEwJQiQL5a_jHWJ8yniUq2KanklUCuYSePriWVLCInIgcNn9px0hPGeFH0uTN15Y6U5LJGCSug-Mrq5WBbC5IEt3lUf1bLar_XPgPwjRr5ZdR3uQ9Cftfa3EOuUkeMCEhsQ-RaxGgJhmnz_ikSf0)' }}></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-dark-bg/85 via-dark-bg/40 to-transparent"></div>
-        <div className="relative z-10 p-4 md:p-8 lg:p-12">
-          <h1 id="hero-title" className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-3 uppercase tracking-wider [text-shadow:2px_2px_12px_rgba(0,0,0,0.9)]">
-            {SHORT_LEAGUE_NAME}
-          </h1>
-          <p className="text-xl sm:text-2xl md:text-3xl text-secondary-text [text-shadow:1px_1px_8px_rgba(0,0,0,0.9)]">
-            Your hub for everything futsal in Bowling Green.
-          </p>
-        </div>
-      </section>
-
       <section className={cardBaseStyle} aria-labelledby="latest-news-title">
         <SectionHeader title="Latest News & Announcements" icon={NewspaperIcon} />
         {loadingNews && <LoadingSpinner />}
@@ -465,107 +530,173 @@ const HomePage: React.FC = () => {
           <p className="text-center text-secondary-text py-4">No news items available at the moment.</p>
         )}
         {!loadingNews && !newsError && newsItems.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {newsItems.slice(0, MAX_NEWS_ITEMS_HOMEPAGE).map(item => (
-              <div 
-                key={item.id} 
-                className="bg-dark-bg/50 p-4 rounded-lg hover:shadow-md transition-shadow group flex flex-col border border-dark-border/50 hover:border-highlight-gold/50"
-              >
-                {item.imageUrl && (
-                    <img 
-                      src={item.imageUrl} 
-                      alt={item.title} 
-                      className="w-full h-48 object-cover rounded-md shadow-sm group-hover:opacity-90 transition-opacity mb-4" 
-                    />
-                )}
-                <div className="flex-grow flex flex-col">
-                  <div className="flex flex-wrap items-center justify-between mb-2 text-xs">
-                    <p className="text-secondary-text">
-                      {item.date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
-                    </p>
-                    {item.category && (
-                      <span className="font-semibold bg-main-green text-light-text px-2 py-0.5 rounded-full shadow-sm">
-                        {item.category}
-                      </span>
-                    )}
-                  </div>
-                  {item.link ? (
-                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-lg font-bold text-light-text hover:text-highlight-gold mb-2 hover:underline flex-grow">
-                      {item.title}
-                    </a>
-                  ) : (
-                    <h3 className="text-lg font-bold text-light-text mb-2 flex-grow">{item.title}</h3>
-                  )}
-                  <p className="text-secondary-text text-sm leading-relaxed mb-4">{item.content}</p>
-                  {item.link && (
-                     <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-sm text-main-green hover:text-highlight-gold font-medium mt-auto self-start">
-                       Read More &rarr;
-                     </a>
-                  )}
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+            {/* Featured Item (Index 0) */}
+            {newsItems[0] && (
+              <div className="flex flex-col group h-full">
+                   {/* Link wrapper if link exists */}
+                   <a href={newsItems[0].link || '#'} target={newsItems[0].link ? "_blank" : undefined} rel={newsItems[0].link ? "noopener noreferrer" : undefined} className="block h-full flex flex-col">
+                      <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-lg mb-5 border border-dark-border/50 group-hover:border-highlight-gold/50 transition-colors">
+                         {newsItems[0].imageUrl ? (
+                            <img src={newsItems[0].imageUrl} alt={newsItems[0].title} className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105" />
+                         ) : (
+                            <div className="w-full h-full bg-dark-bg flex items-center justify-center text-secondary-text">No Image</div>
+                         )}
+                      </div>
+                      <div className="space-y-3 flex-grow">
+                         <h3 className="font-display text-3xl md:text-4xl font-bold text-light-text leading-tight group-hover:text-highlight-gold transition-colors">
+                            {newsItems[0].title}
+                         </h3>
+                         <p className="text-secondary-text text-lg line-clamp-3">
+                            {newsItems[0].content}
+                         </p>
+                          <div className="flex items-center text-sm font-medium text-main-green uppercase tracking-wider mt-2">
+                            {newsItems[0].category || 'News'}
+                         </div>
+                      </div>
+                   </a>
               </div>
-            ))}
+            )}
+
+            {/* Side List (Indices 1-3) */}
+            {newsItems.length > 1 && (
+              <div className="flex flex-col divide-y divide-dark-border/50">
+                 {newsItems.slice(1, MAX_NEWS_ITEMS_HOMEPAGE).map((item) => (
+                    <a key={item.id} href={item.link || '#'} target={item.link ? "_blank" : undefined} rel={item.link ? "noopener noreferrer" : undefined} className="flex items-start gap-4 py-6 first:pt-0 last:pb-0 group">
+                       <div className="flex-grow space-y-2">
+                           <h4 className="font-display text-xl font-bold text-light-text leading-snug group-hover:text-highlight-gold transition-colors line-clamp-2">
+                              {item.title}
+                           </h4>
+                           <div className="text-sm text-secondary-text font-medium">
+                              {item.category || 'News'}
+                           </div>
+                       </div>
+                       {item.imageUrl && (
+                          <div className="flex-shrink-0 w-32 h-20 rounded-lg overflow-hidden border border-dark-border/50 group-hover:border-highlight-gold/50 transition-colors shadow-sm">
+                             <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110" />
+                          </div>
+                       )}
+                    </a>
+                 ))}
+              </div>
+            )}
           </div>
         )}
       </section>
 
-      <section className={cardBaseStyle} aria-labelledby="upcoming-games-title">
-        <SectionHeader title="Upcoming Games" icon={CalendarIcon} />
-        {loadingStandings && groupedUpcomingGames.size === 0 && <LoadingSpinner />}
-        {!loadingStandings && standingsError && <p className="text-red-500 text-center">{standingsError}</p>}
-        {!loadingStandings && !standingsError && groupedUpcomingGames.size === 0 && (
-          <p className="text-center text-secondary-text py-4">No upcoming games scheduled at the moment.</p>
-        )}
-        {!loadingStandings && !standingsError && groupedUpcomingGames.size > 0 && (
-          <div className="space-y-6">
-            {Array.from(groupedUpcomingGames.entries()).map(([day, gamesForDay]) => (
-              <div key={day} className="mb-6 last:mb-0">
-                <h4 className="font-display text-xl font-bold text-light-text bg-main-green/20 p-3 rounded-t-md shadow-sm border-b border-main-green/50">
-                  {day}
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-dark-bg/30 rounded-b-md shadow-sm">
-                  {gamesForDay.map((game) => (
-                    <div 
-                      key={game.id} 
-                      className="bg-dark-card p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-dark-border hover:border-highlight-gold/50"
-                    >
-                      <div className="flex flex-col items-center text-center mb-2">
-                        <div className="flex items-baseline justify-center w-full">
-                          <span className="text-xl font-bold text-light-text truncate max-w-[40%] sm:max-w-[45%]">
-                            {game.homeTeam}
-                          </span>
-                          <span className="text-lg font-normal text-secondary-text mx-2">vs</span>
-                          <span className="text-xl font-bold text-light-text truncate max-w-[40%] sm:max-w-[45%]">
-                            {game.awayTeam}
-                          </span>
-                        </div>
-                        <span className="text-lg font-semibold text-highlight-gold mt-1">
-                          {formatTo12HourTime(game.time) || "Time TBD"}
-                        </span>
-                      </div>
-                      <div className="text-sm text-secondary-text text-center flex flex-wrap justify-center items-center gap-x-2 gap-y-1 mt-2 border-t border-dark-border pt-2">
-                        {game.division !== Division.Unknown && <span>Div {game.division}</span>}
-                        {(game.division !== Division.Unknown && (game.gameWeek || game.gameWeek === 0)) && <span className="text-gray-600">&bull;</span>}
-                        {(game.gameWeek || game.gameWeek === 0) && (
-                          <span>
-                            {typeof game.gameWeek === 'number' ? 'Week ' : ''}{game.gameWeek}
-                          </span>
-                        )}
-                        {game.location && (
-                          <>
-                            {((game.division !== Division.Unknown) || (game.gameWeek || game.gameWeek === 0)) && <span className="text-gray-600">&bull;</span>}
-                            <span className="truncate">{game.location}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+      <section className={cardBaseStyle} aria-labelledby="matchweek-title">
+        <div className="flex items-center justify-between mb-6 border-b border-dark-border pb-4">
+          <SectionHeader title={`${defaultSeasonName} ${defaultYear}`} icon={CalendarIcon} />
+           <div className="flex items-center space-x-2 md:space-x-4 bg-dark-bg/50 p-2 rounded-lg border border-dark-border/50">
+            <button 
+              onClick={handlePrevMatchweek} 
+              disabled={!selectedMatchweek || matchweeks.indexOf(selectedMatchweek) === 0}
+              className="p-1.5 rounded-md hover:bg-main-green/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" 
+              aria-label="Previous Matchweek"
+            >
+              <ChevronLeftIcon className="w-6 h-6" />
+            </button>
+            <div className="text-center">
+               <h3 id="matchweek-title" className="text-lg font-bold font-display tracking-wide uppercase">
+                 {matchweekTitle}
+               </h3>
+               <p className="text-xs text-secondary-text">{matchweekDateRange}</p>
+            </div>
+            <button 
+              onClick={handleNextMatchweek} 
+              disabled={!selectedMatchweek || matchweeks.indexOf(selectedMatchweek) === matchweeks.length - 1}
+              className="p-1.5 rounded-md hover:bg-main-green/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" 
+              aria-label="Next Matchweek"
+            >
+              <ChevronRightIcon className="w-6 h-6" />
+            </button>
           </div>
+        </div>
+
+        {loadingStandings && <LoadingSpinner />}
+        {!loadingStandings && standingsError && <p className="text-red-500 text-center">{standingsError}</p>}
+        
+        {!loadingStandings && !standingsError && (
+          <>
+            {Object.keys(groupedGamesByDate).length > 0 ? (
+              <div className={`grid ${gridColsClass} gap-4 md:gap-6`}>
+                {Object.entries(groupedGamesByDate).sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime()).map(([dateStr, gamesOnDate]: [string, ProcessedGame[]]) => (
+                  <div key={dateStr} className="flex flex-col bg-dark-bg/40 rounded-xl p-4 border border-dark-border/50 shadow-sm">
+                    <h4 className="font-bold text-highlight-gold mb-5 text-lg uppercase tracking-wider text-center pb-3 border-b border-dark-border">
+                      {new Date(dateStr).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                    </h4>
+                    <div className="space-y-4 flex-grow">
+                      {gamesOnDate.map(game => {
+                        const showScore = !isNaN(game.homeScore) && !isNaN(game.awayScore);
+                        
+                        const homeTeamData = allStandingsDataFromSheet.find(t => t.teamName === game.homeTeam && t.year === defaultYear && t.seasonName === defaultSeasonName);
+                        const awayTeamData = allStandingsDataFromSheet.find(t => t.teamName === game.awayTeam && t.year === defaultYear && t.seasonName === defaultSeasonName);
+
+                        return (
+                           <div 
+                              key={game.id} 
+                              className="bg-dark-card p-4 rounded-lg shadow-md border border-dark-border/70 hover:border-main-green/50 transition-all"
+                            >
+                              {/* Content Wrapper */}
+                              <div className="w-full flex flex-col items-center justify-center gap-2">
+                                  {/* New Grid Layout for teams and score */}
+                                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 w-full">
+                                      {/* Home Team */}
+                                      <div className="flex items-center justify-end gap-2 text-right min-w-0">
+                                          <span className="text-base md:text-lg font-semibold text-light-text break-words" title={game.homeTeam}>{game.homeTeam}</span>
+                                          {homeTeamData?.teamColor && (
+                                              <span 
+                                                  className="w-3 h-3 rounded-full flex-shrink-0 border border-white/10" 
+                                                  style={{ backgroundColor: homeTeamData.teamColor }}
+                                                  aria-hidden="true"
+                                              ></span>
+                                          )}
+                                      </div>
+
+                                      {/* Center Info (Score/Time) */}
+                                      <div className="text-center px-1">
+                                          <span className="text-xl md:text-2xl font-bold text-light-text whitespace-nowrap">
+                                              {showScore ? `${game.homeScore} - ${game.awayScore}` : (formatTo12HourTime(game.time) || 'TBD')}
+                                          </span>
+                                      </div>
+
+                                      {/* Away Team */}
+                                      <div className="flex items-center justify-start gap-2 text-left min-w-0">
+                                          {awayTeamData?.teamColor && (
+                                              <span 
+                                                  className="w-3 h-3 rounded-full flex-shrink-0 border border-white/10" 
+                                                  style={{ backgroundColor: awayTeamData.teamColor }}
+                                                  aria-hidden="true"
+                                              ></span>
+                                          )}
+                                          <span className="text-base md:text-lg font-semibold text-light-text break-words" title={game.awayTeam}>{game.awayTeam}</span>
+                                      </div>
+                                  </div>
+                                  {/* Division Tag */}
+                                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded border ${getDivStyle(game.division)}`}>
+                                    {`Div ${game.division}`}
+                                  </span>
+                              </div>
+                            </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-dark-bg/20 rounded-lg border border-dashed border-dark-border">
+                <p className="text-secondary-text">No games scheduled for this matchweek.</p>
+              </div>
+            )}
+             <div className="mt-8 flex justify-center md:justify-end">
+                 <Link to="/matches" className="text-main-green hover:text-highlight-gold font-medium flex items-center transition-colors">
+                    View Full Season Schedule & Matches
+                    <ChevronRightIcon className="w-4 h-4 ml-1" />
+                 </Link>
+             </div>
+          </>
         )}
-        <Link to="/results" className="mt-8 inline-block text-main-green hover:text-highlight-gold font-medium">View full schedule & results...</Link>
       </section>
 
       <section className={cardBaseStyle} aria-labelledby="regular-season-standings-title">
@@ -600,28 +731,26 @@ const HomePage: React.FC = () => {
             <table className="min-w-full divide-y divide-dark-border">
               <thead className="bg-dark-bg/50">
                 <tr>
-                  <th scope="col" className="pl-5 pr-3 py-3 text-left text-xs font-semibold text-secondary-text uppercase tracking-wider">Rank</th>
+                  <th scope="col" className="pl-4 pr-2 py-3 text-left text-xs font-semibold text-secondary-text uppercase tracking-wider">Rank</th>
                   <th scope="col" className="px-2 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider" aria-label="Rank Change">Change</th>
                   <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-secondary-text uppercase tracking-wider">Team</th>
+                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">Pts</th>
                   <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">GP</th>
                   <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">W</th>
                   <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">D</th>
                   <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">L</th>
-                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">GF</th>
-                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">GA</th>
-                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">+/-</th>
-                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">Pts</th>
+                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">GD</th>
                   <th scope="col" colSpan={3} className="px-2 py-3 text-center text-xs font-semibold text-secondary-text uppercase tracking-wider">Last 3</th>
                 </tr>
               </thead>
               <tbody className="bg-dark-card divide-y divide-dark-border">
-                {currentStandings.map((row, index) => {
+                {/* FIX: Explicitly typing the 'row' parameter to fix a TypeScript inference issue. */}
+                {currentStandings.map((row: TeamStatsData, index) => {
                   const isPlayoffSpot = index < 8; 
                   const rowClass = `hover:bg-main-green/10 transition-colors duration-150`;
-                   const currentWeekIcon = getCurrentWeekResultIcon(row.currentWeekResult);
                   return (
                     <tr key={`${row.teamName}-${row.year}-${row.seasonName}-${row.division}-${index}`} className={rowClass}>
-                      <td className="relative pl-5 pr-3 py-3 whitespace-nowrap text-sm font-medium text-light-text">
+                      <td className="relative pl-4 pr-2 py-3 whitespace-nowrap text-sm font-medium text-light-text">
                         {isPlayoffSpot && (
                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-main-green" aria-hidden="true"></div>
                         )}
@@ -640,19 +769,15 @@ const HomePage: React.FC = () => {
                           {row.teamName}
                         </div>
                       </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-highlight-gold text-center">{row.points}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.played}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.wins}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.draws}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.losses}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.goalsFor}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.goalsAgainst}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary-text text-center">{row.goalDifference}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-highlight-gold text-center">{row.points}</td>
-                      <td className="px-2 py-3 whitespace-nowrap text-sm text-secondary-text text-center" title="Two Weeks Ago Result">{getResultIcon(row.twoWeekResult)}</td>
-                      <td className="px-2 py-3 whitespace-nowrap text-sm text-secondary-text text-center" title="Last Week Result">{getResultIcon(row.lastWeekResult)}</td>
-                       <td className="px-2 py-3 whitespace-nowrap text-sm text-secondary-text text-center" title="Current Week Result">
-                        {currentWeekIcon ? currentWeekIcon : (row.currentWeekResult || '-')}
-                      </td>
+                      <td className="px-2 py-3 whitespace-nowrap text-sm text-secondary-text text-center" title="Two Weeks Ago Result">{getResultIndicator(row.twoWeekResult)}</td>
+                      <td className="px-2 py-3 whitespace-nowrap text-sm text-secondary-text text-center" title="Last Week Result">{getResultIndicator(row.lastWeekResult)}</td>
+                      <td className="px-2 py-3 whitespace-nowrap text-sm text-secondary-text text-center" title="Current Week Result">{getResultIndicator(row.currentWeekResult, true)}</td>
                     </tr>
                   );
                 })}
@@ -664,7 +789,7 @@ const HomePage: React.FC = () => {
              </div>
           </div>
         )}
-         <Link to="/results" className="mt-6 inline-block text-main-green hover:text-highlight-gold font-medium">View all results & historical standings...</Link>
+         <Link to="/matches" className="mt-6 inline-block text-main-green hover:text-highlight-gold font-medium">View all matches & historical standings...</Link>
       </section>
 
 
@@ -688,10 +813,10 @@ const HomePage: React.FC = () => {
         <p className="text-secondary-text mb-6 max-w-xl mx-auto">Join the action, support your favorite teams, or become a part of our community!</p>
         <div className="space-y-4 sm:space-y-0 sm:flex sm:justify-center sm:space-x-4">
           <Link 
-            to="/results"
+            to="/matches"
             className="inline-block w-full sm:w-auto bg-main-green text-white font-semibold py-3 px-8 rounded-lg hover:bg-main-green-dark shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
           >
-            Standings & Results
+            Standings & Matches
           </Link>
           <Link 
             to="/sponsors" 
