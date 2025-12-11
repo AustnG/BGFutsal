@@ -1,7 +1,6 @@
 
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import PageTitle from '../components/PageTitle';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { fetchSheetData } from '../services/sheetService';
 import { GAMES_SHEET_URL, SETTINGS_SHEET_URL, SEASONS_SHEET_URL, TEAMS_SHEET_URL } from '../constants';
@@ -302,8 +301,6 @@ const MatchesPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <PageTitle title="League Archives" subtitle="Browse historical matches, standings, and champions by year, season, and division." />
-
       <div className="mb-10 p-6 bg-dark-card shadow-xl rounded-xl border border-dark-border">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
           <div>

@@ -68,13 +68,6 @@ const SectionHeader: React.FC<{ title: string; icon: React.ElementType; }> = ({ 
   </h2>
 );
 
-const getDivStyle = (div: Division) => {
-    // Swapped colors: A is now Gold, B is now Green
-    if (div === Division.A) return "border-highlight-gold text-highlight-gold bg-highlight-gold/10";
-    if (div === Division.B) return "border-main-green text-main-green bg-main-green/10";
-    return "border-secondary-text text-secondary-text bg-gray-500/10";
-};
-
 const HomePage: React.FC = () => {
   const cardBaseStyle = "bg-dark-card p-6 rounded-xl shadow-lg border border-dark-border";
 
@@ -622,7 +615,7 @@ const HomePage: React.FC = () => {
               <div className={`grid ${gridColsClass} gap-4 md:gap-6`}>
                 {Object.entries(groupedGamesByDate).sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime()).map(([dateStr, gamesOnDate]: [string, ProcessedGame[]]) => (
                   <div key={dateStr} className="flex flex-col bg-dark-bg/40 rounded-xl p-4 border border-dark-border/50 shadow-sm">
-                    <h4 className="font-bold text-highlight-gold mb-5 text-lg uppercase tracking-wider text-center pb-3 border-b border-dark-border">
+                    <h4 className="font-bold text-main-green mb-5 text-lg uppercase tracking-wider text-center pb-3 border-b border-dark-border">
                       {new Date(dateStr).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
                     </h4>
                     <div className="space-y-4 flex-grow">
@@ -635,11 +628,16 @@ const HomePage: React.FC = () => {
                         return (
                            <div 
                               key={game.id} 
-                              className="bg-dark-card p-4 rounded-lg shadow-md border border-dark-border/70 hover:border-main-green/50 transition-all"
+                              className="relative bg-dark-card p-4 rounded-lg shadow-md border border-dark-border/70 hover:border-main-green/50 transition-all"
                             >
+                              {/* Division Tag */}
+                              <span className="absolute top-2 right-3 text-xs font-semibold text-secondary-text/60 uppercase tracking-wider">
+                                DIV {game.division}
+                              </span>
+
                               {/* Content Wrapper */}
-                              <div className="w-full flex flex-col items-center justify-center gap-2">
-                                  {/* New Grid Layout for teams and score */}
+                              <div className="w-full flex flex-col items-center justify-center">
+                                  {/* Grid Layout for teams and score */}
                                   <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 w-full">
                                       {/* Home Team */}
                                       <div className="flex items-center justify-end gap-2 text-right min-w-0">
@@ -655,7 +653,7 @@ const HomePage: React.FC = () => {
 
                                       {/* Center Info (Score/Time) */}
                                       <div className="text-center px-1">
-                                          <span className="text-xl md:text-2xl font-bold text-light-text whitespace-nowrap">
+                                          <span className="text-xl md:text-2xl font-bold text-highlight-gold whitespace-nowrap">
                                               {showScore ? `${game.homeScore} - ${game.awayScore}` : (formatTo12HourTime(game.time) || 'TBD')}
                                           </span>
                                       </div>
@@ -672,10 +670,6 @@ const HomePage: React.FC = () => {
                                           <span className="text-base md:text-lg font-semibold text-light-text break-words" title={game.awayTeam}>{game.awayTeam}</span>
                                       </div>
                                   </div>
-                                  {/* Division Tag */}
-                                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded border ${getDivStyle(game.division)}`}>
-                                    {`Div ${game.division}`}
-                                  </span>
                               </div>
                             </div>
                         );
