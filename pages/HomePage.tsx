@@ -33,26 +33,7 @@ import { MinusIcon } from '../components/icons/MinusIcon';
 import { calculateStandings } from '../utils/standingsCalculator';
 import { ChevronUpIcon } from '../components/icons/ChevronUpIcon';
 import { ChevronDownIcon } from '../components/icons/ChevronDownIcon';
-
-const formatTo12HourTime = (timeStr?: string): string | undefined => {
-  if (!timeStr) return undefined;
-
-  const parts = timeStr.match(/^(\d{1,2}):(\d{2})$/);
-  if (!parts) return timeStr; // Return original if not in HH:mm or H:mm format
-
-  let hours = parseInt(parts[1], 10);
-  const minutes = parseInt(parts[2], 10);
-
-  if (isNaN(hours) || isNaN(minutes)) return timeStr; // Return original if parsing fails
-
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12;
-  hours = hours ? hours : 12; // The hour '0' or '12' should be '12'
-  
-  const minutesStr = minutes < 10 ? '0' + minutes : minutes.toString();
-  
-  return `${hours}:${minutesStr} ${ampm}`;
-};
+import { processGames, processNews, processTeams } from '../utils/dataProcessing';
 
 const galleryImages = [
   "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgjlO46blYNR5-LYlr8C8m0lVaESDqu9sTMczhqCyfIZ2xwSJPTzpPZkYa6V5hgG1cmzZoo2Aa_h5_gTeI0lRwPqn1yGGj_DK0h20NLykGfiXOzuUeAJCTcU9Mg6NBVwXL6SjD4IcGgcRq9HUyMFbbVvrxWJ-zsgXUNiAptUTercms2xzIUZuhInYAjDMU/s320/001.jpg",
@@ -94,78 +75,6 @@ const HomePage: React.FC = () => {
     value => value !== Division.Unknown
   ) as Division[];
 
-  const teamSeasonParseRegex = /^(\d{4})\s+(.+?)\s+([AB])$/i; 
-
-  const processRawNewsData = (rawNews: SheetNewsItem[]): ProcessedNewsItem[] => {
-    return rawNews
-      .map(item => {
-        const date = new Date(item.Date?.trim());
-        if (!item.Id?.trim() || !item.Title?.trim() || !item.Content?.trim() || isNaN(date.getTime())) {
-          console.warn('Skipping news item due to missing critical data or invalid date:', item);
-          return null;
-        }
-        return {
-          id: item.Id.trim(),
-          date: date,
-          title: item.Title.trim(),
-          category: item.Category?.trim() || undefined,
-          content: item.Content.trim(),
-          link: item.Link?.trim() || undefined,
-          imageUrl: item.ImageUrl?.trim() || undefined,
-        };
-      })
-      .filter(Boolean as unknown as (value: ProcessedNewsItem | null) => value is ProcessedNewsItem)
-      .sort((a, b) => b.date.getTime() - a.date.getTime()); // Newest first
-  };
-
-  const processRawGamesData = (rawGames: SheetGame[]): ProcessedGame[] => {
-    return rawGames.map((g, index) => {
-      const gameDateStr = g.GameDate?.trim();
-      if (!gameDateStr) return null;
-      const gameDate = new Date(gameDateStr);
-      if (isNaN(gameDate.getTime())) return null;
-      
-      const divisionFromSheetColumn = g.Division?.trim().toUpperCase();
-      let determinedDivision = Division.Unknown;
-      if (divisionFromSheetColumn === 'A') determinedDivision = Division.A;
-      else if (divisionFromSheetColumn === 'B') determinedDivision = Division.B;
-
-      const seasonNameFromSheet = g.Season?.trim() || ""; 
-      let finalSeasonKey = seasonNameFromSheet; 
-
-      if (/\s+[AB]$/i.test(seasonNameFromSheet)) { 
-          finalSeasonKey = seasonNameFromSheet;
-          if (determinedDivision === Division.Unknown) { 
-              const match = seasonNameFromSheet.match(/\s+([AB])$/i);
-              if (match) determinedDivision = match[1] === 'A' ? Division.A : Division.B;
-          }
-      } else if (determinedDivision !== Division.Unknown) { 
-          finalSeasonKey = `${seasonNameFromSheet} ${determinedDivision}`;
-      }
-      
-      const homePKs = g.HomePKs?.trim();
-      const awayPKs = g.AwayPKs?.trim();
-
-      return {
-        id: `game-${index}-${g.GameDate}-${g.HomeTeam}`,
-        date: gameDate,
-        time: g.GameTime?.trim(),
-        division: determinedDivision,
-        homeTeam: g.HomeTeam?.trim() || "Unknown Home",
-        homeScore: parseInt(g.HomeScore, 10),
-        awayTeam: g.AwayTeam?.trim() || "Unknown Away",
-        awayScore: parseInt(g.AwayScore, 10),
-        seasonName: finalSeasonKey, 
-        location: g.Location?.trim(),
-        gameType: g.GameType?.trim() || 'Regular',
-        gameWeek: g.GameWeek ? (isNaN(parseInt(g.GameWeek.trim(), 10)) ? g.GameWeek.trim() : parseInt(g.GameWeek.trim(), 10)) : undefined,
-        homePKs: homePKs !== undefined && homePKs !== '' ? parseInt(homePKs, 10) : undefined,
-        awayPKs: awayPKs !== undefined && awayPKs !== '' ? parseInt(awayPKs, 10) : undefined,
-      };
-    }).filter(Boolean as unknown as (value: ProcessedGame | null) => value is ProcessedGame);
-  };
-
-
   const fetchData = useCallback(async () => {
     setLoadingStandings(true);
     setStandingsError(null);
@@ -182,7 +91,7 @@ const HomePage: React.FC = () => {
 
       // Process News
       const rawNews = parseCsvData<SheetNewsItem>(newsCsv);
-      setNewsItems(processRawNewsData(rawNews));
+      setNewsItems(processNews(rawNews));
 
       // Process Settings
       const rawSettings = parseCsvData<SheetSettings>(settingsCsv);
@@ -207,62 +116,11 @@ const HomePage: React.FC = () => {
 
       // Process Games
       const rawGames = parseCsvData<SheetGame>(gamesCsv);
-      setAllGames(processRawGamesData(rawGames));
-
+      setAllGames(processGames(rawGames));
 
       // Process Standings Data from Teams Sheet
       const rawTeamsWithStats = parseCsvData<SheetTeamWithStats>(teamsCsv);
-      const parseStat = (val: any): number => {
-        const strVal = (typeof val === 'string') ? val.trim() : String(val);
-        const num = parseInt(strVal, 10);
-        return isNaN(num) ? 0 : num;
-      };
-      const getString = (val: any): string | undefined => {
-        return (val && typeof val === 'string') ? val.trim() : undefined;
-      };
-
-      const processedStandingsFromSheet = rawTeamsWithStats.map(rawTeam => {
-        const teamName = getString(rawTeam.Team) || "";
-        const combinedSeasonStr = getString(rawTeam.Season) || "";
-        let year = "";
-        let seasonName = "";
-        let division = Division.Unknown;
-        const match = combinedSeasonStr.match(teamSeasonParseRegex);
-
-        if (match) {
-          year = match[1];
-          seasonName = match[2].trim();
-          const divisionLetter = match[3].toUpperCase();
-          division = divisionLetter === 'A' ? Division.A : divisionLetter === 'B' ? Division.B : Division.Unknown;
-        } else {
-            const rawDivisionCol = getString(rawTeam.Division)?.toUpperCase();
-            if (rawDivisionCol === 'A') division = Division.A;
-            else if (rawDivisionCol === 'B') division = Division.B;
-            const yearSeasonMatch = combinedSeasonStr.match(/^(\d{4})\s+(.+)$/);
-            if(yearSeasonMatch) {
-                year = yearSeasonMatch[1];
-                seasonName = yearSeasonMatch[2].trim();
-            } else {
-                seasonName = combinedSeasonStr; 
-            }
-        }
-        
-        return {
-          teamName: teamName,
-          division: division,
-          year: year,
-          seasonName: seasonName,
-          played: parseStat(rawTeam.GP), wins: parseStat(rawTeam.W), draws: parseStat(rawTeam.D), losses: parseStat(rawTeam.L),
-          goalsFor: parseStat(rawTeam.GF), goalsAgainst: parseStat(rawTeam.GA), goalDifference: parseStat(rawTeam.GD),
-          points: parseStat(rawTeam.PTS),
-          rankChange: getString(rawTeam.RankChange),
-          twoWeekResult: getString(rawTeam['2WeekResult']),
-          lastWeekResult: getString(rawTeam['LastWeekResult']),
-          currentWeekResult: getString(rawTeam['CurrentWeekResult']),
-          teamColor: getString(rawTeam.TeamColor),
-        };
-      }).filter(team => team.division !== Division.Unknown && team.teamName && team.year && team.seasonName);
-      setAllStandingsDataFromSheet(processedStandingsFromSheet);
+      setAllStandingsDataFromSheet(processTeams(rawTeamsWithStats));
 
     } catch (err) {
       console.error("Failed to fetch home page data:", err);
@@ -323,9 +181,20 @@ const HomePage: React.FC = () => {
       const sheetDataForTeam = allStandingsDataFromSheet.find(sheetRow =>
         sheetRow.teamName === coreRow.teamName && sheetRow.year === defaultYear && sheetRow.seasonName.toLowerCase() === defaultSeasonName.toLowerCase() && sheetRow.division === selectedDivision
       );
-      return { ...coreRow, year: defaultYear, seasonName: defaultSeasonName, rankChange: sheetDataForTeam?.rankChange, twoWeekResult: sheetDataForTeam?.twoWeekResult, lastWeekResult: sheetDataForTeam?.lastWeekResult, currentWeekResult: sheetDataForTeam?.currentWeekResult, teamColor: sheetDataForTeam?.teamColor };
+      return { 
+        ...coreRow, 
+        year: defaultYear, 
+        seasonName: defaultSeasonName, 
+        rankChange: sheetDataForTeam?.rankChange, 
+        twoWeekResult: sheetDataForTeam?.twoWeekResult, 
+        lastWeekResult: sheetDataForTeam?.lastWeekResult, 
+        currentWeekResult: sheetDataForTeam?.currentWeekResult, 
+        teamColor: sheetDataForTeam?.teamColor,
+        dropped: sheetDataForTeam?.dropped || false,
+      };
     });
     const sortedData = mergedStandings.sort((a, b) => {
+      if (a.dropped !== b.dropped) return a.dropped ? 1 : -1;
       if (b.points !== a.points) return b.points - a.points;
       if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
       if (a.goalsAgainst !== b.goalsAgainst) return a.goalsAgainst - b.goalsAgainst;
@@ -390,7 +259,6 @@ const HomePage: React.FC = () => {
     }
   }, [allGames, allStandingsDataFromSheet, defaultYear, defaultSeasonName, selectedDivision, loadingStandings]);
   
-  // FIX: Define handlePrevMatchweek and handleNextMatchweek to navigate matchweeks.
   const handlePrevMatchweek = () => {
     if (selectedMatchweek) {
       const currentIndex = matchweeks.indexOf(selectedMatchweek);
@@ -654,7 +522,7 @@ const HomePage: React.FC = () => {
                                       {/* Center Info (Score/Time) */}
                                       <div className="text-center px-1">
                                           <span className="text-xl md:text-2xl font-bold text-highlight-gold whitespace-nowrap">
-                                              {showScore ? `${game.homeScore} - ${game.awayScore}` : (formatTo12HourTime(game.time) || 'TBD')}
+                                              {showScore ? `${game.homeScore} - ${game.awayScore}` : (game.time || 'TBD')}
                                           </span>
                                       </div>
 
@@ -740,17 +608,21 @@ const HomePage: React.FC = () => {
               <tbody className="bg-dark-card divide-y divide-dark-border">
                 {/* FIX: Explicitly typing the 'row' parameter to fix a TypeScript inference issue. */}
                 {currentStandings.map((row: TeamStatsData, index) => {
-                  const isPlayoffSpot = index < 8; 
-                  const rowClass = `hover:bg-main-green/10 transition-colors duration-150`;
+                  const isDropped = row.dropped;
+                  const isPlayoffSpot = !isDropped && index < 8; 
+                  const rowClass = isDropped 
+                    ? `bg-red-900/10 grayscale opacity-60` 
+                    : `hover:bg-main-green/10 transition-colors duration-150`;
+                  
                   return (
                     <tr key={`${row.teamName}-${row.year}-${row.seasonName}-${row.division}-${index}`} className={rowClass}>
                       <td className="relative pl-4 pr-2 py-3 whitespace-nowrap text-sm font-medium text-light-text">
                         {isPlayoffSpot && (
                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-main-green" aria-hidden="true"></div>
                         )}
-                        {index + 1}
+                        {isDropped ? '-' : index + 1}
                       </td>
-                      <td className="px-2 py-3 whitespace-nowrap text-sm text-center">{getRankChangeIcon(row.rankChange)}</td>
+                      <td className="px-2 py-3 whitespace-nowrap text-sm text-center">{isDropped ? '-' : getRankChangeIcon(row.rankChange)}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-light-text">
                         <div className="flex items-center">
                           {row.teamColor && (
@@ -761,6 +633,7 @@ const HomePage: React.FC = () => {
                             ></span>
                           )}
                           {row.teamName}
+                          {isDropped && <span className="ml-2 text-xs text-red-400 font-normal italic">(Dropped)</span>}
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-highlight-gold text-center">{row.points}</td>

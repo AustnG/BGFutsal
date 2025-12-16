@@ -117,17 +117,21 @@ const DivisionalSeasonBlock: React.FC<DivisionalSeasonBlockProps> = ({ divisiona
               </thead>
               <tbody className="bg-dark-card divide-y divide-dark-border">
                 {standingsData.map((row, index) => {
-                  const isPlayoffSpot = index < 8; 
-                  const rowClass = `hover:bg-main-green/10 transition-colors duration-150`;
+                  const isDropped = row.dropped;
+                  const isPlayoffSpot = !isDropped && index < 8; 
+                  const rowClass = isDropped 
+                    ? `bg-red-900/10 grayscale opacity-60` 
+                    : `hover:bg-main-green/10 transition-colors duration-150`;
+
                   return (
                     <tr key={`${row.teamName}-${row.year}-${row.seasonName}-${row.division}-${index}`} className={rowClass}>
                       <td className="relative pl-4 pr-2 py-3 whitespace-nowrap text-sm font-medium text-light-text">
                         {isPlayoffSpot && (
                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-main-green" aria-hidden="true"></div>
                         )}
-                        {index + 1}
+                        {isDropped ? '-' : index + 1}
                       </td>
-                      <td className="px-2 py-3 whitespace-nowrap text-sm text-center">{getRankChangeIcon(row.rankChange)}</td>
+                      <td className="px-2 py-3 whitespace-nowrap text-sm text-center">{isDropped ? '-' : getRankChangeIcon(row.rankChange)}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-light-text">
                         <div className="flex items-center">
                           {row.teamColor && (
@@ -138,6 +142,7 @@ const DivisionalSeasonBlock: React.FC<DivisionalSeasonBlockProps> = ({ divisiona
                             ></span>
                           )}
                           {row.teamName}
+                          {isDropped && <span className="ml-2 text-xs text-red-400 font-normal italic">(Dropped)</span>}
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-highlight-gold text-center">{row.points}</td>

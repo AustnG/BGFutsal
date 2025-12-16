@@ -1,5 +1,6 @@
 
 
+
 export const LEAGUE_NAME = "Bowling Green Futsal";
 export const SHORT_LEAGUE_NAME = "BG Futsal";
 
@@ -28,7 +29,4 @@ export const MOCK_SPONSOR_DATA = [
   { id: '3', name: 'BG Print Services', logoUrl: 'https://picsum.photos/seed/sponsor3/200/100', websiteUrl: '#', tier: 'Bronze' as const },
 ];
 
-// DEFAULT_NEWS_ANNOUNCEMENTS is removed as news will be fetched dynamically.
-
-export const UPCOMING_GAMES_PLACEHOLDER_COUNT = 3;
 export const MAX_NEWS_ITEMS_HOMEPAGE = 4; // Max news items to show on homepage

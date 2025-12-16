@@ -8,7 +8,7 @@ import { ProcessedGame, Division, SheetGame, SheetSettings, ProcessedSeason, She
 import { parseCsvData } from '../utils/csvParser';
 import DivisionalSeasonBlock from '../components/results/DivisionalSeasonBlock'; 
 import { calculateStandings } from '../utils/standingsCalculator';
-
+import { processGames, processTeams } from '../utils/dataProcessing';
 
 const MatchesPage: React.FC = () => {
   const [allGames, setAllGames] = useState<ProcessedGame[]>([]);
@@ -29,8 +29,6 @@ const MatchesPage: React.FC = () => {
   const divisionsForFilter = Object.values(Division).filter(
     value => value !== Division.Unknown
   ) as Division[];
-
-  const teamSeasonParseRegex = /^(\d{4})\s+(.+?)\s+([AB])$/i; // For parsing "YYYY SeasonName D" from Teams sheet 'Season' column
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -71,52 +69,7 @@ const MatchesPage: React.FC = () => {
       
       // --- Games Processing ---
       const rawGames = parseCsvData<SheetGame>(gamesCsv);
-      const processedGamesData = rawGames.map((g, index) => {
-        const gameDateStr = g.GameDate?.trim();
-        if (!gameDateStr) return null;
-        const gameDate = new Date(gameDateStr);
-        if (isNaN(gameDate.getTime())) return null;
-        
-        const divisionFromSheetColumn = g.Division?.trim().toUpperCase();
-        let determinedDivision = Division.Unknown;
-        if (divisionFromSheetColumn === 'A') determinedDivision = Division.A;
-        else if (divisionFromSheetColumn === 'B') determinedDivision = Division.B;
-
-        const seasonNameFromSheetVal = g.Season?.trim() || ""; // e.g., "2024 Spring"
-        let finalSeasonKey = seasonNameFromSheetVal; // This will be "YYYY SeasonName D"
-
-        // Construct finalSeasonKey (e.g. "2024 Spring A")
-        if (/\s+[AB]$/i.test(seasonNameFromSheetVal)) { // Already "YYYY SeasonName D"
-            finalSeasonKey = seasonNameFromSheetVal;
-             if (determinedDivision === Division.Unknown) { // Try to infer division if not in column
-                const match = seasonNameFromSheetVal.match(/\s+([AB])$/i);
-                if (match) determinedDivision = match[1] === 'A' ? Division.A : Division.B;
-            }
-        } else if (determinedDivision !== Division.Unknown) { // "YYYY SeasonName" + "D"
-            finalSeasonKey = `${seasonNameFromSheetVal} ${determinedDivision}`;
-        }
-        
-        const homePKs = g.HomePKs?.trim();
-        const awayPKs = g.AwayPKs?.trim();
-
-        return {
-          id: `game-${index}-${g.GameDate}-${g.HomeTeam}`,
-          date: gameDate,
-          time: g.GameTime?.trim(),
-          division: determinedDivision, // Division of the game itself
-          homeTeam: g.HomeTeam?.trim() || "Unknown Home",
-          homeScore: parseInt(g.HomeScore, 10),
-          awayTeam: g.AwayTeam?.trim() || "Unknown Away",
-          awayScore: parseInt(g.AwayScore, 10),
-          seasonName: finalSeasonKey, // Key for filtering, e.g., "2024 Spring A"
-          location: g.Location?.trim(),
-          gameType: g.GameType?.trim() || 'Regular', 
-          gameWeek: g.GameWeek ? (isNaN(parseInt(g.GameWeek.trim(), 10)) ? g.GameWeek.trim() : parseInt(g.GameWeek.trim(), 10)) : undefined,
-          homePKs: homePKs !== undefined && homePKs !== '' ? parseInt(homePKs, 10) : undefined,
-          awayPKs: awayPKs !== undefined && awayPKs !== '' ? parseInt(awayPKs, 10) : undefined,
-        };
-      }).filter(Boolean as unknown as (value: ProcessedGame | null) => value is ProcessedGame)
-      .sort((a, b) => b.date.getTime() - a.date.getTime());
+      const processedGamesData = processGames(rawGames).sort((a, b) => b.date.getTime() - a.date.getTime());
       setAllGames(processedGamesData);
 
       // --- Detailed Seasons Processing (for awards etc.) ---
@@ -142,56 +95,7 @@ const MatchesPage: React.FC = () => {
 
       // --- Standings Data Processing from Teams Sheet (for RankChange, Last3 etc.) ---
       const rawTeamsWithStats = parseCsvData<SheetTeamWithStats>(teamsCsv);
-      const parseStat = (val: any): number => {
-        const strVal = (typeof val === 'string') ? val.trim() : String(val); 
-        const num = parseInt(strVal, 10);
-        return isNaN(num) ? 0 : num;
-      };
-      const getString = (val: any): string | undefined => {
-        return (val && typeof val === 'string') ? val.trim() : undefined;
-      };
-      const processedStandingsFromSheet = rawTeamsWithStats.map(rawTeam => {
-        const teamName = getString(rawTeam.Team) || "";
-        const combinedSeasonStr = getString(rawTeam.Season) || ""; // "YYYY SeasonName D"
-        let year = "";
-        let seasonNamePart = ""; // General season name like "Spring"
-        let divisionPart = Division.Unknown;
-        const match = combinedSeasonStr.match(teamSeasonParseRegex); // Parses "YYYY SeasonName D"
-        if (match) {
-          year = match[1]; 
-          seasonNamePart = match[2].trim(); 
-          const divisionLetter = match[3].toUpperCase(); 
-          divisionPart = divisionLetter === 'A' ? Division.A : divisionLetter === 'B' ? Division.B : Division.Unknown;
-        } else {
-          // Fallback if rawTeam.Season is not "YYYY SeasonName D"
-          const rawDivisionCol = getString(rawTeam.Division)?.toUpperCase();
-          if (rawDivisionCol === 'A') divisionPart = Division.A;
-          else if (rawDivisionCol === 'B') divisionPart = Division.B;
-          const yearSeasonMatch = combinedSeasonStr.match(/^(\d{4})\s+(.+)$/); // "YYYY SeasonName"
-          if(yearSeasonMatch) {
-              year = yearSeasonMatch[1];
-              seasonNamePart = yearSeasonMatch[2].trim();
-          } else {
-              seasonNamePart = combinedSeasonStr; // Could be just "Spring", year might be missing
-          }
-        }
-        
-        // These stats are from sheet, will be overridden for W/D/L by calculation
-        return {
-          teamName: teamName,
-          division: divisionPart,
-          year: year,
-          seasonName: seasonNamePart, // General season name
-          played: parseStat(rawTeam.GP), wins: parseStat(rawTeam.W), draws: parseStat(rawTeam.D), losses: parseStat(rawTeam.L),
-          goalsFor: parseStat(rawTeam.GF), goalsAgainst: parseStat(rawTeam.GA), goalDifference: parseStat(rawTeam.GD),
-          points: parseStat(rawTeam.PTS),
-          rankChange: getString(rawTeam.RankChange),
-          twoWeekResult: getString(rawTeam['2WeekResult']),
-          lastWeekResult: getString(rawTeam['LastWeekResult']),
-          currentWeekResult: getString(rawTeam['CurrentWeekResult']),
-          teamColor: getString(rawTeam.TeamColor),
-        };
-      }).filter(team => team.division !== Division.Unknown && team.year && team.seasonName && team.teamName);
+      const processedStandingsFromSheet = processTeams(rawTeamsWithStats);
       setAllStandingsDataFromSheet(processedStandingsFromSheet);
 
     } catch (err) {
@@ -222,10 +126,11 @@ const MatchesPage: React.FC = () => {
       !isNaN(game.homeScore) && !isNaN(game.awayScore)
     );
 
-    // 2. Get unique teams from these games, filtering out placeholder "Unknown" teams
+    // 2. Get unique teams from games AND from the Teams sheet (so we show rank history even if no games played)
     const uniqueTeamNames = new Set<string>();
     const knownTeamPlaceholders = ["unknown home", "unknown away", "tbd"]; // Lowercase for case-insensitive comparison
 
+    // Add teams from games
     relevantRegularGames.forEach(game => {
       if (game.homeTeam && !knownTeamPlaceholders.includes(game.homeTeam.toLowerCase())) {
         uniqueTeamNames.add(game.homeTeam);
@@ -233,6 +138,19 @@ const MatchesPage: React.FC = () => {
       if (game.awayTeam && !knownTeamPlaceholders.includes(game.awayTeam.toLowerCase())) {
         uniqueTeamNames.add(game.awayTeam);
       }
+    });
+
+    // Add teams from Teams sheet that match the selection
+    const sheetTeamsForSeason = allStandingsDataFromSheet.filter(t => 
+        t.year.trim() === selectedYear.trim() && 
+        t.seasonName.trim().toLowerCase() === selectedSeasonName.trim().toLowerCase() && 
+        t.division === selectedDivision
+    );
+    
+    sheetTeamsForSeason.forEach(t => {
+        if (t.teamName && !knownTeamPlaceholders.includes(t.teamName.toLowerCase())) {
+            uniqueTeamNames.add(t.teamName);
+        }
     });
 
     const initialTeamRows: StandingRow[] = Array.from(uniqueTeamNames).map(name => ({
@@ -246,11 +164,12 @@ const MatchesPage: React.FC = () => {
     const calculatedStandingsCore = calculateStandings(relevantRegularGames, initialTeamRows);
     
     // 4. Merge with auxiliary data from the sheet
+    // Robust matching logic: case-insensitive, trimmed
     const mergedStandings: TeamStatsData[] = calculatedStandingsCore.map(coreRow => {
       const sheetDataForTeam = allStandingsDataFromSheet.find(sheetRow =>
-        sheetRow.teamName === coreRow.teamName &&
-        sheetRow.year === selectedYear &&
-        sheetRow.seasonName.toLowerCase() === selectedSeasonName.toLowerCase() && // general season name for matching
+        sheetRow.teamName.trim().toLowerCase() === coreRow.teamName.trim().toLowerCase() &&
+        sheetRow.year.trim() === selectedYear.trim() &&
+        sheetRow.seasonName.trim().toLowerCase() === selectedSeasonName.trim().toLowerCase() && 
         sheetRow.division === selectedDivision
       );
       return {
@@ -262,10 +181,12 @@ const MatchesPage: React.FC = () => {
         lastWeekResult: sheetDataForTeam?.lastWeekResult,
         currentWeekResult: sheetDataForTeam?.currentWeekResult,
         teamColor: sheetDataForTeam?.teamColor,
+        dropped: sheetDataForTeam?.dropped || false,
       };
     });
     
     const sortedData = mergedStandings.sort((a, b) => {
+        if (a.dropped !== b.dropped) return a.dropped ? 1 : -1;
         if (b.points !== a.points) return b.points - a.points;
         if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
         if (a.goalsAgainst !== b.goalsAgainst) return a.goalsAgainst - b.goalsAgainst; 
