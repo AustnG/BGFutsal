@@ -49,6 +49,8 @@ export const processGames = (rawGames: SheetGame[]): ProcessedGame[] => {
 
         const homePKs = g.HomePKs?.trim();
         const awayPKs = g.AwayPKs?.trim();
+        const homeForfeit = g.HomeForfeit?.trim().toUpperCase() === 'TRUE';
+        const awayForfeit = g.AwayForfeit?.trim().toUpperCase() === 'TRUE';
         
         // Format time here for consistency across app
         const formattedTime = formatTo12HourTime(g.GameTime?.trim());
@@ -68,6 +70,8 @@ export const processGames = (rawGames: SheetGame[]): ProcessedGame[] => {
             gameWeek: g.GameWeek ? (isNaN(parseInt(g.GameWeek.trim(), 10)) ? g.GameWeek.trim() : parseInt(g.GameWeek.trim(), 10)) : undefined,
             homePKs: homePKs !== undefined && homePKs !== '' ? parseInt(homePKs, 10) : undefined,
             awayPKs: awayPKs !== undefined && awayPKs !== '' ? parseInt(awayPKs, 10) : undefined,
+            homeForfeit,
+            awayForfeit,
         };
     }).filter(Boolean as unknown as (value: ProcessedGame | null) => value is ProcessedGame);
 };

@@ -107,6 +107,8 @@ export interface SheetGame {
   'GameWeek': string; // New field
   'HomePKs'?: string; // New field for Home Penalty Kicks score
   'AwayPKs'?: string; // New field for Away Penalty Kicks score
+  'HomeForfeit'?: string; // New field
+  'AwayForfeit'?: string; // New field
 }
 
 export interface ProcessedGame {
@@ -125,6 +127,8 @@ export interface ProcessedGame {
   gameWeek?: number | string; // Can be number for regular season, or string like 'Finals'
   homePKs?: number; // Parsed Home Penalty Kicks score
   awayPKs?: number; // Parsed Away Penalty Kicks score
+  homeForfeit: boolean;
+  awayForfeit: boolean;
 }
 
 export interface StaffMember {

@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { ProcessedGame, Division } from '../types';
 
@@ -31,6 +33,10 @@ const GameCard: React.FC<GameCardProps> = ({ game, isPlayoff = false }) => {
       }
     }
   }
+
+  // Override winner display if there's a forfeit
+  if (game.homeForfeit) winner = game.awayTeam;
+  else if (game.awayForfeit) winner = game.homeTeam;
   
   return (
     <div 
@@ -50,19 +56,31 @@ const GameCard: React.FC<GameCardProps> = ({ game, isPlayoff = false }) => {
       </div>
       
       <div className="flex items-center w-full my-1.5">
-        <span 
-          className={`flex-1 text-base md:text-lg ${winner === game.homeTeam ? 'font-bold text-highlight-gold' : 'font-semibold text-light-text'} text-right pr-2 md:pr-3 truncate`}
-        >
-          {game.homeTeam}
-        </span>
+        {/* Home Team */}
+        <div className="flex-1 flex flex-row items-center justify-end pr-2 md:pr-3 overflow-hidden gap-2">
+            {game.homeForfeit && <span className="text-[10px] sm:text-xs text-red-400 font-bold uppercase tracking-wider flex-shrink-0">Forfeit</span>}
+            <span 
+                className={`text-base md:text-lg truncate text-right ${winner === game.homeTeam ? 'font-bold text-highlight-gold' : 'font-semibold text-light-text'}`}
+                title={game.homeTeam}
+            >
+            {game.homeTeam}
+            </span>
+        </div>
+        
         <span className="text-xl md:text-2xl font-bold text-secondary-text px-2 md:px-4 text-center tabular-nums">
           {scoreDisplay}
         </span>
-        <span 
-          className={`flex-1 text-base md:text-lg ${winner === game.awayTeam ? 'font-bold text-highlight-gold' : 'font-semibold text-light-text'} text-left pl-2 md:pl-3 truncate`}
-        >
-          {game.awayTeam}
-        </span>
+
+        {/* Away Team */}
+        <div className="flex-1 flex flex-row items-center justify-start pl-2 md:pl-3 overflow-hidden gap-2">
+             <span 
+                className={`text-base md:text-lg truncate text-left ${winner === game.awayTeam ? 'font-bold text-highlight-gold' : 'font-semibold text-light-text'}`}
+                title={game.awayTeam}
+            >
+            {game.awayTeam}
+            </span>
+            {game.awayForfeit && <span className="text-[10px] sm:text-xs text-red-400 font-bold uppercase tracking-wider flex-shrink-0">Forfeit</span>}
+        </div>
       </div>
 
       {winner && winner !== 'Draw' && winner !== 'Draw (PKs also tied)' && isPlayoff && regulationScoresPresent && (

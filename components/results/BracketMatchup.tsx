@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { ProcessedGame } from '../../types';
 
@@ -27,7 +29,11 @@ const BracketMatchup: React.FC<BracketMatchupProps> = ({
   let team2Winner = false;
   const hasGameBeenPlayed = game && !isNaN(game.homeScore) && !isNaN(game.awayScore);
 
-  if (hasGameBeenPlayed) {
+  if (game?.homeForfeit) {
+    team2Winner = true;
+  } else if (game?.awayForfeit) {
+    team1Winner = true;
+  } else if (hasGameBeenPlayed) {
     if (game.homeScore > game.awayScore) {
       team1Winner = true;
     } else if (game.awayScore > game.homeScore) {
@@ -41,7 +47,11 @@ const BracketMatchup: React.FC<BracketMatchupProps> = ({
   }
   
   function getWinnerName(g?: ProcessedGame): string | null {
-    if (!g || isNaN(g.homeScore) || isNaN(g.awayScore)) return null;
+    if (!g) return null;
+    if (g.homeForfeit) return g.awayTeam;
+    if (g.awayForfeit) return g.homeTeam;
+    if (isNaN(g.homeScore) || isNaN(g.awayScore)) return null;
+
     if (g.homeScore > g.awayScore) return g.homeTeam;
     if (g.awayScore > g.homeScore) return g.awayTeam;
     if (g.homeScore === g.awayScore) {
@@ -67,7 +77,7 @@ const BracketMatchup: React.FC<BracketMatchupProps> = ({
 
   const getTeamClass = (teamNameStr: string, isWinner: boolean, isGamePlayed: boolean) => {
     const isEffectivelyTBD = teamNameStr.toLowerCase().startsWith('tbd') || teamNameStr.toLowerCase() === 'team';
-    if (!isGamePlayed) {
+    if (!isGamePlayed && !(game?.homeForfeit || game?.awayForfeit)) {
       return isEffectivelyTBD ? `${baseTeamClass} ${tbdTeamStyling}` : `${baseTeamClass} ${defaultTeamStyling}`;
     }
     if (isEffectivelyTBD) return `${baseTeamClass} ${tbdTeamStyling}`;
@@ -85,7 +95,8 @@ const BracketMatchup: React.FC<BracketMatchupProps> = ({
   const defaultScoreClass = "text-light-text";
 
   const getScoreClass = (isWinner: boolean, isGamePlayed: boolean) => {
-    if (!isGamePlayed) return `${scoreClass} ${defaultScoreClass}`;
+    // If scores are displayed, highlight winner. If forfeit, winner is highlighted regardless of score display
+    if (!isGamePlayed && !(game?.homeForfeit || game?.awayForfeit)) return `${scoreClass} ${defaultScoreClass}`;
     return isWinner ? `${scoreClass} ${winnerScoreClass}` : `${scoreClass} ${loserScoreClass}`;
   }
 
@@ -95,7 +106,7 @@ const BracketMatchup: React.FC<BracketMatchupProps> = ({
   let cardSpecificClasses = "border-dark-border";
   if (team1Winner || team2Winner) {
     cardSpecificClasses = "border-main-green shadow-main-green/20";
-  } else if (!hasGameBeenPlayed && (team1Name.toLowerCase().startsWith('tbd') || team2Name.toLowerCase().startsWith('tbd') || team1Name.toLowerCase() === 'team' || team2Name.toLowerCase() === 'team')) {
+  } else if (!hasGameBeenPlayed && (team1Name.toLowerCase().startsWith('tbd') || team2Name.toLowerCase().startsWith('tbd') || team1Name.toLowerCase() === 'team' || team2Name.toLowerCase() === 'team') && !game?.homeForfeit && !game?.awayForfeit) {
     cardSpecificClasses = "border-dark-border opacity-75 bg-dark-bg/50";
   }
 
@@ -113,14 +124,20 @@ const BracketMatchup: React.FC<BracketMatchupProps> = ({
          </div>
       )}
       <div className="flex justify-between items-center">
-        <span className={getTeamClass(team1Name, team1Winner, hasGameBeenPlayed)} title={team1Name}>{team1Name}</span>
-        <span className={getScoreClass(team1Winner, hasGameBeenPlayed)}>
+        <div className="flex flex-row items-center overflow-hidden min-w-0 gap-2">
+             <span className={getTeamClass(team1Name, team1Winner, hasGameBeenPlayed || !!game?.homeForfeit || !!game?.awayForfeit)} title={team1Name}>{team1Name}</span>
+             {game?.homeForfeit && <span className="text-[10px] text-red-400 font-bold uppercase tracking-wider flex-shrink-0">Forfeit</span>}
+        </div>
+        <span className={getScoreClass(team1Winner, hasGameBeenPlayed || !!game?.homeForfeit || !!game?.awayForfeit)}>
           {score1Display}
         </span>
       </div>
       <div className="flex justify-between items-center mt-1">
-        <span className={getTeamClass(team2Name, team2Winner, hasGameBeenPlayed)} title={team2Name}>{team2Name}</span>
-        <span className={getScoreClass(team2Winner, hasGameBeenPlayed)}>
+        <div className="flex flex-row items-center overflow-hidden min-w-0 gap-2">
+            <span className={getTeamClass(team2Name, team2Winner, hasGameBeenPlayed || !!game?.homeForfeit || !!game?.awayForfeit)} title={team2Name}>{team2Name}</span>
+            {game?.awayForfeit && <span className="text-[10px] text-red-400 font-bold uppercase tracking-wider flex-shrink-0">Forfeit</span>}
+        </div>
+        <span className={getScoreClass(team2Winner, hasGameBeenPlayed || !!game?.homeForfeit || !!game?.awayForfeit)}>
           {score2Display}
         </span>
       </div>

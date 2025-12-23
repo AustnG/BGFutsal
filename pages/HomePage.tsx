@@ -396,7 +396,7 @@ const HomePage: React.FC = () => {
             {newsItems[0] && (
               <div className="flex flex-col group h-full">
                    {/* Link wrapper if link exists */}
-                   <a href={newsItems[0].link || '#'} target={newsItems[0].link ? "_blank" : undefined} rel={newsItems[0].link ? "noopener noreferrer" : undefined} className="block h-full flex flex-col">
+                   <a href={newsItems[0].link || '#'} className="block h-full flex flex-col">
                       <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-lg mb-5 border border-dark-border/50 group-hover:border-highlight-gold/50 transition-colors">
                          {newsItems[0].imageUrl ? (
                             <img src={newsItems[0].imageUrl} alt={newsItems[0].title} className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105" />
@@ -408,12 +408,12 @@ const HomePage: React.FC = () => {
                          <h3 className="font-display text-3xl md:text-4xl font-bold text-light-text leading-tight group-hover:text-highlight-gold transition-colors">
                             {newsItems[0].title}
                          </h3>
-                         <p className="text-secondary-text text-lg line-clamp-3">
-                            {newsItems[0].content}
-                         </p>
-                          <div className="flex items-center text-sm font-medium text-main-green uppercase tracking-wider mt-2">
+                         <div className="flex items-center text-sm font-medium text-main-green uppercase tracking-wider mt-1">
                             {newsItems[0].category || 'News'}
                          </div>
+                         <p className="text-secondary-text text-lg leading-relaxed">
+                            {newsItems[0].content}
+                         </p>
                       </div>
                    </a>
               </div>
@@ -423,17 +423,20 @@ const HomePage: React.FC = () => {
             {newsItems.length > 1 && (
               <div className="flex flex-col divide-y divide-dark-border/50">
                  {newsItems.slice(1, MAX_NEWS_ITEMS_HOMEPAGE).map((item) => (
-                    <a key={item.id} href={item.link || '#'} target={item.link ? "_blank" : undefined} rel={item.link ? "noopener noreferrer" : undefined} className="flex items-start gap-4 py-6 first:pt-0 last:pb-0 group">
+                    <a key={item.id} href={item.link || '#'} className="flex items-start gap-4 py-6 first:pt-0 last:pb-0 group">
                        <div className="flex-grow space-y-2">
                            <h4 className="font-display text-xl font-bold text-light-text leading-snug group-hover:text-highlight-gold transition-colors line-clamp-2">
                               {item.title}
                            </h4>
-                           <div className="text-sm text-secondary-text font-medium">
+                           <div className="text-xs text-main-green font-medium uppercase tracking-wider">
                               {item.category || 'News'}
                            </div>
+                           <p className="text-secondary-text text-sm line-clamp-3 leading-relaxed">
+                              {item.content}
+                           </p>
                        </div>
                        {item.imageUrl && (
-                          <div className="flex-shrink-0 w-32 h-20 rounded-lg overflow-hidden border border-dark-border/50 group-hover:border-highlight-gold/50 transition-colors shadow-sm">
+                          <div className="flex-shrink-0 w-32 h-24 rounded-lg overflow-hidden border border-dark-border/50 group-hover:border-highlight-gold/50 transition-colors shadow-sm">
                              <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110" />
                           </div>
                        )}
@@ -508,15 +511,18 @@ const HomePage: React.FC = () => {
                                   {/* Grid Layout for teams and score */}
                                   <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 w-full">
                                       {/* Home Team */}
-                                      <div className="flex items-center justify-end gap-2 text-right min-w-0">
-                                          <span className="text-base md:text-lg font-semibold text-light-text break-words" title={game.homeTeam}>{game.homeTeam}</span>
-                                          {homeTeamData?.teamColor && (
-                                              <span 
-                                                  className="w-3 h-3 rounded-full flex-shrink-0 border border-white/10" 
-                                                  style={{ backgroundColor: homeTeamData.teamColor }}
-                                                  aria-hidden="true"
-                                              ></span>
-                                          )}
+                                      <div className="flex-1 flex flex-row items-center justify-end pr-2 md:pr-3 overflow-hidden gap-2">
+                                          {game.homeForfeit && <span className="text-[10px] sm:text-xs text-red-400 font-bold uppercase tracking-wider flex-shrink-0">Forfeit</span>}
+                                          <div className="flex items-center justify-end gap-2 text-right min-w-0 truncate">
+                                            <span className="text-base md:text-lg font-semibold text-light-text truncate" title={game.homeTeam}>{game.homeTeam}</span>
+                                            {homeTeamData?.teamColor && (
+                                                <span 
+                                                    className="w-3 h-3 rounded-full flex-shrink-0 border border-white/10" 
+                                                    style={{ backgroundColor: homeTeamData.teamColor }}
+                                                    aria-hidden="true"
+                                                ></span>
+                                            )}
+                                          </div>
                                       </div>
 
                                       {/* Center Info (Score/Time) */}
@@ -527,15 +533,18 @@ const HomePage: React.FC = () => {
                                       </div>
 
                                       {/* Away Team */}
-                                      <div className="flex items-center justify-start gap-2 text-left min-w-0">
-                                          {awayTeamData?.teamColor && (
-                                              <span 
-                                                  className="w-3 h-3 rounded-full flex-shrink-0 border border-white/10" 
-                                                  style={{ backgroundColor: awayTeamData.teamColor }}
-                                                  aria-hidden="true"
-                                              ></span>
-                                          )}
-                                          <span className="text-base md:text-lg font-semibold text-light-text break-words" title={game.awayTeam}>{game.awayTeam}</span>
+                                      <div className="flex-1 flex flex-row items-center justify-start pl-2 md:pl-3 overflow-hidden gap-2">
+                                          <div className="flex items-center justify-start gap-2 text-left min-w-0 truncate">
+                                            {awayTeamData?.teamColor && (
+                                                <span 
+                                                    className="w-3 h-3 rounded-full flex-shrink-0 border border-white/10" 
+                                                    style={{ backgroundColor: awayTeamData.teamColor }}
+                                                    aria-hidden="true"
+                                                ></span>
+                                            )}
+                                            <span className="text-base md:text-lg font-semibold text-light-text truncate" title={game.awayTeam}>{game.awayTeam}</span>
+                                          </div>
+                                          {game.awayForfeit && <span className="text-[10px] sm:text-xs text-red-400 font-bold uppercase tracking-wider flex-shrink-0">Forfeit</span>}
                                       </div>
                                   </div>
                               </div>
