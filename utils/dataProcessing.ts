@@ -5,6 +5,9 @@ export const TEAM_SEASON_REGEX = /^(\d{4})\s+(.+?)\s+([AB])$/i;
 
 export const formatTo12HourTime = (timeStr?: string): string | undefined => {
   if (!timeStr) return undefined;
+  // If already contains AM/PM, assume it's pre-formatted
+  if (timeStr.match(/am|pm/i)) return timeStr;
+
   const parts = timeStr.match(/^(\d{1,2}):(\d{2})$/);
   if (!parts) return timeStr;
   let hours = parseInt(parts[1], 10);
@@ -52,8 +55,36 @@ export const processGames = (rawGames: SheetGame[]): ProcessedGame[] => {
         const homeForfeit = g.HomeForfeit?.trim().toUpperCase() === 'TRUE';
         const awayForfeit = g.AwayForfeit?.trim().toUpperCase() === 'TRUE';
         
-        // Format time here for consistency across app
-        const formattedTime = formatTo12HourTime(g.GameTime?.trim());
+        const rawTime = g.GameTime?.trim();
+        const formattedTime = formatTo12HourTime(rawTime);
+
+        // Add time to gameDate for sorting purposes
+        if (rawTime) {
+             let hours = -1;
+             let minutes = -1;
+
+             // Try 24h format HH:MM
+             const parts24 = rawTime.match(/^(\d{1,2}):(\d{2})$/);
+             if (parts24) {
+                 hours = parseInt(parts24[1], 10);
+                 minutes = parseInt(parts24[2], 10);
+             } else {
+                 // Try 12h format HH:MM AM/PM
+                 const parts12 = rawTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+                 if (parts12) {
+                     hours = parseInt(parts12[1], 10);
+                     minutes = parseInt(parts12[2], 10);
+                     const meridian = parts12[3].toUpperCase();
+                     if (hours === 12 && meridian === 'AM') hours = 0;
+                     if (hours !== 12 && meridian === 'PM') hours += 12;
+                 }
+             }
+
+             if (hours >= 0 && minutes >= 0) {
+                 gameDate.setHours(hours);
+                 gameDate.setMinutes(minutes);
+             }
+        }
 
         return {
             id: `game-${index}-${g.GameDate}-${g.HomeTeam}`,
