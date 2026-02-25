@@ -8,6 +8,7 @@ import {
   SETTINGS_SHEET_URL, 
   GAMES_SHEET_URL, 
   NEWS_SHEET_URL, 
+  SEASONS_SHEET_URL,
   MAX_NEWS_ITEMS_HOMEPAGE, 
 } from '../constants';
 import { CalendarIcon } from '../components/icons/CalendarIcon';
@@ -27,13 +28,14 @@ import {
   SheetGame, 
   StandingRow,
   SheetNewsItem, 
-  ProcessedNewsItem 
+  ProcessedNewsItem,
+  SheetSeason
 } from '../types';
 import { MinusIcon } from '../components/icons/MinusIcon';
 import { calculateStandings } from '../utils/standingsCalculator';
 import { ChevronUpIcon } from '../components/icons/ChevronUpIcon';
 import { ChevronDownIcon } from '../components/icons/ChevronDownIcon';
-import { processGames, processNews, processTeams } from '../utils/dataProcessing';
+import { processGames, processNews, processTeams, processSeasons } from '../utils/dataProcessing';
 
 const galleryImages = [
   "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgjlO46blYNR5-LYlr8C8m0lVaESDqu9sTMczhqCyfIZ2xwSJPTzpPZkYa6V5hgG1cmzZoo2Aa_h5_gTeI0lRwPqn1yGGj_DK0h20NLykGfiXOzuUeAJCTcU9Mg6NBVwXL6SjD4IcGgcRq9HUyMFbbVvrxWJ-zsgXUNiAptUTercms2xzIUZuhInYAjDMU/s320/001.jpg",
@@ -57,6 +59,7 @@ const HomePage: React.FC = () => {
   const [allStandingsDataFromSheet, setAllStandingsDataFromSheet] = useState<TeamStatsData[]>([]);
   const [currentStandings, setCurrentStandings] = useState<TeamStatsData[]>([]);
   const [selectedDivision, setSelectedDivision] = useState<Division>(Division.A);
+  const [availableDivisions, setAvailableDivisions] = useState<Division[]>([]);
   const [defaultYear, setDefaultYear] = useState<string>('');
   const [defaultSeasonName, setDefaultSeasonName] = useState<string>('');
   const [loadingStandings, setLoadingStandings] = useState<boolean>(true); // Represents general data loading
@@ -71,10 +74,6 @@ const HomePage: React.FC = () => {
   const [matchweeks, setMatchweeks] = useState<(string | number)[]>([]);
   const [selectedMatchweek, setSelectedMatchweek] = useState<string | number | null>(null);
 
-  const divisionsForFilter = Object.values(Division).filter(
-    value => value !== Division.Unknown
-  ) as Division[];
-
   const fetchData = useCallback(async () => {
     setLoadingStandings(true);
     setStandingsError(null);
@@ -82,11 +81,12 @@ const HomePage: React.FC = () => {
     setNewsError(null);
 
     try {
-      const [settingsCsv, teamsCsv, gamesCsv, newsCsv] = await Promise.all([
+      const [settingsCsv, teamsCsv, gamesCsv, newsCsv, seasonsCsv] = await Promise.all([
         fetchSheetData(SETTINGS_SHEET_URL),
         fetchSheetData(TEAMS_SHEET_URL),
         fetchSheetData(GAMES_SHEET_URL),
         fetchSheetData(NEWS_SHEET_URL), 
+        fetchSheetData(SEASONS_SHEET_URL),
       ]);
 
       // Process News
@@ -113,6 +113,37 @@ const HomePage: React.FC = () => {
         }
       }
       setDefaultSeasonName(foundSeasonName);
+      
+      // Process Seasons to determine available divisions
+      const rawSeasons = parseCsvData<SheetSeason>(seasonsCsv);
+      const processedSeasons = processSeasons(rawSeasons);
+      
+      const relevantSeasons = processedSeasons.filter(s => 
+          s.year === foundYear && s.seasonName === foundSeasonName
+      );
+      const uniqueDivs = Array.from(new Set(relevantSeasons.map(s => s.division))).sort();
+      setAvailableDivisions(uniqueDivs);
+
+      let foundDivision: Division = Division.A;
+      // Try to find default division from settings
+      const activeSetting = rawSettings.find(s => s.Year && s.Season);
+      if (activeSetting && activeSetting.Division) {
+          foundDivision = activeSetting.Division.trim().toUpperCase();
+      } else {
+          // If no setting, or setting empty, default to first available division if any
+          if (uniqueDivs.length > 0) {
+              foundDivision = uniqueDivs[0];
+          } else {
+              foundDivision = Division.Unknown;
+          }
+      }
+      
+      // Ensure foundDivision is actually available, otherwise fallback
+      if (uniqueDivs.length > 0 && !uniqueDivs.includes(foundDivision)) {
+          foundDivision = uniqueDivs[0];
+      }
+      
+      setSelectedDivision(foundDivision);
 
       // Process Games
       const rawGames = parseCsvData<SheetGame>(gamesCsv);
@@ -154,7 +185,10 @@ const HomePage: React.FC = () => {
     }
 
     // --- Standings Calculation ---
-    const targetSeasonKey = `${defaultYear} ${defaultSeasonName} ${selectedDivision}`;
+    let targetSeasonKey = `${defaultYear} ${defaultSeasonName}`;
+    if (selectedDivision !== Division.Unknown) {
+        targetSeasonKey += ` ${selectedDivision}`;
+    }
     const relevantRegularGamesForStandings = allGames.filter(game =>
       game.seasonName.toLowerCase() === targetSeasonKey.toLowerCase() &&
       game.gameType === 'Regular' &&
@@ -583,10 +617,11 @@ const HomePage: React.FC = () => {
                     onChange={(e) => setSelectedDivision(e.target.value as Division)}
                     className="w-full sm:w-auto mt-1 block pl-3 pr-10 py-2 text-base bg-dark-bg text-light-text border-dark-border focus:outline-none focus:ring-main-green focus:border-main-green sm:text-sm rounded-md shadow-sm"
                     aria-label="Select Division for Standings"
-                    disabled={loadingStandings}
+                    disabled={loadingStandings || availableDivisions.length <= 1}
+                    style={{ opacity: availableDivisions.length <= 1 ? 0.5 : 1 }}
                 >
-                    {divisionsForFilter.map(div => (
-                        <option key={div} value={div}>Division {div}</option>
+                    {availableDivisions.map(div => (
+                        <option key={div} value={div}>{div === Division.Unknown ? 'General' : `Division ${div}`}</option>
                     ))}
                 </select>
             </div>

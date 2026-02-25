@@ -2,14 +2,16 @@
 
 import React from 'react';
 
-export enum Division {
-  A = "A",
-  B = "B",
-  Unknown = "Unknown"
-}
+export type Division = string;
+export const Division = {
+  A: "A",
+  B: "B",
+  Unknown: "Unknown"
+} as const;
 
 export interface SheetSeason {
   'SeasonId': string;
+  'Division'?: string; // New column for explicit division
   'StartDate': string;
   'EndDate': string;
   'SeasonWinner'?: string; // Champion for this specific season-division
@@ -25,8 +27,11 @@ export interface SheetSeason {
 }
 
 export interface ProcessedSeason {
-  id: string; // Typically 'Season Name'
-  name: string;
+  id: string; // Typically 'Season Name' e.g. "2024 Spring A"
+  name: string; // Display name
+  year: string;
+  seasonName: string; // e.g. "Spring"
+  division: Division;
   startDate?: Date;
   endDate?: Date;
   seasonWinner?: string;

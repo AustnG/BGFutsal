@@ -1,7 +1,7 @@
 
-import { SheetGame, ProcessedGame, Division, SheetTeamWithStats, TeamStatsData, SheetNewsItem, ProcessedNewsItem } from '../types';
+import { SheetGame, ProcessedGame, Division, SheetTeamWithStats, TeamStatsData, SheetNewsItem, ProcessedNewsItem, SheetSeason, ProcessedSeason } from '../types';
 
-export const TEAM_SEASON_REGEX = /^(\d{4})\s+(.+?)\s+([AB])$/i;
+export const TEAM_SEASON_REGEX = /^(\d{4})\s+(.+?)\s+([A-Z0-9]{1,2})$/i;
 
 export const formatTo12HourTime = (timeStr?: string): string | undefined => {
   if (!timeStr) return undefined;
@@ -23,20 +23,23 @@ export const formatTo12HourTime = (timeStr?: string): string | undefined => {
 export const determineDivision = (divisionCol?: string, seasonName?: string): Division => {
     let division = Division.Unknown;
     const colDiv = divisionCol?.trim().toUpperCase();
-    if (colDiv === 'A') return Division.A;
-    if (colDiv === 'B') return Division.B;
+    if (colDiv) return colDiv;
     
-    if (seasonName && /\s+[AB]$/i.test(seasonName)) {
-        const match = seasonName.match(/\s+([AB])$/i);
-        if (match) division = match[1] === 'A' ? Division.A : Division.B;
+    if (seasonName) {
+        const match = seasonName.match(/\s+([A-Z0-9]{1,2})$/i);
+        if (match) return match[1].toUpperCase();
     }
     return division;
 };
 
 export const normalizeSeasonName = (seasonNameRaw?: string, division?: Division): string => {
     const raw = seasonNameRaw?.trim() || "";
-    if (/\s+[AB]$/i.test(raw)) return raw; // Already has division
-    if (division !== Division.Unknown) return `${raw} ${division}`;
+    if (division && division !== Division.Unknown) {
+        // Check if raw ends with division (case insensitive)
+        const regex = new RegExp(`\\s+${division}$`, 'i');
+        if (regex.test(raw)) return raw;
+        return `${raw} ${division}`;
+    }
     return raw;
 };
 
@@ -120,18 +123,16 @@ export const processTeams = (rawTeams: SheetTeamWithStats[]): TeamStatsData[] =>
         const combinedSeasonStr = getString(rawTeam.Season) || "";
         let year = "";
         let seasonNamePart = "";
-        let divisionPart = Division.Unknown;
+        let divisionPart: Division = Division.Unknown;
 
         const match = combinedSeasonStr.match(TEAM_SEASON_REGEX);
         if (match) {
             year = match[1];
             seasonNamePart = match[2].trim();
-            const divisionLetter = match[3].toUpperCase();
-            divisionPart = divisionLetter === 'A' ? Division.A : divisionLetter === 'B' ? Division.B : Division.Unknown;
+            divisionPart = match[3].toUpperCase();
         } else {
              const rawDivisionCol = getString(rawTeam.Division)?.toUpperCase();
-             if (rawDivisionCol === 'A') divisionPart = Division.A;
-             else if (rawDivisionCol === 'B') divisionPart = Division.B;
+             if (rawDivisionCol) divisionPart = rawDivisionCol;
              
              const yearSeasonMatch = combinedSeasonStr.match(/^(\d{4})\s+(.+)$/);
              if (yearSeasonMatch) {
@@ -163,6 +164,67 @@ export const processTeams = (rawTeams: SheetTeamWithStats[]): TeamStatsData[] =>
             dropped: rawTeam.Dropped?.trim().toUpperCase() === 'TRUE',
         };
     }).filter(team => team.division !== Division.Unknown && team.year && team.seasonName && team.teamName);
+};
+
+export const processSeasons = (rawSeasons: SheetSeason[]): ProcessedSeason[] => {
+    return rawSeasons.map(s => {
+        const seasonId = s.SeasonId?.trim();
+        if (!seasonId) return null;
+
+        let division: Division = Division.Unknown;
+        let year = "";
+        let seasonName = "";
+        
+        // Try to get division from explicit column first
+        if (s.Division) {
+             division = s.Division.trim().toUpperCase();
+        }
+
+        // Parse SeasonId for Year and Season Name (and Division if not found yet)
+        // Expected format: "YYYY SeasonName [Division]"
+        // e.g. "2024 Spring A" or "2024 Spring"
+        
+        const match = seasonId.match(/^(\d{4})\s+(.+)$/);
+        if (match) {
+            year = match[1];
+            let rest = match[2].trim();
+            
+            // Check if rest ends with division
+            const divMatch = rest.match(/\s+([A-Z0-9]{1,2})$/i);
+            if (divMatch) {
+                if (division === Division.Unknown) {
+                    division = divMatch[1].toUpperCase();
+                }
+                // Remove division from rest to get pure season name
+                rest = rest.replace(/\s+[A-Z0-9]{1,2}$/i, "").trim();
+            }
+            seasonName = rest;
+        } else {
+            // Fallback if regex doesn't match (e.g. just "Spring 2024" or something else)
+            // But we really expect "YYYY ..."
+            seasonName = seasonId;
+        }
+
+        return {
+            id: seasonId,
+            name: normalizeSeasonName(seasonId, division),
+            year,
+            seasonName,
+            division,
+            startDate: s.StartDate?.trim() ? new Date(s.StartDate.trim()) : undefined,
+            endDate: s.EndDate?.trim() ? new Date(s.EndDate.trim()) : undefined,
+            seasonWinner: s.SeasonWinner?.trim(),
+            goldenBootPlayer: s.GoldenBoot?.trim(),
+            goldenBootGoals: s.GoldenBootGoalsFor?.trim() ? parseInt(s.GoldenBootGoalsFor.trim(), 10) : undefined,
+            goldenBootTeam: s.GoldenBootTeam?.trim(),
+            goldenGlovePlayer: s.GoldenGlove?.trim(),
+            goldenGloveGoalsAgainst: s.GoldenGloveGoalsAgainst?.trim() ? parseFloat(s.GoldenGloveGoalsAgainst.trim()) : undefined,
+            goldenGloveTeam: s.GoldenGloveTeam?.trim(),
+            seasonWinnerImg: s.SeasonWinnerImg?.trim() || undefined,
+            goldenBootImg: s.GoldenBootImg?.trim() || undefined,
+            goldenGloveImg: s.GoldenGloveImg?.trim() || undefined,
+        };
+    }).filter(Boolean as unknown as (value: ProcessedSeason | null) => value is ProcessedSeason);
 };
 
 export const processNews = (rawNews: SheetNewsItem[]): ProcessedNewsItem[] => {
