@@ -16,7 +16,8 @@ const MatchesPage: React.FC = () => {
   const [allStandingsDataFromSheet, setAllStandingsDataFromSheet] = useState<TeamStatsData[]>([]); 
   const [currentStandings, setCurrentStandings] = useState<TeamStatsData[]>([]); 
   
-  const [selectedSeasonId, setSelectedSeasonId] = useState<string>('');
+  const [selectedSeasonKey, setSelectedSeasonKey] = useState<string>(''); // Format: "YYYY|SeasonName"
+  const [selectedDivision, setSelectedDivision] = useState<Division>(Division.Unknown);
   
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,9 +43,11 @@ const MatchesPage: React.FC = () => {
       });
       setAllProcessedSeasons(processedSeasons);
 
-      // Set initial selectedSeasonId to the most recent one
+      // Set initial selection to the most recent one
       if (processedSeasons.length > 0) {
-          setSelectedSeasonId(processedSeasons[0].id);
+          const mostRecent = processedSeasons[0];
+          setSelectedSeasonKey(`${mostRecent.year}|${mostRecent.seasonName}`);
+          setSelectedDivision(mostRecent.division);
       }
 
       // --- Games Processing ---
@@ -69,9 +72,49 @@ const MatchesPage: React.FC = () => {
     fetchData();
   }, [fetchData]);
 
+  // Derived unique seasons for dropdown
+  const uniqueSeasonOptions = useMemo(() => {
+      const options = new Map<string, { key: string, label: string }>();
+      allProcessedSeasons.forEach(s => {
+          const key = `${s.year}|${s.seasonName}`;
+          if (!options.has(key)) {
+              options.set(key, { key, label: `${s.year} ${s.seasonName}` });
+          }
+      });
+      return Array.from(options.values());
+  }, [allProcessedSeasons]);
+
+  // Derived available divisions for selected season key
+  const availableDivisions = useMemo(() => {
+      if (!selectedSeasonKey) return [];
+      const [year, name] = selectedSeasonKey.split('|');
+      return allProcessedSeasons
+          .filter(s => s.year === year && s.seasonName === name)
+          .map(s => s.division)
+          .sort(); 
+  }, [selectedSeasonKey, allProcessedSeasons]);
+
+  // Ensure valid division selection when season changes
+  useEffect(() => {
+      if (availableDivisions.length > 0 && !availableDivisions.includes(selectedDivision)) {
+          // Default to 'A' if available, otherwise first available
+          if (availableDivisions.includes(Division.A)) {
+             setSelectedDivision(Division.A);
+          } else {
+             setSelectedDivision(availableDivisions[0]);
+          }
+      }
+  }, [availableDivisions, selectedDivision]);
+
   const selectedSeason = useMemo(() => {
-      return allProcessedSeasons.find(s => s.id === selectedSeasonId);
-  }, [allProcessedSeasons, selectedSeasonId]);
+      if (!selectedSeasonKey) return undefined;
+      const [year, name] = selectedSeasonKey.split('|');
+      return allProcessedSeasons.find(s => 
+          s.year === year && 
+          s.seasonName === name && 
+          s.division === selectedDivision
+      );
+  }, [allProcessedSeasons, selectedSeasonKey, selectedDivision]);
 
   // Filter and sort standings data when selection changes
   useEffect(() => {
@@ -162,24 +205,59 @@ const MatchesPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="mb-10 p-6 bg-dark-card shadow-xl rounded-xl border border-dark-border">
-          <div>
-            <label htmlFor="season-select" className="block text-sm font-semibold text-highlight-gold mb-1">Select Season</label>
+      {/* Combined Header and Filter */}
+      <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4 border-b border-dark-border pb-6">
+        <div>
+          <h1 className="font-display text-4xl md:text-5xl font-bold text-light-text uppercase tracking-wider">
+            Matches & Results
+          </h1>
+          <p className="text-lg text-secondary-text mt-2">
+            View season standings, game results, and individual honors.
+          </p>
+        </div>
+        
+        <div className="w-full md:w-auto flex flex-col md:flex-row items-center gap-3">
+           {loading && <LoadingSpinner size="sm" color="text-highlight-gold" />}
+           
+           {/* Season Selector */}
+           <div className="relative w-full md:w-auto">
+            <label htmlFor="season-select" className="sr-only">Select Season</label>
             <select
               id="season-select"
-              value={selectedSeasonId}
-              onChange={(e) => setSelectedSeasonId(e.target.value)}
-              disabled={allProcessedSeasons.length === 0 && !loading}
-              className="w-full mt-1 block pl-3 pr-10 py-2.5 text-base bg-dark-bg text-light-text border border-dark-border focus:outline-none focus:ring-2 focus:ring-highlight-gold focus:border-highlight-gold sm:text-sm rounded-lg shadow-md"
-              aria-label="Select Season"
+              value={selectedSeasonKey}
+              onChange={(e) => setSelectedSeasonKey(e.target.value)}
+              disabled={uniqueSeasonOptions.length === 0 && !loading}
+              className="appearance-none w-full md:w-72 bg-dark-card text-light-text font-bold text-lg py-3 pl-4 pr-10 rounded-lg border border-dark-border focus:outline-none focus:ring-2 focus:ring-highlight-gold shadow-lg cursor-pointer transition-colors hover:border-highlight-gold/50"
             >
-              {allProcessedSeasons.length === 0 && !loading && <option value="">No Seasons Found</option>}
-              {allProcessedSeasons.map(season => (
-                <option key={season.id} value={season.id}>{season.id}</option>
+              {uniqueSeasonOptions.length === 0 && !loading && <option value="">No Seasons Found</option>}
+              {uniqueSeasonOptions.map(option => (
+                <option key={option.key} value={option.key}>{option.label}</option>
               ))}
             </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-highlight-gold">
+              <svg className="fill-current h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
           </div>
-          {loading && <div className="mt-4 flex justify-end"><LoadingSpinner size="sm" color="text-highlight-gold" /></div>}
+
+          {/* Division Selector (Only if multiple divisions exist for the season) */}
+          {availableDivisions.length > 0 && (
+              <div className="flex bg-dark-card rounded-lg p-1 border border-dark-border shadow-sm">
+                  {availableDivisions.map(div => (
+                      <button
+                          key={div}
+                          onClick={() => setSelectedDivision(div)}
+                          className={`px-6 py-2 rounded-md text-lg font-bold transition-all ${
+                              selectedDivision === div 
+                                  ? 'bg-highlight-gold text-dark-bg shadow-sm' 
+                                  : 'text-secondary-text hover:text-light-text hover:bg-white/5'
+                          }`}
+                      >
+                          Division {div}
+                      </button>
+                  ))}
+              </div>
+          )}
+        </div>
       </div>
 
        {(!selectedSeason && !loading && !error) && (
@@ -194,6 +272,7 @@ const MatchesPage: React.FC = () => {
             divisionalSeasonData={selectedSeason}
             allGamesForSeason={getGamesForDivisionalSeason(selectedSeason.name)}
             standingsData={currentStandings}
+            hideTitle={true}
           />
       )}
     </div>

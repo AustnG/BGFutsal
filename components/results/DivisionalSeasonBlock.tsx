@@ -13,9 +13,10 @@ interface DivisionalSeasonBlockProps {
   divisionalSeasonData: ProcessedSeason;
   allGamesForSeason: ProcessedGame[];
   standingsData: TeamStatsData[]; // New prop for standings
+  hideTitle?: boolean;
 }
 
-const DivisionalSeasonBlock: React.FC<DivisionalSeasonBlockProps> = ({ divisionalSeasonData, allGamesForSeason, standingsData }) => {
+const DivisionalSeasonBlock: React.FC<DivisionalSeasonBlockProps> = ({ divisionalSeasonData, allGamesForSeason, standingsData, hideTitle = false }) => {
   const playoffTypes = ['Quarter Finals', 'Semi Finals', 'Finals'];
   
   const playoffGameTypeOrder: Record<string, number> = {
@@ -82,9 +83,11 @@ const DivisionalSeasonBlock: React.FC<DivisionalSeasonBlockProps> = ({ divisiona
 
   return (
     <div className="mb-12 p-4 md:p-6 bg-dark-card shadow-lg rounded-xl border border-dark-border">
-      <h2 className="font-display text-3xl font-bold text-light-text mb-6 border-b-2 border-dark-border pb-3">
-        {divisionalSeasonData.name}
-      </h2>
+      {!hideTitle && (
+        <h2 className="font-display text-3xl font-bold text-light-text mb-6 border-b-2 border-dark-border pb-3">
+          {divisionalSeasonData.name}
+        </h2>
+      )}
 
       {divisionalSeasonData.seasonWinner && (
         <ChampionAwardsDisplay seasonData={divisionalSeasonData} />
