@@ -241,12 +241,12 @@ const MatchesPage: React.FC = () => {
 
           {/* Division Selector (Only if multiple divisions exist for the season) */}
           {availableDivisions.length > 0 && (
-              <div className="flex bg-dark-card rounded-lg p-1 border border-dark-border shadow-sm">
+              <div className="flex w-full md:w-auto bg-dark-card rounded-lg p-1 border border-dark-border shadow-sm">
                   {availableDivisions.map(div => (
                       <button
                           key={div}
                           onClick={() => setSelectedDivision(div)}
-                          className={`px-6 py-2 rounded-md text-lg font-bold transition-all ${
+                          className={`flex-1 md:flex-none px-6 py-2 rounded-md text-lg font-bold transition-all ${
                               selectedDivision === div 
                                   ? 'bg-highlight-gold text-dark-bg shadow-sm' 
                                   : 'text-secondary-text hover:text-light-text hover:bg-white/5'
