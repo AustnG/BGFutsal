@@ -218,7 +218,7 @@ export const processSeasons = (rawSeasons: SheetSeason[]): ProcessedSeason[] => 
             goldenBootGoals: s.GoldenBootGoalsFor?.trim() ? parseInt(s.GoldenBootGoalsFor.trim(), 10) : undefined,
             goldenBootTeam: s.GoldenBootTeam?.trim(),
             goldenGlovePlayer: s.GoldenGlove?.trim(),
-            goldenGloveGoalsAgainst: s.GoldenGloveGoalsAgainst?.trim() ? parseFloat(s.GoldenGloveGoalsAgainst.trim()) : undefined,
+            goldenGloveGoalsAgainst: s.GoldenGloveGoalsAgainst?.trim() ? parseInt(s.GoldenGloveGoalsAgainst.trim(), 10) : undefined,
             goldenGloveTeam: s.GoldenGloveTeam?.trim(),
             seasonWinnerImg: s.SeasonWinnerImg?.trim() || undefined,
             goldenBootImg: s.GoldenBootImg?.trim() || undefined,

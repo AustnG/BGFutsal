@@ -69,7 +69,7 @@ const ChampionAwardsDisplay: React.FC<ChampionAwardsDisplayProps> = ({ seasonDat
               type="Golden Glove" 
               player={seasonData.goldenGlovePlayer} 
               team={seasonData.goldenGloveTeam} 
-              stat={!isNaN(Number(seasonData.goldenGloveGoalsAgainst)) ? `${seasonData.goldenGloveGoalsAgainst?.toFixed(2)} GAA` : undefined}
+              stat={!isNaN(Number(seasonData.goldenGloveGoalsAgainst)) ? `${seasonData.goldenGloveGoalsAgainst} Goals Allowed` : undefined}
               imageUrl={seasonData.goldenGloveImg}
             />
             {!(seasonData.goldenBootPlayer || seasonData.goldenGlovePlayer) && (
