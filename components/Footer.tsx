@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LEAGUE_NAME, SHORT_LEAGUE_NAME } from '../constants';
+import { LEAGUE_NAME, SHORT_LEAGUE_NAME } from '../constants.ts';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();

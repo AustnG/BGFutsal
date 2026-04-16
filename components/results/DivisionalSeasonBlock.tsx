@@ -1,13 +1,13 @@
 
 
 import React from 'react';
-import { ProcessedSeason, ProcessedGame, TeamStatsData } from '../../types';
-import ChampionAwardsDisplay from './ChampionAwardsDisplay';
-import PlayoffDisplay from './PlayoffDisplay';
-import RegularSeasonResultsDisplay from './RegularSeasonResultsDisplay';
-import { MinusIcon } from '../icons/MinusIcon';
-import { ChevronUpIcon } from '../icons/ChevronUpIcon';
-import { ChevronDownIcon } from '../icons/ChevronDownIcon';
+import { ProcessedSeason, ProcessedGame, TeamStatsData } from '../../types.ts';
+import ChampionAwardsDisplay from './ChampionAwardsDisplay.tsx';
+import PlayoffDisplay from './PlayoffDisplay.tsx';
+import RegularSeasonResultsDisplay from './RegularSeasonResultsDisplay.tsx';
+import { MinusIcon } from '../icons/MinusIcon.tsx';
+import { ChevronUpIcon } from '../icons/ChevronUpIcon.tsx';
+import { ChevronDownIcon } from '../icons/ChevronDownIcon.tsx';
 
 interface DivisionalSeasonBlockProps {
   divisionalSeasonData: ProcessedSeason;

@@ -1,17 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { SHORT_LEAGUE_NAME } from '../constants';
-import { NavItem, NavDropdownItem } from '../types';
-import { MaterialMenuIcon } from './icons/MaterialMenuIcon';
-import { MaterialCloseIcon } from './icons/MaterialCloseIcon';
-import { MaterialExpandMoreIcon } from './icons/MaterialExpandMoreIcon';
-import { MaterialHomeIcon } from './icons/MaterialHomeIcon';
-import { MaterialEmojiEventsIcon } from './icons/MaterialEmojiEventsIcon';
-import { MaterialInfoIcon } from './icons/MaterialInfoIcon';
-import { MaterialGroupIcon } from './icons/MaterialGroupIcon';
-import { MaterialHelpIcon } from './icons/MaterialHelpIcon';
-import { MaterialMailIcon } from './icons/MaterialMailIcon';
-import { MaterialStorefrontIcon } from './icons/MaterialStorefrontIcon';
+import { SHORT_LEAGUE_NAME } from '../constants.ts';
+import { NavItem, NavDropdownItem } from '../types.ts';
+import { MaterialMenuIcon } from './icons/MaterialMenuIcon.tsx';
+import { MaterialCloseIcon } from './icons/MaterialCloseIcon.tsx';
+import { MaterialExpandMoreIcon } from './icons/MaterialExpandMoreIcon.tsx';
+import { MaterialHomeIcon } from './icons/MaterialHomeIcon.tsx';
+import { MaterialEmojiEventsIcon } from './icons/MaterialEmojiEventsIcon.tsx';
+import { MaterialInfoIcon } from './icons/MaterialInfoIcon.tsx';
+import { MaterialGroupIcon } from './icons/MaterialGroupIcon.tsx';
+import { MaterialHelpIcon } from './icons/MaterialHelpIcon.tsx';
+import { MaterialMailIcon } from './icons/MaterialMailIcon.tsx';
+import { MaterialStorefrontIcon } from './icons/MaterialStorefrontIcon.tsx';
 
 const FAVICON_URL = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiNRwWE_BLwGLGC1q961MbnXnpEQ3DdwUMMtNvQrThrmTYx4uwvlDzD7IfLy6uz1BNxoiuegW9oLI_3WWgUPHwRczZDI_uHKxchhLtWfL_hn79NEA5Easdt4M4zOzPhzcFZs26w083zFJjzjHMZUJvfn3YAaZUgJFJ26ATSmnU-murkGsyM3yKHIxHeSSA/s320/bgif1100x1100-white.png";
 

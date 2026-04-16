@@ -1,14 +1,14 @@
 
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { fetchSheetData } from '../services/sheetService';
-import { GAMES_SHEET_URL, SETTINGS_SHEET_URL, SEASONS_SHEET_URL, TEAMS_SHEET_URL } from '../constants';
-import { ProcessedGame, Division, SheetGame, SheetSettings, ProcessedSeason, SheetSeason, TeamStatsData, SheetTeamWithStats, StandingRow } from '../types';
-import { parseCsvData } from '../utils/csvParser';
-import DivisionalSeasonBlock from '../components/results/DivisionalSeasonBlock'; 
-import { calculateStandings } from '../utils/standingsCalculator';
-import { processGames, processTeams, processSeasons } from '../utils/dataProcessing';
+import LoadingSpinner from '../components/LoadingSpinner.tsx';
+import { fetchSheetData } from '../services/sheetService.ts';
+import { GAMES_SHEET_URL, SETTINGS_SHEET_URL, SEASONS_SHEET_URL, TEAMS_SHEET_URL } from '../constants.ts';
+import { ProcessedGame, Division, SheetGame, SheetSettings, ProcessedSeason, SheetSeason, TeamStatsData, SheetTeamWithStats, StandingRow } from '../types.ts';
+import { parseCsvData } from '../utils/csvParser.ts';
+import DivisionalSeasonBlock from '../components/results/DivisionalSeasonBlock.tsx'; 
+import { calculateStandings } from '../utils/standingsCalculator.ts';
+import { processGames, processTeams, processSeasons } from '../utils/dataProcessing.ts';
 
 const MatchesPage: React.FC = () => {
   const [allGames, setAllGames] = useState<ProcessedGame[]>([]);

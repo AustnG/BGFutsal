@@ -1,5 +1,5 @@
 
-import { ProcessedGame, StandingRow, Division } from '../types';
+import { ProcessedGame, StandingRow, Division } from '../types.ts';
 
 export function calculateStandings(games: ProcessedGame[], teams: StandingRow[]): StandingRow[] {
   const standingsMap: Map<string, StandingRow> = new Map();

@@ -1,5 +1,5 @@
 
-import { SheetGame, ProcessedGame, Division, SheetTeamWithStats, TeamStatsData, SheetNewsItem, ProcessedNewsItem, SheetSeason, ProcessedSeason } from '../types';
+import { SheetGame, ProcessedGame, Division, SheetTeamWithStats, TeamStatsData, SheetNewsItem, ProcessedNewsItem, SheetSeason, ProcessedSeason } from '../types.ts';
 
 export const TEAM_SEASON_REGEX = /^(\d{4})\s+(.+?)\s+([A-Z0-9]{1,2})$/i;
 

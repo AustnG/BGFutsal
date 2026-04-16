@@ -10,15 +10,15 @@ import {
   NEWS_SHEET_URL, 
   SEASONS_SHEET_URL,
   MAX_NEWS_ITEMS_HOMEPAGE, 
-} from '../constants';
-import { CalendarIcon } from '../components/icons/CalendarIcon';
-import { NewspaperIcon } from '../components/icons/NewspaperIcon';
-import { CameraIcon } from '../components/icons/CameraIcon';
-import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon';
-import { ChevronRightIcon } from '../components/icons/ChevronRightIcon';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { fetchSheetData } from '../services/sheetService';
-import { parseCsvData } from '../utils/csvParser';
+} from '../constants.ts';
+import { CalendarIcon } from '../components/icons/CalendarIcon.tsx';
+import { NewspaperIcon } from '../components/icons/NewspaperIcon.tsx';
+import { CameraIcon } from '../components/icons/CameraIcon.tsx';
+import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon.tsx';
+import { ChevronRightIcon } from '../components/icons/ChevronRightIcon.tsx';
+import LoadingSpinner from '../components/LoadingSpinner.tsx';
+import { fetchSheetData } from '../services/sheetService.ts';
+import { parseCsvData } from '../utils/csvParser.ts';
 import { 
   TeamStatsData, 
   SheetTeamWithStats, 
@@ -30,12 +30,12 @@ import {
   SheetNewsItem, 
   ProcessedNewsItem,
   SheetSeason
-} from '../types';
-import { MinusIcon } from '../components/icons/MinusIcon';
-import { calculateStandings } from '../utils/standingsCalculator';
-import { ChevronUpIcon } from '../components/icons/ChevronUpIcon';
-import { ChevronDownIcon } from '../components/icons/ChevronDownIcon';
-import { processGames, processNews, processTeams, processSeasons } from '../utils/dataProcessing';
+} from '../types.ts';
+import { MinusIcon } from '../components/icons/MinusIcon.tsx';
+import { calculateStandings } from '../utils/standingsCalculator.ts';
+import { ChevronUpIcon } from '../components/icons/ChevronUpIcon.tsx';
+import { ChevronDownIcon } from '../components/icons/ChevronDownIcon.tsx';
+import { processGames, processNews, processTeams, processSeasons } from '../utils/dataProcessing.ts';
 
 const galleryImages = [
   "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgjlO46blYNR5-LYlr8C8m0lVaESDqu9sTMczhqCyfIZ2xwSJPTzpPZkYa6V5hgG1cmzZoo2Aa_h5_gTeI0lRwPqn1yGGj_DK0h20NLykGfiXOzuUeAJCTcU9Mg6NBVwXL6SjD4IcGgcRq9HUyMFbbVvrxWJ-zsgXUNiAptUTercms2xzIUZuhInYAjDMU/s320/001.jpg",
