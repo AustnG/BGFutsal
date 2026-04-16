@@ -1,0 +1,7 @@
+services:
+  bg-futsal-site:
+    build: .
+    container_name: bg-futsal-league
+    ports:
+      - "3000:80"
+    restart: unless-stopped
