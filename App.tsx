@@ -1,14 +1,14 @@
 import React from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import Layout from './components/Layout.tsx';
-import HomePage from './pages/HomePage.tsx';
-import MatchesPage from './pages/ResultsPage.tsx';
-import AboutPage from './pages/AboutPage.tsx';
-import StaffPage from './pages/StaffPage.tsx';
-import RulesFaqsPage from './pages/RulesFaqsPage.tsx';
-import ContactPage from './pages/ContactPage.tsx';
-import SponsorsPage from './pages/SponsorsPage.tsx';
-import NotFoundPage from './pages/NotFoundPage.tsx';
+import Layout from './components/Layout';
+import HomePage from './pages/HomePage';
+import MatchesPage from './pages/ResultsPage';
+import AboutPage from './pages/AboutPage';
+import StaffPage from './pages/StaffPage';
+import RulesFaqsPage from './pages/RulesFaqsPage';
+import ContactPage from './pages/ContactPage';
+import SponsorsPage from './pages/SponsorsPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 const App: React.FC = () => {
   return (
