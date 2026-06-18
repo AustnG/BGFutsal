@@ -5,432 +5,635 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BG Futsal — Bowling Green, KY</title>
 <meta name="description" content="BG Futsal league — standings, schedules, results, teams and news for Bowling Green, Kentucky.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  /* ── Reset & Base ── */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --green-900: #052e16;
-    --green-800: #064e3b;
-    --green-700: #065f46;
-    --green-600: #047857;
-    --green-500: #059669;
-    --green-400: #34d399;
-    --green-100: #d1fae5;
-    --green-50:  #ecfdf5;
-    --gold-500:  #f59e0b;
-    --gold-400:  #fbbf24;
-    --gold-100:  #fef3c7;
-    --gold-50:   #fffbeb;
-    --white:     #ffffff;
-    --gray-50:   #f9fafb;
-    --gray-100:  #f3f4f6;
-    --gray-200:  #e5e7eb;
-    --gray-400:  #9ca3af;
-    --gray-600:  #4b5563;
-    --gray-800:  #1f2937;
-    --gray-900:  #111827;
-    --radius-sm: 6px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
-  }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--gray-50);
-    color: var(--gray-900);
-    font-size: 15px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --green-900: #052e16;
+  --green-800: #064e3b;
+  --green-700: #065f46;
+  --green-600: #047857;
+  --green-500: #059669;
+  --green-400: #34d399;
+  --green-200: #a7f3d0;
+  --green-100: #d1fae5;
+  --green-50:  #ecfdf5;
+  --gold-600:  #d97706;
+  --gold-500:  #f59e0b;
+  --gold-400:  #fbbf24;
+  --gold-300:  #fcd34d;
+  --gold-100:  #fef3c7;
+  --gold-50:   #fffbeb;
+  --white:     #ffffff;
+  --gray-50:   #f9fafb;
+  --gray-100:  #f3f4f6;
+  --gray-200:  #e5e7eb;
+  --gray-300:  #d1d5db;
+  --gray-400:  #9ca3af;
+  --gray-500:  #6b7280;
+  --gray-600:  #4b5563;
+  --gray-700:  #374151;
+  --gray-800:  #1f2937;
+  --gray-900:  #111827;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.15);
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f1f5f0;
+  color: var(--gray-900);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
 
-  /* ── Header ── */
-  header {
-    background: var(--green-800);
-    position: sticky; top: 0; z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  }
-  .header-inner {
-    max-width: 1100px; margin: 0 auto;
-    padding: 0 1.25rem;
-    display: flex; align-items: center; gap: 1rem;
-    height: 60px;
-  }
-  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-  .logo img { height: 36px; width: auto; }
-  .logo-text { display: flex; flex-direction: column; line-height: 1.1; }
-  .logo-name { font-size: 16px; font-weight: 700; color: var(--white); letter-spacing: 0.01em; }
-  .logo-sub  { font-size: 10px; color: var(--green-400); letter-spacing: 0.08em; text-transform: uppercase; }
-  .header-spacer { flex: 1; }
-  .season-badge {
-    font-size: 11px; font-weight: 600;
-    background: var(--gold-400); color: var(--green-900);
-    padding: 3px 10px; border-radius: 99px;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-  }
-  .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 6px; color: var(--white); }
-  .hamburger svg { width: 22px; height: 22px; }
+/* ── Header ── */
+header {
+  background: var(--green-900);
+  position: sticky; top: 0; z-index: 200;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+}
+.header-inner {
+  max-width: 1140px; margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex; align-items: center; gap: 1rem;
+  height: 64px;
+}
+.logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.logo img { height: 38px; width: auto; }
+.logo-text { display: flex; flex-direction: column; line-height: 1.15; }
+.logo-name { font-size: 17px; font-weight: 800; color: var(--white); letter-spacing: -0.01em; }
+.logo-sub  { font-size: 10px; color: var(--green-400); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; }
+.header-spacer { flex: 1; }
+.season-badge {
+  font-size: 11px; font-weight: 700;
+  background: var(--gold-400); color: var(--green-900);
+  padding: 4px 12px; border-radius: 99px;
+  letter-spacing: 0.04em; white-space: nowrap;
+}
 
-  /* ── Nav ── */
-  nav {
-    background: var(--green-700);
-    border-bottom: 2px solid var(--green-600);
-  }
-  .nav-inner {
-    max-width: 1100px; margin: 0 auto;
-    padding: 0 1.25rem;
-    display: flex; gap: 0; overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .nav-inner::-webkit-scrollbar { display: none; }
-  .nav-btn {
-    font-size: 13px; font-weight: 500;
-    color: var(--green-100);
-    background: none; border: none;
-    padding: 0.7rem 1rem;
-    cursor: pointer;
-    white-space: nowrap;
-    border-bottom: 3px solid transparent;
-    transition: color 0.15s, border-color 0.15s;
-  }
-  .nav-btn:hover { color: var(--white); }
-  .nav-btn.active { color: var(--gold-400); border-bottom-color: var(--gold-400); }
+/* ── Nav ── */
+nav {
+  background: var(--green-800);
+  border-bottom: 3px solid var(--gold-500);
+}
+.nav-inner {
+  max-width: 1140px; margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex; gap: 0; overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-inner::-webkit-scrollbar { display: none; }
+.nav-btn {
+  font-size: 13px; font-weight: 600;
+  color: var(--green-200);
+  background: none; border: none;
+  padding: 0.75rem 1.1rem;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -3px;
+  transition: color 0.15s, border-color 0.15s;
+  letter-spacing: 0.01em;
+}
+.nav-btn:hover { color: var(--white); }
+.nav-btn.active { color: var(--gold-400); border-bottom-color: var(--gold-400); }
 
-  /* ── Pages ── */
-  .page { display: none; }
-  .page.active { display: block; }
-  .container { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem; }
+/* ── Pages ── */
+.page { display: none; }
+.page.active { display: block; }
+.container { max-width: 1140px; margin: 0 auto; padding: 2rem 1.5rem; }
 
-  /* ── Loading / Error ── */
-  .loading-msg {
-    text-align: center; padding: 3rem 1rem;
-    color: var(--gray-400); font-size: 14px;
-  }
-  .loading-spinner {
-    width: 32px; height: 32px;
-    border: 3px solid var(--gray-200);
-    border-top-color: var(--green-500);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 1rem;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* ── Loading ── */
+.loading-msg { text-align: center; padding: 3rem 1rem; color: var(--gray-400); font-size: 14px; }
+.loading-spinner {
+  width: 28px; height: 28px;
+  border: 3px solid var(--gray-200); border-top-color: var(--green-500);
+  border-radius: 50%; animation: spin 0.75s linear infinite;
+  margin: 0 auto 0.75rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ── Season Selector ── */
-  .season-bar {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 1.5rem; flex-wrap: wrap;
-  }
-  .season-bar label { font-size: 13px; color: var(--gray-600); font-weight: 500; }
-  .season-select {
-    font-size: 13px; padding: 6px 10px;
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-md);
-    background: var(--white);
-    color: var(--gray-800);
-    cursor: pointer;
-  }
+/* ══════════════════════════════
+   HERO
+══════════════════════════════ */
+.hero {
+  position: relative;
+  height: 480px;
+  overflow: hidden;
+  display: flex; align-items: flex-end;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background-image: url('https://blogger.googleusercontent.com/img/a/AVvXsEhbx0ILBCX3eBUQInZnhAinZZ1_tXsnJwYZb6zfrsEOEwJQiQL5a_jHWJ8yniUq2KanklUCuYSePriWVLCInIgcNn9px0hPGeFH0uTN15Y6U5LJGCSug-Mrq5WBbC5IEt3lUf1bLar_XPgPwjRr5ZdR3uQ9Cftfa3EOuUkeMCEhsQ-RaxGgJhmnz_ikSf0');
+  background-size: cover;
+  background-position: center 30%;
+  transform: scale(1.02);
+  transition: transform 8s ease;
+}
+.hero-bg.loaded { transform: scale(1); }
+.hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(5,46,22,0.15) 0%,
+    rgba(5,46,22,0.30) 40%,
+    rgba(5,46,22,0.82) 75%,
+    rgba(5,46,22,0.96) 100%
+  );
+}
+.hero-content {
+  position: relative; z-index: 2;
+  max-width: 1140px; width: 100%;
+  margin: 0 auto;
+  padding: 0 1.5rem 2.5rem;
+  display: flex; flex-direction: column; align-items: flex-start;
+}
+.hero-eyebrow {
+  font-size: 11px; font-weight: 700;
+  color: var(--gold-400); letter-spacing: 0.12em;
+  text-transform: uppercase; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.hero-eyebrow::before {
+  content: ''; display: block;
+  width: 24px; height: 2px; background: var(--gold-400);
+}
+.hero-title {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 900; color: var(--white);
+  line-height: 1.05; letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+}
+.hero-title em {
+  font-style: normal; color: var(--gold-400);
+}
+.hero-sub {
+  font-size: 15px; color: var(--green-200);
+  margin-bottom: 1.5rem; max-width: 480px;
+  font-weight: 400; line-height: 1.5;
+}
+.hero-ctas { display: flex; gap: 10px; flex-wrap: wrap; }
+.hero-cta-primary {
+  font-size: 13px; font-weight: 700;
+  background: var(--gold-400); color: var(--green-900);
+  border: none; border-radius: 8px;
+  padding: 10px 20px; cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 0.15s, transform 0.1s;
+}
+.hero-cta-primary:hover { background: var(--gold-300); transform: translateY(-1px); }
+.hero-cta-secondary {
+  font-size: 13px; font-weight: 600;
+  background: rgba(255,255,255,0.12); color: var(--white);
+  border: 1.5px solid rgba(255,255,255,0.35); border-radius: 8px;
+  padding: 10px 20px; cursor: pointer;
+  letter-spacing: 0.02em; backdrop-filter: blur(4px);
+  transition: background 0.15s, transform 0.1s;
+}
+.hero-cta-secondary:hover { background: rgba(255,255,255,0.2); transform: translateY(-1px); }
 
-  /* ── Cards / Panels ── */
-  .card {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-lg);
-    padding: 1.25rem;
-    box-shadow: var(--shadow-sm);
-  }
-  .card-title {
-    font-size: 13px; font-weight: 600;
-    color: var(--green-700);
-    text-transform: uppercase; letter-spacing: 0.06em;
-    margin-bottom: 1rem;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .card-title::before {
-    content: ''; display: block;
-    width: 3px; height: 14px;
-    background: var(--gold-400);
-    border-radius: 2px;
-  }
+/* ── Photo Strip ── */
+.photo-strip {
+  display: flex; gap: 0;
+  height: 110px; overflow: hidden;
+  border-bottom: 3px solid var(--gold-500);
+}
+.photo-strip-item {
+  flex: 1; overflow: hidden; position: relative;
+  cursor: pointer;
+}
+.photo-strip-item img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease, filter 0.3s;
+  filter: brightness(0.85) saturate(0.9);
+}
+.photo-strip-item:hover img { transform: scale(1.08); filter: brightness(1) saturate(1.1); }
 
-  /* ── Hero Stats ── */
-  .hero-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 10px; margin-bottom: 1.5rem;
-  }
-  .stat-chip {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-md);
-    padding: 0.9rem 1rem;
-    box-shadow: var(--shadow-sm);
-  }
-  .stat-chip-label { font-size: 11px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.07em; }
-  .stat-chip-val { font-size: 22px; font-weight: 700; color: var(--green-800); margin-top: 1px; }
-  .stat-chip-sub { font-size: 11px; color: var(--green-500); margin-top: 1px; }
+/* ── Section title ── */
+.section-title {
+  font-size: 11px; font-weight: 700;
+  color: var(--green-700);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title::after {
+  content: ''; flex: 1;
+  height: 1px; background: var(--gray-200);
+}
+.section-title .gold-bar {
+  width: 3px; height: 14px;
+  background: var(--gold-400); border-radius: 2px;
+}
 
-  /* ── Home layout ── */
-  .home-grid {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 1.25rem;
-    align-items: start;
-  }
-  @media (max-width: 768px) {
-    .home-grid { grid-template-columns: 1fr; }
-  }
+/* ── Season Selector ── */
+.season-bar {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.season-bar label { font-size: 13px; color: var(--gray-600); font-weight: 600; }
+.season-select {
+  font-size: 13px; padding: 7px 12px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  background: var(--white); color: var(--gray-800);
+  cursor: pointer; font-family: inherit; font-weight: 500;
+  box-shadow: var(--shadow-sm);
+}
 
-  /* ── Standings Table ── */
-  .standings-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .standings-table th {
-    font-size: 11px; font-weight: 600;
-    color: var(--gray-400); text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 6px 8px; text-align: center;
-    border-bottom: 1px solid var(--gray-200);
-  }
-  .standings-table th:first-child,
-  .standings-table th:nth-child(2),
-  .standings-table th:nth-child(3) { text-align: left; }
-  .standings-table td {
-    padding: 7px 8px; text-align: center;
-    border-bottom: 1px solid var(--gray-100);
-    color: var(--gray-700);
-  }
-  .standings-table td:nth-child(3) { text-align: left; font-weight: 500; color: var(--gray-900); }
-  .standings-table tr:last-child td { border-bottom: none; }
-  .standings-table tr:hover td { background: var(--green-50); }
-  .rank-num { font-size: 12px; color: var(--gray-400); font-weight: 600; width: 28px; }
-  .rank-badge {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 22px; height: 22px; border-radius: 50%;
-    font-size: 11px; font-weight: 700;
-  }
-  .rank-1 { background: var(--gold-100); color: #92400e; }
-  .rank-2 { background: var(--gray-100); color: var(--gray-600); }
-  .rank-3 { background: #fef2f2; color: #7f1d1d; }
-  .pts-cell { font-weight: 700; color: var(--green-700) !important; }
-  .gd-pos { color: var(--green-600) !important; font-weight: 600; }
-  .gd-neg { color: #dc2626 !important; font-weight: 600; }
+/* ── Cards ── */
+.card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 1.4rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,0,0,0.06);
+}
 
-  .form-dots { display: flex; gap: 3px; }
-  .form-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    font-size: 0;
-  }
-  .form-w { background: var(--green-500); }
-  .form-d { background: var(--gold-400); }
-  .form-l { background: #ef4444; }
-  .form-u { background: var(--gray-200); }
+/* ── Hero stats strip ── */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px; margin-bottom: 1.75rem;
+}
+.stat-chip {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-top: 3px solid var(--gold-400);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.stat-chip:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.stat-chip-label { font-size: 11px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+.stat-chip-val { font-size: 26px; font-weight: 800; color: var(--green-800); margin-top: 2px; line-height: 1; }
+.stat-chip-sub { font-size: 11px; color: var(--green-500); margin-top: 3px; font-weight: 500; }
 
-  /* ── Games / Schedule ── */
-  .games-filter { display: flex; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
-  .filter-btn {
-    font-size: 12px; padding: 5px 12px;
-    border: 1px solid var(--gray-200);
-    border-radius: 99px;
-    background: var(--white); color: var(--gray-600);
-    cursor: pointer; transition: all 0.15s;
-  }
-  .filter-btn:hover { border-color: var(--green-500); color: var(--green-700); }
-  .filter-btn.active { background: var(--green-700); border-color: var(--green-700); color: var(--white); }
+/* ── Home layout ── */
+.home-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.5rem; align-items: start;
+}
+@media (max-width: 800px) { .home-grid { grid-template-columns: 1fr; } }
 
-  .game-week-group { margin-bottom: 1.5rem; }
-  .week-header {
-    font-size: 12px; font-weight: 600;
-    color: var(--green-700); text-transform: uppercase;
-    letter-spacing: 0.07em;
-    padding: 4px 0 8px;
-    border-bottom: 1px solid var(--gray-200);
-    margin-bottom: 8px;
-  }
-  .game-row {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 8px; align-items: center;
-    padding: 10px 12px;
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-md);
-    margin-bottom: 6px;
-    font-size: 13px;
-    box-shadow: var(--shadow-sm);
-  }
-  .game-row:hover { border-color: var(--green-400); }
-  .game-team { font-weight: 500; color: var(--gray-800); }
-  .game-team.home { text-align: right; }
-  .game-team.away { text-align: left; }
-  .game-score {
-    display: flex; align-items: center; gap: 6px;
-    justify-content: center; min-width: 80px;
-  }
-  .score-box {
-    background: var(--green-800); color: var(--white);
-    font-weight: 700; font-size: 16px;
-    padding: 4px 10px; border-radius: var(--radius-sm);
-    min-width: 32px; text-align: center;
-  }
-  .score-sep { color: var(--gray-400); font-size: 12px; }
-  .score-tbd {
-    font-size: 11px; color: var(--gray-400);
-    background: var(--gray-100);
-    padding: 4px 10px; border-radius: var(--radius-sm);
-    white-space: nowrap;
-  }
-  .game-meta { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
-  .forfeit-tag {
-    font-size: 10px; background: #fef2f2; color: #dc2626;
-    padding: 1px 5px; border-radius: 4px; font-weight: 600;
-  }
-  .bts-tag {
-    font-size: 10px; background: var(--gold-100); color: #92400e;
-    padding: 1px 5px; border-radius: 4px; font-weight: 600;
-  }
+/* ── Standings ── */
+.standings-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.standings-table thead tr {
+  background: var(--green-50);
+}
+.standings-table th {
+  font-size: 10.5px; font-weight: 700;
+  color: var(--green-700); text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 8px 8px; text-align: center;
+  border-bottom: 2px solid var(--green-100);
+}
+.standings-table th:nth-child(3) { text-align: left; }
+.standings-table td {
+  padding: 8px 8px; text-align: center;
+  border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-700);
+}
+.standings-table td:nth-child(3) { text-align: left; font-weight: 600; color: var(--gray-900); }
+.standings-table tbody tr:last-child td { border-bottom: none; }
+.standings-table tbody tr:hover td { background: var(--green-50); }
+.rank-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 6px;
+  font-size: 11px; font-weight: 800;
+}
+.rank-1 { background: var(--gold-100); color: #92400e; }
+.rank-2 { background: var(--gray-100); color: var(--gray-600); }
+.rank-3 { background: #fee2e2; color: #7f1d1d; }
+.rank-other { background: transparent; color: var(--gray-400); font-size: 12px; }
+.pts-cell { font-weight: 800 !important; color: var(--green-700) !important; font-size: 14px !important; }
+.gd-pos { color: var(--green-600) !important; font-weight: 700; }
+.gd-neg { color: #dc2626 !important; font-weight: 700; }
+.team-color-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  display: inline-block; vertical-align: middle;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.08);
+}
+.form-dots { display: flex; gap: 3px; justify-content: center; }
+.form-dot { width: 10px; height: 10px; border-radius: 50%; }
+.form-w { background: var(--green-500); }
+.form-d { background: var(--gold-400); }
+.form-l { background: #ef4444; }
+.form-u { background: var(--gray-200); }
 
-  /* ── Teams ── */
-  .teams-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 1rem;
-  }
-  .team-card {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-    transition: box-shadow 0.15s;
-  }
-  .team-card:hover { box-shadow: var(--shadow-md); }
-  .team-card-banner {
-    height: 6px;
-  }
-  .team-card-body { padding: 1rem; }
-  .team-name { font-size: 15px; font-weight: 700; color: var(--gray-900); margin-bottom: 4px; }
-  .team-season-tag {
-    font-size: 10px; background: var(--green-50); color: var(--green-700);
-    padding: 2px 7px; border-radius: 99px; font-weight: 600;
-    display: inline-block; margin-bottom: 10px;
-  }
-  .team-stats-row {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 4px; margin-top: 8px;
-  }
-  .team-stat { text-align: center; }
-  .team-stat-val { font-size: 16px; font-weight: 700; color: var(--green-800); line-height: 1; }
-  .team-stat-label { font-size: 10px; color: var(--gray-400); text-transform: uppercase; margin-top: 2px; }
+/* ── Playoff divider ── */
+.playoff-divider td {
+  border-top: 2px dashed var(--gold-300) !important;
+  padding-top: 6px !important;
+}
 
-  /* ── News ── */
-  .news-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.25rem;
-  }
-  .news-card {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-    display: flex; flex-direction: column;
-    transition: box-shadow 0.15s;
-  }
-  .news-card:hover { box-shadow: var(--shadow-md); }
-  .news-card-img {
-    width: 100%; height: 160px;
-    object-fit: cover;
-    background: var(--green-100);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--green-400); font-size: 32px;
-  }
-  .news-card-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
-  .news-category {
-    font-size: 10px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--green-600); margin-bottom: 6px;
-  }
-  .news-title { font-size: 15px; font-weight: 700; color: var(--gray-900); margin-bottom: 6px; line-height: 1.3; }
-  .news-date { font-size: 11px; color: var(--gray-400); margin-bottom: 8px; }
-  .news-content { font-size: 13px; color: var(--gray-600); line-height: 1.6; flex: 1; }
-  .news-link {
-    display: inline-block; margin-top: 10px;
-    font-size: 12px; font-weight: 600; color: var(--green-600);
-    text-decoration: none;
-  }
-  .news-link:hover { color: var(--green-800); }
+/* ── Game rows ── */
+.games-filter { display: flex; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.filter-btn {
+  font-size: 12px; font-weight: 600; padding: 6px 14px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 99px;
+  background: var(--white); color: var(--gray-500);
+  cursor: pointer; transition: all 0.15s; font-family: inherit;
+}
+.filter-btn:hover { border-color: var(--green-500); color: var(--green-700); }
+.filter-btn.active { background: var(--green-800); border-color: var(--green-800); color: var(--white); }
 
-  /* ── Seasons / History ── */
-  .seasons-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.25rem;
-  }
-  .season-card {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-  }
-  .season-card-header {
-    background: var(--green-800);
-    padding: 0.9rem 1.1rem;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .season-card-title { font-size: 15px; font-weight: 700; color: var(--white); }
-  .season-card-div {
-    font-size: 11px; background: var(--gold-400);
-    color: var(--green-900); padding: 2px 8px;
-    border-radius: 99px; font-weight: 700;
-  }
-  .season-card-body { padding: 1rem 1.1rem; }
-  .season-award {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 0; border-bottom: 1px solid var(--gray-100);
-  }
-  .season-award:last-child { border-bottom: none; }
-  .award-icon { font-size: 20px; width: 28px; text-align: center; }
-  .award-label { font-size: 11px; color: var(--gray-400); }
-  .award-val { font-size: 13px; font-weight: 600; color: var(--gray-800); }
-  .award-img {
-    width: 32px; height: 32px; border-radius: 50%;
-    object-fit: cover; background: var(--gray-100);
-    margin-left: auto;
-  }
-  .season-meta-row {
-    display: grid; grid-template-columns: repeat(3,1fr);
-    gap: 8px; margin-bottom: 1rem;
-  }
-  .season-meta-chip {
-    text-align: center; background: var(--gray-50);
-    border-radius: var(--radius-sm); padding: 6px 4px;
-  }
-  .season-meta-val { font-size: 16px; font-weight: 700; color: var(--green-800); }
-  .season-meta-label { font-size: 10px; color: var(--gray-400); text-transform: uppercase; }
+.game-week-group { margin-bottom: 1.75rem; }
+.week-header {
+  font-size: 11px; font-weight: 700;
+  color: var(--green-700); text-transform: uppercase;
+  letter-spacing: 0.09em;
+  padding: 0 0 8px;
+  border-bottom: 2px solid var(--green-100);
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.week-header::before {
+  content: '';
+  width: 4px; height: 14px;
+  background: var(--gold-400); border-radius: 2px;
+  display: block;
+}
 
-  /* ── Footer ── */
-  footer {
-    background: var(--green-900);
-    padding: 1.5rem 1.25rem;
-    margin-top: 3rem;
-    text-align: center;
-  }
-  .footer-inner { max-width: 1100px; margin: 0 auto; }
-  .footer-logo { height: 28px; margin-bottom: 8px; opacity: 0.85; }
-  .footer-text { font-size: 12px; color: var(--green-400); }
+.game-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px; align-items: center;
+  padding: 11px 14px;
+  background: var(--white);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: var(--radius-md);
+  margin-bottom: 7px;
+  font-size: 13px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.game-row:hover { box-shadow: var(--shadow-md); border-color: var(--green-300); }
+.game-team { font-weight: 600; color: var(--gray-800); }
+.game-team.home { text-align: right; }
+.game-team.away { text-align: left; }
+.game-score {
+  display: flex; align-items: center; gap: 5px;
+  justify-content: center; min-width: 90px;
+}
+.score-box {
+  background: var(--green-800); color: var(--white);
+  font-weight: 800; font-size: 17px;
+  padding: 5px 11px; border-radius: var(--radius-sm);
+  min-width: 34px; text-align: center;
+  letter-spacing: -0.02em;
+}
+.score-sep { color: var(--gray-300); font-size: 14px; font-weight: 700; }
+.score-tbd {
+  font-size: 11px; color: var(--gray-400);
+  background: var(--gray-100);
+  padding: 5px 10px; border-radius: var(--radius-sm);
+  white-space: nowrap; font-weight: 600;
+}
+.game-meta { font-size: 11px; color: var(--gray-400); margin-top: 2px; font-weight: 500; }
+.forfeit-tag {
+  font-size: 10px; background: #fef2f2; color: #dc2626;
+  padding: 2px 6px; border-radius: 4px; font-weight: 700;
+}
+.bts-tag {
+  font-size: 10px; background: var(--gold-100); color: #92400e;
+  padding: 2px 6px; border-radius: 4px; font-weight: 700;
+}
 
-  /* ── Responsive ── */
-  @media (max-width: 640px) {
-    .header-inner { padding: 0 1rem; }
-    .season-badge { display: none; }
-    .hero-stats { grid-template-columns: repeat(2, 1fr); }
-    .standings-table .hide-mobile { display: none; }
-    .game-row { grid-template-columns: 1fr auto 1fr; gap: 4px; padding: 8px; }
-    .score-box { padding: 4px 7px; font-size: 14px; }
-  }
+/* ── Teams ── */
+.teams-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 1rem;
+}
+.team-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,0,0,0.06);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.team-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-3px); }
+.team-card-banner { height: 5px; }
+.team-card-body { padding: 1.1rem; }
+.team-name { font-size: 15px; font-weight: 800; color: var(--gray-900); margin-bottom: 3px; }
+.team-season-tag {
+  font-size: 10px; background: var(--green-50); color: var(--green-700);
+  padding: 2px 8px; border-radius: 99px; font-weight: 700;
+  display: inline-block; margin-bottom: 10px; border: 1px solid var(--green-100);
+}
+.team-stats-row {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 4px; margin-top: 8px;
+}
+.team-stat { text-align: center; padding: 6px 2px; background: var(--gray-50); border-radius: 6px; }
+.team-stat-val { font-size: 17px; font-weight: 800; color: var(--green-800); line-height: 1; }
+.team-stat-label { font-size: 9px; color: var(--gray-400); text-transform: uppercase; margin-top: 2px; font-weight: 700; letter-spacing: 0.05em; }
+
+/* ── News ── */
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+.news-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,0,0,0.06);
+  display: flex; flex-direction: column;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.news-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-3px); }
+.news-card-img {
+  width: 100%; height: 180px;
+  object-fit: cover;
+}
+.news-card-img-placeholder {
+  width: 100%; height: 180px;
+  background: linear-gradient(135deg, var(--green-700) 0%, var(--green-900) 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3rem;
+}
+.news-card-body { padding: 1.1rem 1.2rem; flex: 1; display: flex; flex-direction: column; }
+.news-category {
+  font-size: 10px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--green-600); margin-bottom: 6px;
+}
+.news-title { font-size: 15px; font-weight: 800; color: var(--gray-900); margin-bottom: 4px; line-height: 1.3; }
+.news-date { font-size: 11px; color: var(--gray-400); margin-bottom: 8px; font-weight: 500; }
+.news-content { font-size: 13px; color: var(--gray-600); line-height: 1.6; flex: 1; }
+.news-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 12px; font-size: 12px; font-weight: 700; color: var(--green-600);
+  text-decoration: none;
+}
+.news-link:hover { color: var(--green-800); }
+
+/* ── Season History ── */
+.history-hero {
+  background: var(--green-900);
+  border-radius: var(--radius-lg);
+  padding: 2rem 1.75rem;
+  margin-bottom: 1.75rem;
+  display: flex; align-items: center; gap: 1.5rem;
+  position: relative; overflow: hidden;
+}
+.history-hero::before {
+  content: '🏆';
+  position: absolute; right: 1.5rem; top: 50%;
+  transform: translateY(-50%);
+  font-size: 5rem; opacity: 0.12;
+}
+.history-hero-num { font-size: 4rem; font-weight: 900; color: var(--gold-400); line-height: 1; }
+.history-hero-text { color: var(--green-100); font-size: 15px; }
+.history-hero-text strong { color: var(--white); font-size: 20px; font-weight: 800; display: block; }
+
+.seasons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+.season-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,0,0,0.06);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.season-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-3px); }
+.season-card-header {
+  background: linear-gradient(135deg, var(--green-800) 0%, var(--green-900) 100%);
+  padding: 1rem 1.2rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.season-card-title { font-size: 16px; font-weight: 800; color: var(--white); }
+.season-card-div {
+  font-size: 11px; background: var(--gold-400);
+  color: var(--green-900); padding: 3px 9px;
+  border-radius: 99px; font-weight: 800;
+}
+.season-card-body { padding: 1rem 1.2rem; }
+.season-meta-row {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 8px; margin-bottom: 1rem;
+}
+.season-meta-chip {
+  text-align: center; background: var(--gray-50);
+  border-radius: var(--radius-sm); padding: 8px 4px;
+  border: 1px solid var(--gray-100);
+}
+.season-meta-val { font-size: 18px; font-weight: 800; color: var(--green-800); }
+.season-meta-label { font-size: 9px; color: var(--gray-400); text-transform: uppercase; font-weight: 700; letter-spacing: 0.06em; }
+.season-award {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid var(--gray-100);
+}
+.season-award:last-child { border-bottom: none; }
+.award-icon { font-size: 18px; width: 28px; text-align: center; flex-shrink: 0; }
+.award-label { font-size: 10px; color: var(--gray-400); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.award-val { font-size: 13px; font-weight: 700; color: var(--gray-800); }
+.award-img {
+  width: 30px; height: 30px; border-radius: 50%;
+  object-fit: cover; background: var(--gray-100); margin-left: auto; flex-shrink: 0;
+}
+
+/* ── About panel ── */
+.about-section {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  border-radius: var(--radius-lg); overflow: hidden;
+  box-shadow: var(--shadow-md); margin-top: 2rem;
+}
+.about-photos { display: flex; flex-direction: column; }
+.about-photo { flex: 1; overflow: hidden; }
+.about-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s; }
+.about-photo:hover img { transform: scale(1.04); }
+.about-content {
+  background: var(--green-900);
+  padding: 2.5rem 2rem;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.about-content h2 { font-size: 26px; font-weight: 900; color: var(--white); margin-bottom: 0.5rem; }
+.about-content h2 em { font-style: normal; color: var(--gold-400); }
+.about-content p { font-size: 14px; color: var(--green-200); line-height: 1.7; margin-bottom: 1rem; }
+.about-content-btn {
+  display: inline-block; margin-top: 0.5rem;
+  font-size: 13px; font-weight: 700;
+  background: var(--gold-400); color: var(--green-900);
+  border: none; border-radius: 8px; padding: 10px 20px;
+  cursor: pointer; font-family: inherit; transition: background 0.15s;
+}
+.about-content-btn:hover { background: var(--gold-300); }
+@media (max-width: 700px) {
+  .about-section { grid-template-columns: 1fr; }
+  .about-photos { flex-direction: row; height: 160px; }
+}
+
+/* ── Latest results home card ── */
+.result-mini {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 0; border-bottom: 1px solid var(--gray-100);
+  font-size: 12px;
+}
+.result-mini:last-child { border-bottom: none; }
+.result-mini .rm-team { flex: 1; font-weight: 600; color: var(--gray-800); }
+.result-mini .rm-team.home { text-align: right; }
+.result-mini .rm-score {
+  display: flex; gap: 4px; align-items: center; min-width: 56px; justify-content: center;
+}
+.rm-s {
+  background: var(--green-800); color: var(--white);
+  font-weight: 800; font-size: 14px;
+  padding: 3px 8px; border-radius: 5px; min-width: 26px; text-align: center;
+}
+
+/* ── Footer ── */
+footer {
+  background: var(--green-900);
+  padding: 2rem 1.5rem 1.5rem;
+  margin-top: 3rem;
+}
+.footer-inner {
+  max-width: 1140px; margin: 0 auto;
+  display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+}
+.footer-logo { height: 32px; opacity: 0.8; }
+.footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+.footer-links button {
+  font-size: 12px; color: var(--green-400); background: none; border: none;
+  cursor: pointer; font-family: inherit; font-weight: 500; transition: color 0.15s;
+}
+.footer-links button:hover { color: var(--white); }
+.footer-text { font-size: 12px; color: var(--green-700); margin-top: 4px; }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .header-inner { padding: 0 1rem; }
+  .season-badge { display: none; }
+  .hero { height: 380px; }
+  .hero-title { font-size: 1.8rem; }
+  .photo-strip { height: 70px; }
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+  .standings-table .hide-mobile { display: none; }
+  .game-row { padding: 9px 10px; }
+  .score-box { padding: 4px 8px; font-size: 15px; }
+}
 </style>
 </head>
 <body>
@@ -438,7 +641,7 @@
 <header>
   <div class="header-inner">
     <a class="logo" href="#" onclick="showPage('home'); return false;">
-      <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiNRwWE_BLwGLGC1q961MbnXnpEQ3DdwUMMtNvQrThrmTYx4uwvlDzD7IfLy6uz1BNxoiuegW9oLI_3WWgUPHwRczZDI_uHKxchhLtWfL_hn79NEA5Easdt4M4zOzPhzcFZs26w083zFJjzjHMZUJvfn3YAaZUgJFJ26ATSmnU-murkGsyM3yKHIxHeSSA/s320/bgif1100x1100-white.png" alt="BG Futsal logo">
+      <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiNRwWE_BLwGLGC1q961MbnXnpEQ3DdwUMMtNvQrThrmTYx4uwvlDzD7IfLy6uz1BNxoiuegW9oLI_3WWgUPHwRczZDI_uHKxchhLtWfL_hn79NEA5Easdt4M4zOzPhzcFZs26w083zFJjzjHMZUJvfn3YAaZUgJFJ26ATSmnU-murkGsyM3yKHIxHeSSA/s320/bgif1100x1100-white.png" alt="BG Futsal">
       <div class="logo-text">
         <span class="logo-name">BG Futsal</span>
         <span class="logo-sub">Bowling Green, KY</span>
@@ -462,28 +665,69 @@
 
 <!-- ══ HOME ══ -->
 <div id="page-home" class="page active">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-bg" id="heroBg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">Bowling Green, Kentucky</div>
+      <h1 class="hero-title">BG <em>International</em><br>Futsal League</h1>
+      <p class="hero-sub">Competitive indoor futsal for the Bowling Green community. Fast, technical, passionate.</p>
+      <div class="hero-ctas">
+        <button class="hero-cta-primary" onclick="showPage('standings')">View standings</button>
+        <button class="hero-cta-secondary" onclick="showPage('schedule')">Latest results</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Photo strip -->
+  <div class="photo-strip">
+    <div class="photo-strip-item"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgjlO46blYNR5-LYlr8C8m0lVaESDqu9sTMczhqCyfIZ2xwSJPTzpPZkYa6V5hgG1cmzZoo2Aa_h5_gTeI0lRwPqn1yGGj_DK0h20NLykGfiXOzuUeAJCTcU9Mg6NBVwXL6SjD4IcGgcRq9HUyMFbbVvrxWJ-zsgXUNiAptUTercms2xzIUZuhInYAjDMU/s1800/001.jpg" alt=""></div>
+    <div class="photo-strip-item"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjuwBPpny5oCM7-l3YKRxqmmAWf-qHJBLPUS1njHoWk6g6SjDDa5hfW9LVSjmSYNTw4hweyeOq8ih7qmy82mWSRHwmQPmX2x-OjsZWACI2nEY9_C_HLEy6ba8UO9r-LMwT5k3tg2roLT6H1gb9FYBjg-5vbqbvt-90wX9uGy2ubcbgnh6bKZDLfP2PO0Nk/s1066/002.jpg" alt=""></div>
+    <div class="photo-strip-item"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjHKNgO4_y5Cxl2Tkf14GRa5d2ZCXtIW3gsaVch-_42qriZC9Ruyzmx_8V4OA2wmk28JiPdc77gcUElMu4LoJFRdBRA3w2NgFb0GPCWcPku5b07iUR8nqQHkp3y1o9y8WmWgQTPND-ajCBO0J5T6-KF5VX8dXnCpdCqogiDrA0qYwtpjCLHEa_pcU53CyM/s1800/003.jpg" alt=""></div>
+    <div class="photo-strip-item"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjJ64NF6cRveW2IXBGCPo2ifM19xGVZeYzpV6lPra9y2N0k_fcfGZ5ufeY4DJtjX7cspc8MvSC5cmuNm19Hn9ATkxANvhTx5S_XbOtEiBmHerJbKn2cQ5C4p3I8JGBOYQNYqB-3cypmmPEXZuMd3DDH5Avyw3GtXDp0wcVTqiysuU9i2SyZo7onI7k6pFM/s1066/004.jpg" alt=""></div>
+  </div>
+
+  <!-- Stats + content -->
   <div class="container">
     <div id="homeHeroStats" class="hero-stats">
       <div class="loading-msg" style="grid-column:1/-1"><div class="loading-spinner"></div>Loading season data...</div>
     </div>
+
     <div class="home-grid">
       <div>
         <div class="card">
-          <div class="card-title">Current Standings</div>
+          <div class="section-title"><div class="gold-bar"></div>Current Standings</div>
           <div id="homeStandings"><div class="loading-msg"><div class="loading-spinner"></div></div></div>
-          <button onclick="showPage('standings')" style="margin-top:1rem;font-size:12px;color:var(--green-600);background:none;border:1px solid var(--green-200);border-radius:6px;padding:6px 14px;cursor:pointer;">View full standings →</button>
+          <button onclick="showPage('standings')" style="margin-top:1rem;font-size:12px;font-weight:700;color:var(--green-700);background:var(--green-50);border:1.5px solid var(--green-200);border-radius:8px;padding:7px 16px;cursor:pointer;font-family:inherit;transition:background 0.15s;" onmouseover="this.style.background='var(--green-100)'" onmouseout="this.style.background='var(--green-50)'">View full standings →</button>
         </div>
       </div>
-      <div>
-        <div class="card" style="margin-bottom:1.25rem;">
-          <div class="card-title">Latest News</div>
+
+      <div style="display:flex;flex-direction:column;gap:1.25rem;">
+        <div class="card">
+          <div class="section-title"><div class="gold-bar"></div>Latest News</div>
           <div id="homeNews"><div class="loading-msg"><div class="loading-spinner"></div></div></div>
-          <button onclick="showPage('news')" style="margin-top:1rem;font-size:12px;color:var(--green-600);background:none;border:1px solid var(--green-200);border-radius:6px;padding:6px 14px;cursor:pointer;">All news →</button>
+          <button onclick="showPage('news')" style="margin-top:1rem;font-size:12px;font-weight:700;color:var(--green-700);background:var(--green-50);border:1.5px solid var(--green-200);border-radius:8px;padding:7px 16px;cursor:pointer;font-family:inherit;" onmouseover="this.style.background='var(--green-100)'" onmouseout="this.style.background='var(--green-50)'">All news →</button>
         </div>
         <div class="card">
-          <div class="card-title">Recent Results</div>
+          <div class="section-title"><div class="gold-bar"></div>Recent Results</div>
           <div id="homeResults"><div class="loading-msg"><div class="loading-spinner"></div></div></div>
         </div>
+      </div>
+    </div>
+
+    <!-- About section -->
+    <div class="about-section">
+      <div class="about-photos">
+        <div class="about-photo"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiLOPRJ9SBivB1I7kQ2tP2Ugskzxc_56hZmHamPEebZ9sruqdvgau61EQIGhpTVJJ4PRbUqrfcRv7BVnUWTbNBHJBwtvKj0n8bQZOrS1bq_CidnM35W-t3Iw0CUgEICtSoJ3KAbbwFmSKRVvgUR-D4oI7BeT3_Kv-Yhib0F5SawVWjesH5hnCzxvfnv_b8/s1440/about01.jpg" alt="BG Futsal action"></div>
+        <div class="about-photo"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiA7HFPTaoY3x51OuJFrk_-viNQcHhailWe2i3X0RthbobcVEgwKwc8OGr5hS04Sa0LAESjs9FTCcB9WbIC2tsS31Djln-UI_Erd69ImWU4SY9A-7-w-ktNNnpRaxLwTdgl6Zz317LESkvNQe4FZRjfjOaoEcNmMsnQsch9TjuUAWSUEw0scOqKq6bmduw/s1600/about02.jpg" alt="BG Futsal community"></div>
+      </div>
+      <div class="about-content">
+        <h2>About <em>BG Futsal</em></h2>
+        <p>BG International Futsal has been bringing competitive indoor football to Bowling Green for years — welcoming players from all over the world who call this city home.</p>
+        <p>Fast-paced, technical, and community-driven. Multiple divisions, seasons all year round.</p>
+        <button class="about-content-btn" onclick="showPage('history')">View season history →</button>
       </div>
     </div>
   </div>
@@ -497,10 +741,10 @@
       <select id="standingsSeason" class="season-select" onchange="renderStandings()"></select>
     </div>
     <div class="card">
-      <div class="card-title">League Standings</div>
+      <div class="section-title"><div class="gold-bar"></div>League Standings</div>
       <div id="standingsTable"><div class="loading-msg"><div class="loading-spinner"></div></div></div>
     </div>
-    <p style="font-size:11px;color:var(--gray-400);margin-top:8px;">* Playoff qualifier &nbsp;· PTS = Points &nbsp;· GD = Goal Difference &nbsp;· CS% = Clean Sheet % &nbsp;· FTS = Failed to Score</p>
+    <p style="font-size:11px;color:var(--gray-400);margin-top:10px;font-weight:500;">* Playoff qualifier &nbsp;·&nbsp; PTS = Points &nbsp;·&nbsp; GD = Goal Difference &nbsp;·&nbsp; CS% = Clean Sheet % &nbsp;·&nbsp; FTS = Failed to Score</p>
   </div>
 </div>
 
@@ -530,9 +774,12 @@
 <!-- ══ HISTORY ══ -->
 <div id="page-history" class="page">
   <div class="container">
-    <div class="card" style="margin-bottom:1.5rem;background:var(--green-800);border:none;">
-      <div style="color:var(--green-100);font-size:13px;margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;">Season Archive</div>
-      <div style="color:var(--white);font-size:22px;font-weight:700;" id="historyCount">— seasons of BG Futsal</div>
+    <div class="history-hero">
+      <div class="history-hero-num" id="historyNum">—</div>
+      <div class="history-hero-text">
+        <strong>Seasons of BG Futsal</strong>
+        Community football in Bowling Green, KY
+      </div>
     </div>
     <div id="seasonsGrid" class="seasons-grid"><div class="loading-msg"><div class="loading-spinner"></div></div></div>
   </div>
@@ -548,6 +795,14 @@
 <footer>
   <div class="footer-inner">
     <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiNRwWE_BLwGLGC1q961MbnXnpEQ3DdwUMMtNvQrThrmTYx4uwvlDzD7IfLy6uz1BNxoiuegW9oLI_3WWgUPHwRczZDI_uHKxchhLtWfL_hn79NEA5Easdt4M4zOzPhzcFZs26w083zFJjzjHMZUJvfn3YAaZUgJFJ26ATSmnU-murkGsyM3yKHIxHeSSA/s320/bgif1100x1100-white.png" alt="BG Futsal" class="footer-logo">
+    <div class="footer-links">
+      <button onclick="showPage('home')">Home</button>
+      <button onclick="showPage('standings')">Standings</button>
+      <button onclick="showPage('schedule')">Schedule</button>
+      <button onclick="showPage('teams')">Teams</button>
+      <button onclick="showPage('history')">History</button>
+      <button onclick="showPage('news')">News</button>
+    </div>
     <div class="footer-text">© 2025 BG International Futsal · Bowling Green, KY · bgfutsal.com</div>
   </div>
 </footer>
@@ -555,8 +810,13 @@
 <script>
 const SHEET_ID = '1C4SkhAN0BS-wRu6uRTXu_TmoFEKzkXkiFt5BiXR5v-E';
 
-// ── Fetch a sheet tab as JSON ──
-async function fetchSheet(tabName) {
+// hero pan effect
+window.addEventListener('load', () => {
+  const bg = document.getElementById('heroBg');
+  if (bg) setTimeout(() => bg.classList.add('loaded'), 100);
+});
+
+async function fetchSheet(tabName, raw) {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tabName)}`;
   const res = await fetch(url);
   const text = await res.text();
@@ -565,64 +825,66 @@ async function fetchSheet(tabName) {
   return json.table.rows.map(row => {
     const obj = {};
     row.c.forEach((cell, i) => {
-      obj[cols[i]] = cell ? (cell.f !== undefined && cell.f !== null ? cell.f : cell.v) : null;
+      if (raw) {
+        obj[cols[i]] = cell ? cell.v : null;
+      } else {
+        obj[cols[i]] = cell ? (cell.f !== undefined && cell.f !== null ? cell.f : cell.v) : null;
+      }
     });
     return obj;
   });
 }
 
-// Raw numeric fetch (no formatted value)
-async function fetchSheetRaw(tabName) {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tabName)}`;
-  const res = await fetch(url);
-  const text = await res.text();
-  const json = JSON.parse(text.substring(47, text.length - 2));
-  const cols = json.table.cols.map(c => c.label);
-  return json.table.rows.map(row => {
-    const obj = {};
-    row.c.forEach((cell, i) => {
-      obj[cols[i]] = cell ? cell.v : null;
-    });
-    return obj;
-  });
-}
-
-// ── Cache ──
 const cache = {};
-async function getData(tab) {
-  if (!cache[tab]) cache[tab] = await fetchSheet(tab);
-  return cache[tab];
-}
-async function getDataRaw(tab) {
-  if (!cache[tab+'_raw']) cache[tab+'_raw'] = await fetchSheetRaw(tab);
-  return cache[tab+'_raw'];
+async function getData(tab)    { if (!cache[tab])        cache[tab]        = await fetchSheet(tab, false); return cache[tab]; }
+async function getDataRaw(tab) { if (!cache[tab+'_raw']) cache[tab+'_raw'] = await fetchSheet(tab, true);  return cache[tab+'_raw']; }
+
+let allSeasons = [], currentSeasonId = null;
+
+async function detectCurrentSeason() {
+  if (allSeasons.length) return allSeasons;
+  const seasons = await getData('Seasons');
+  allSeasons = seasons.filter(r => r.SeasonId);
+  allSeasons.sort((a, b) => {
+    const da = parseDate(a.StartDate), db = parseDate(b.StartDate);
+    return (db||0) - (da||0);
+  });
+  if (allSeasons.length) currentSeasonId = allSeasons[0].SeasonId;
+  return allSeasons;
 }
 
-// ── Navigation ──
+function populateSeasonSelect(selectId) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  if (sel.options.length) return; // already populated
+  allSeasons.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.SeasonId;
+    opt.textContent = s.SeasonId + (s.Division ? ' · Div ' + s.Division : '');
+    sel.appendChild(opt);
+  });
+  sel.value = currentSeasonId;
+}
+
 let currentPage = 'home';
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
-  const btns = document.querySelectorAll('.nav-btn');
   const pages = ['home','standings','schedule','teams','history','news'];
   const idx = pages.indexOf(id);
-  if (idx >= 0) btns[idx].classList.add('active');
+  if (idx >= 0) document.querySelectorAll('.nav-btn')[idx].classList.add('active');
   currentPage = id;
-  if (id === 'standings') renderStandings();
-  if (id === 'schedule') renderSchedule();
-  if (id === 'teams') renderTeams();
-  if (id === 'history') renderHistory();
-  if (id === 'news') renderNews();
+  const renders = { standings: renderStandings, schedule: renderSchedule, teams: renderTeams, history: renderHistory, news: renderNews };
+  if (renders[id]) renders[id]();
   window.scrollTo(0, 0);
 }
 
-// ── Helpers ──
 function parseDate(val) {
   if (!val) return null;
   if (typeof val === 'string' && val.startsWith('Date(')) {
-    const parts = val.slice(5,-1).split(',').map(Number);
-    return new Date(parts[0], parts[1], parts[2]);
+    const p = val.slice(5,-1).split(',').map(Number);
+    return new Date(p[0], p[1], p[2]);
   }
   return new Date(val);
 }
@@ -634,127 +896,64 @@ function fmtDate(val) {
 function fmtTime(val) {
   if (!val) return '';
   if (typeof val === 'number') {
-    const totalMins = Math.round(val * 24 * 60);
-    const h = Math.floor(totalMins / 60);
-    const m = totalMins % 60;
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const h12 = h % 12 || 12;
-    return `${h12}:${m.toString().padStart(2,'0')} ${ampm}`;
+    const m = Math.round(val * 24 * 60), h = Math.floor(m/60), mn = m%60;
+    const ap = h >= 12 ? 'PM' : 'AM', h12 = h%12||12;
+    return `${h12}:${mn.toString().padStart(2,'0')} ${ap}`;
   }
   return val;
 }
-function escHtml(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-function teamColor(colorVal) {
-  if (!colorVal) return '#059669';
-  const s = String(colorVal).trim();
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function teamColor(v) {
+  if (!v) return '#059669';
+  const s = String(v).trim();
   if (s.startsWith('#')) return s;
-  // Google Sheets may return color as a hex number
-  const num = parseInt(s, 16);
-  if (!isNaN(num)) return '#' + s.replace(/^ff/i,'').padStart(6,'0');
-  return s;
-}
-
-// ── Current season detection ──
-let allSeasons = [];
-let currentSeasonId = null;
-
-async function detectCurrentSeason() {
-  const seasons = await getData('Seasons');
-  allSeasons = seasons.filter(r => r.SeasonId);
-  // Sort by most recent start date
-  allSeasons.sort((a, b) => {
-    const da = parseDate(a.StartDate), db = parseDate(b.StartDate);
-    return (db||0) - (da||0);
-  });
-  if (allSeasons.length > 0) currentSeasonId = allSeasons[0].SeasonId;
-  return allSeasons;
-}
-
-function populateSeasonSelect(selectId, onChange) {
-  const sel = document.getElementById(selectId);
-  if (!sel) return;
-  sel.innerHTML = '';
-  allSeasons.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s.SeasonId;
-    opt.textContent = s.SeasonId + (s.Division ? ' · Div ' + s.Division : '');
-    sel.appendChild(opt);
-  });
-  sel.value = currentSeasonId;
+  const clean = s.replace(/^ff/i,'');
+  if (/^[0-9a-f]{6}$/i.test(clean)) return '#' + clean;
+  return '#059669';
 }
 
 // ── HOME ──
 async function renderHome() {
   try {
     await detectCurrentSeason();
-    const [teams, games, news] = await Promise.all([
-      getDataRaw('Teams'), getDataRaw('Games'), getData('SiteNews')
-    ]);
+    const [teams, games, news] = await Promise.all([getDataRaw('Teams'), getDataRaw('Games'), getData('SiteNews')]);
+    const curS = allSeasons[0];
+    if (curS) document.getElementById('headerSeasonBadge').textContent = (curS.SeasonId||'') + (curS.Division ? ' · Div '+curS.Division : '');
 
-    const curSeason = allSeasons[0];
-    if (curSeason) {
-      document.getElementById('headerSeasonBadge').textContent =
-        (curSeason.SeasonId || '') + (curSeason.Division ? ' · Div ' + curSeason.Division : '');
-    }
-
-    // Hero stats
-    const seasonTeams = teams.filter(t => t.Season == currentSeasonId);
-    const seasonGames = games.filter(g => g.Season == currentSeasonId && g.HomeScore !== null);
-    const totalGoals = seasonGames.reduce((s,g) => s + (g.HomeScore||0) + (g.AwayScore||0), 0);
+    const sTeams = teams.filter(t => t.Season == currentSeasonId);
+    const sGames = games.filter(g => g.Season == currentSeasonId && g.HomeScore !== null);
+    const goals  = sGames.reduce((s,g) => s + (g.HomeScore||0) + (g.AwayScore||0), 0);
 
     document.getElementById('homeHeroStats').innerHTML = `
-      <div class="stat-chip">
-        <div class="stat-chip-label">Season</div>
-        <div class="stat-chip-val">${escHtml(curSeason?.SeasonId||'—')}</div>
-        <div class="stat-chip-sub">Division ${escHtml(curSeason?.Division||'—')}</div>
-      </div>
-      <div class="stat-chip">
-        <div class="stat-chip-label">Teams</div>
-        <div class="stat-chip-val">${seasonTeams.length}</div>
-        <div class="stat-chip-sub">competing</div>
-      </div>
-      <div class="stat-chip">
-        <div class="stat-chip-label">Games played</div>
-        <div class="stat-chip-val">${seasonGames.length}</div>
-        <div class="stat-chip-sub">this season</div>
-      </div>
-      <div class="stat-chip">
-        <div class="stat-chip-label">Goals scored</div>
-        <div class="stat-chip-val">${totalGoals}</div>
-        <div class="stat-chip-sub">${seasonGames.length ? (totalGoals/seasonGames.length).toFixed(1) + ' per game' : ''}</div>
-      </div>
-    `;
+      <div class="stat-chip"><div class="stat-chip-label">Season</div><div class="stat-chip-val">${esc(curS?.SeasonId||'—')}</div><div class="stat-chip-sub">Division ${esc(curS?.Division||'—')}</div></div>
+      <div class="stat-chip"><div class="stat-chip-label">Teams</div><div class="stat-chip-val">${sTeams.length}</div><div class="stat-chip-sub">competing</div></div>
+      <div class="stat-chip"><div class="stat-chip-label">Games played</div><div class="stat-chip-val">${sGames.length}</div><div class="stat-chip-sub">this season</div></div>
+      <div class="stat-chip"><div class="stat-chip-label">Goals scored</div><div class="stat-chip-val">${goals}</div><div class="stat-chip-sub">${sGames.length?(goals/sGames.length).toFixed(1)+' per game':''}</div></div>`;
 
-    // Standings (top 8)
-    const sorted = seasonTeams.filter(t => t.Team).sort((a,b) => (a.Rank||99)-(b.Rank||99));
+    const sorted = sTeams.filter(t=>t.Team).sort((a,b)=>(a.Rank||99)-(b.Rank||99));
     document.getElementById('homeStandings').innerHTML = buildStandingsTable(sorted.slice(0,8), true);
 
-    // Recent results (last 5)
-    const played = games.filter(g => g.Season == currentSeasonId && g.HomeScore !== null)
-      .sort((a,b) => {
-        const da = parseDate(a.GameDate), db = parseDate(b.GameDate);
-        return (db||0)-(da||0);
-      }).slice(0,5);
+    const played = games.filter(g=>g.Season==currentSeasonId&&g.HomeScore!==null)
+      .sort((a,b)=>(parseDate(b.GameDate)||0)-(parseDate(a.GameDate)||0)).slice(0,5);
     document.getElementById('homeResults').innerHTML = played.length
-      ? played.map(g => buildGameRow(g)).join('')
-      : '<div class="loading-msg" style="padding:1rem">No results yet</div>';
-
-    // News (top 3)
-    const latestNews = news.filter(n => n.Id).slice(0,3);
-    document.getElementById('homeNews').innerHTML = latestNews.length
-      ? latestNews.map(n => `
-        <div style="padding:8px 0;border-bottom:1px solid var(--gray-100);">
-          <div style="font-size:10px;color:var(--green-600);font-weight:600;text-transform:uppercase;">${escHtml(n.Category||'')}</div>
-          <div style="font-size:14px;font-weight:600;color:var(--gray-900);margin:2px 0;">${escHtml(n.Title||'')}</div>
-          <div style="font-size:11px;color:var(--gray-400);">${fmtDate(n.Date)}</div>
+      ? played.map(g=>`<div class="result-mini">
+          <div class="rm-team home">${esc(g.HomeTeam||'')}</div>
+          <div class="rm-score"><div class="rm-s">${g.HomeScore}</div><span style="color:var(--gray-300);font-weight:700;font-size:12px;">–</span><div class="rm-s">${g.AwayScore}</div></div>
+          <div class="rm-team">${esc(g.AwayTeam||'')}</div>
         </div>`).join('')
-      : '<div style="font-size:13px;color:var(--gray-400);">No news yet</div>';
+      : '<div class="loading-msg" style="padding:1rem 0">No results yet</div>';
 
+    const latestNews = news.filter(n=>n.Id).slice(0,3);
+    document.getElementById('homeNews').innerHTML = latestNews.length
+      ? latestNews.map(n=>`<div style="padding:9px 0;border-bottom:1px solid var(--gray-100);">
+          <div style="font-size:10px;color:var(--green-600);font-weight:800;text-transform:uppercase;letter-spacing:.08em">${esc(n.Category||'')}</div>
+          <div style="font-size:14px;font-weight:700;color:var(--gray-900);margin:2px 0;line-height:1.3">${esc(n.Title||'')}</div>
+          <div style="font-size:11px;color:var(--gray-400);font-weight:500">${fmtDate(n.Date)}</div>
+        </div>`).join('')
+      : '<div style="font-size:13px;color:var(--gray-400);">No news yet.</div>';
   } catch(e) {
     console.error(e);
-    document.getElementById('homeHeroStats').innerHTML = '<div class="loading-msg">Could not load data. Make sure the sheet is published.</div>';
+    document.getElementById('homeHeroStats').innerHTML = '<div class="loading-msg">Could not load data. Make sure the sheet is published to the web.</div>';
   }
 }
 
@@ -765,76 +964,44 @@ async function renderStandings() {
   const selId = document.getElementById('standingsSeason').value || currentSeasonId;
   try {
     const teams = await getDataRaw('Teams');
-    const filtered = teams.filter(t => t.Season == selId && t.Team)
-      .sort((a,b) => (a.Rank||99)-(b.Rank||99));
+    const filtered = teams.filter(t=>t.Season==selId&&t.Team).sort((a,b)=>(a.Rank||99)-(b.Rank||99));
     document.getElementById('standingsTable').innerHTML = buildStandingsTable(filtered, false);
-  } catch(e) {
-    document.getElementById('standingsTable').innerHTML = '<div class="loading-msg">Error loading standings.</div>';
-  }
+  } catch(e) { document.getElementById('standingsTable').innerHTML = '<div class="loading-msg">Error loading standings.</div>'; }
 }
 
 function buildStandingsTable(teams, compact) {
   if (!teams.length) return '<div class="loading-msg" style="padding:1rem">No data for this season.</div>';
-  const extraCols = compact ? '' : `
-    <th class="hide-mobile">GP</th>
-    <th>GF</th><th>GA</th>
-    <th>GD</th>
-    <th class="hide-mobile">CS%</th>
-    <th class="hide-mobile">FTS</th>
-    <th>Form</th>`;
-  let html = `<div style="overflow-x:auto"><table class="standings-table">
-    <thead><tr>
-      <th style="width:32px">#</th>
-      <th style="width:32px"></th>
-      <th>Team</th>
-      <th>W</th><th>D</th><th>L</th>
-      ${extraCols}
-      <th>PTS</th>
-    </tr></thead><tbody>`;
+  const extraHead = compact ? '' : `<th class="hide-mobile">GP</th><th>GF</th><th>GA</th><th>GD</th><th class="hide-mobile">CS%</th><th class="hide-mobile">FTS</th><th class="hide-mobile">Form</th>`;
+  let html = `<div style="overflow-x:auto"><table class="standings-table"><thead><tr>
+    <th style="width:36px">#</th><th style="width:18px"></th><th>Team</th>
+    <th>W</th><th>D</th><th>L</th>${extraHead}<th>PTS</th>
+  </tr></thead><tbody>`;
 
-  teams.forEach((t, i) => {
-    const rank = t.Rank || (i+1);
-    let rankBadge = `<span class="rank-badge rank-${rank <= 3 ? rank : ''}" style="${rank>3?'background:transparent;color:var(--gray-500)':''}">${rank}</span>`;
-    const gd = (t.GD || 0);
-    const gdClass = gd > 0 ? 'gd-pos' : gd < 0 ? 'gd-neg' : '';
-    const gdStr = gd > 0 ? '+'+gd : String(gd);
-
-    // Form from game columns
+  teams.forEach((t,i) => {
+    const rank = t.Rank||(i+1);
+    const rClass = rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':'rank-other';
+    const gd = t.GD||0, gdClass = gd>0?'gd-pos':gd<0?'gd-neg':'', gdStr = gd>0?'+'+gd:String(gd);
     let formHtml = '';
     if (!compact) {
-      const formDots = [];
-      for (let g = 1; g <= 10; g++) {
-        const key = 'Game' + String(g).padStart(2,'0');
-        const val = t[key];
-        if (val !== null && val !== undefined && val !== '') {
-          const v = String(val).toUpperCase();
-          const cls = v === 'W' ? 'form-w' : v === 'D' ? 'form-d' : v === 'L' ? 'form-l' : 'form-u';
-          formDots.push(`<div class="form-dot ${cls}" title="${v}"></div>`);
-        }
+      const dots = [];
+      for (let g=1;g<=10;g++) {
+        const v = String(t['Game'+String(g).padStart(2,'0')]||'').toUpperCase();
+        if (v) dots.push(`<div class="form-dot ${v==='W'?'form-w':v==='D'?'form-d':v==='L'?'form-l':'form-u'}" title="${v}"></div>`);
       }
-      formHtml = `<td><div class="form-dots">${formDots.join('')}</div></td>`;
+      formHtml = `<td class="hide-mobile"><div class="form-dots">${dots.join('')}</div></td>`;
     }
-
-    const extraCells = compact ? '' : `
-      <td class="hide-mobile">${t.GP||0}</td>
-      <td>${t.GF||0}</td>
-      <td>${t.GA||0}</td>
-      <td class="${gdClass}">${gdStr}</td>
-      <td class="hide-mobile">${t['CS%'] != null ? (parseFloat(t['CS%'])*100).toFixed(0)+'%' : '—'}</td>
-      <td class="hide-mobile">${t.FTS||0}</td>
-      ${formHtml}`;
-
-    html += `<tr>
-      <td class="rank-num">${rankBadge}</td>
-      <td><div style="width:12px;height:12px;border-radius:50%;background:${escHtml(teamColor(t.TeamColor))};display:inline-block;"></div></td>
-      <td>${escHtml(t.Team)}</td>
+    const extraCells = compact?'':`<td class="hide-mobile">${t.GP||0}</td><td>${t.GF||0}</td><td>${t.GA||0}</td><td class="${gdClass}">${gdStr}</td><td class="hide-mobile">${t['CS%']!=null?(parseFloat(t['CS%'])*100).toFixed(0)+'%':'—'}</td><td class="hide-mobile">${t.FTS||0}</td>${formHtml}`;
+    const playoffRow = (!compact && rank===5) ? 'class="playoff-divider"' : '';
+    html += `<tr ${playoffRow}>
+      <td><span class="rank-badge ${rClass}">${rank}</span></td>
+      <td><div class="team-color-dot" style="background:${esc(teamColor(t.TeamColor))}"></div></td>
+      <td>${esc(t.Team)}</td>
       <td>${t.W||0}</td><td>${t.D||0}</td><td>${t.L||0}</td>
       ${extraCells}
       <td class="pts-cell">${t.PTS||0}</td>
     </tr>`;
   });
-  html += '</tbody></table></div>';
-  return html;
+  return html + '</tbody></table></div>';
 }
 
 // ── SCHEDULE ──
@@ -845,75 +1012,41 @@ async function renderSchedule() {
   const selId = document.getElementById('scheduleSeason').value || currentSeasonId;
   try {
     const games = await getDataRaw('Games');
-    const filtered = games.filter(g => g.Season == selId);
-
-    // Build filter buttons by GameType
-    const types = [...new Set(filtered.map(g => g.GameType).filter(Boolean))];
-    const filterEl = document.getElementById('scheduleFilter');
-    filterEl.innerHTML = ['all', ...types].map(t =>
-      `<button class="filter-btn ${scheduleFilter===t?'active':''}" onclick="setScheduleFilter('${t}')">${t === 'all' ? 'All games' : escHtml(t)}</button>`
-    ).join('');
-
+    const filtered = games.filter(g=>g.Season==selId);
+    const types = [...new Set(filtered.map(g=>g.GameType).filter(Boolean))];
+    document.getElementById('scheduleFilter').innerHTML = ['all',...types].map(t=>
+      `<button class="filter-btn ${scheduleFilter===t?'active':''}" onclick="setScheduleFilter('${t}')">${t==='all'?'All games':esc(t)}</button>`).join('');
     renderScheduleGames(filtered);
-  } catch(e) {
-    document.getElementById('scheduleGames').innerHTML = '<div class="loading-msg">Error loading schedule.</div>';
-  }
+  } catch(e) { document.getElementById('scheduleGames').innerHTML = '<div class="loading-msg">Error loading schedule.</div>'; }
 }
-
-function setScheduleFilter(type) {
-  scheduleFilter = type;
-  renderSchedule();
-}
-
+function setScheduleFilter(type) { scheduleFilter=type; renderSchedule(); }
 function renderScheduleGames(games) {
-  const toShow = scheduleFilter === 'all' ? games : games.filter(g => g.GameType === scheduleFilter);
-  // Group by GameWeek
+  const toShow = scheduleFilter==='all'?games:games.filter(g=>g.GameType===scheduleFilter);
   const weeks = {};
-  toShow.forEach(g => {
-    const wk = g.GameWeek || 'TBD';
-    if (!weeks[wk]) weeks[wk] = [];
-    weeks[wk].push(g);
-  });
-  const weekKeys = Object.keys(weeks).sort((a,b) => {
-    if (a === 'TBD') return 1; if (b === 'TBD') return -1;
-    return parseFloat(a) - parseFloat(b);
-  });
-
+  toShow.forEach(g=>{ const wk=g.GameWeek||'TBD'; if(!weeks[wk])weeks[wk]=[]; weeks[wk].push(g); });
+  const keys = Object.keys(weeks).sort((a,b)=>{ if(a==='TBD')return 1; if(b==='TBD')return -1; return parseFloat(a)-parseFloat(b); });
   let html = '';
-  weekKeys.forEach(wk => {
-    const wGames = weeks[wk].sort((a,b) => {
-      const da = parseDate(a.GameDate), db = parseDate(b.GameDate);
-      return (da||0)-(db||0);
-    });
-    const label = wk === 'TBD' ? 'Upcoming' : `Week ${wk}`;
-    html += `<div class="game-week-group"><div class="week-header">${label}</div>`;
-    wGames.forEach(g => { html += buildGameRow(g, true); });
+  keys.forEach(wk=>{
+    const wg = weeks[wk].sort((a,b)=>(parseDate(a.GameDate)||0)-(parseDate(b.GameDate)||0));
+    html += `<div class="game-week-group"><div class="week-header">${wk==='TBD'?'Upcoming':'Week '+wk}</div>`;
+    wg.forEach(g=>{ html+=buildGameRow(g,true); });
     html += '</div>';
   });
-
   document.getElementById('scheduleGames').innerHTML = html || '<div class="loading-msg">No games found.</div>';
 }
-
 function buildGameRow(g, showMeta) {
-  const played = g.HomeScore !== null && g.HomeScore !== undefined;
+  const played = g.HomeScore!==null && g.HomeScore!==undefined;
   const scoreHtml = played
-    ? `<div class="score-box">${g.HomeScore}</div><span class="score-sep">—</span><div class="score-box">${g.AwayScore}</div>`
-    : `<div class="score-tbd">${fmtTime(g.GameTime) || 'TBD'}</div>`;
-
+    ? `<div class="score-box">${g.HomeScore}</div><span class="score-sep">–</span><div class="score-box">${g.AwayScore}</div>`
+    : `<div class="score-tbd">${fmtTime(g.GameTime)||'TBD'}</div>`;
   const tags = [];
-  if (g.HomeForfeit) tags.push('<span class="forfeit-tag">FF</span>');
-  if (g.AwayForfeit) tags.push('<span class="forfeit-tag">FF</span>');
+  if (g.HomeForfeit||g.AwayForfeit) tags.push('<span class="forfeit-tag">FF</span>');
   if (g.BTS) tags.push('<span class="bts-tag">BTS</span>');
-
-  const meta = showMeta ? `<div class="game-meta">${fmtDate(g.GameDate)}${g.GameType ? ' · '+escHtml(g.GameType) : ''}</div>` : '';
-
+  const meta = showMeta?`<div class="game-meta">${fmtDate(g.GameDate)}${g.GameType?' · '+esc(g.GameType):''}</div>`:'';
   return `<div class="game-row">
-    <div>
-      <div class="game-team home">${escHtml(g.HomeTeam||'')}</div>
-      ${meta}
-    </div>
+    <div><div class="game-team home">${esc(g.HomeTeam||'')}</div>${meta}</div>
     <div class="game-score">${scoreHtml}${tags.join('')}</div>
-    <div class="game-team away">${escHtml(g.AwayTeam||'')}</div>
+    <div class="game-team away">${esc(g.AwayTeam||'')}</div>
   </div>`;
 }
 
@@ -924,31 +1057,25 @@ async function renderTeams() {
   const selId = document.getElementById('teamsSeason').value || currentSeasonId;
   try {
     const teams = await getDataRaw('Teams');
-    const filtered = teams.filter(t => t.Season == selId && t.Team)
-      .sort((a,b) => (a.Rank||99)-(b.Rank||99));
-
-    if (!filtered.length) {
-      document.getElementById('teamsGrid').innerHTML = '<div class="loading-msg">No team data for this season.</div>';
-      return;
-    }
-
-    document.getElementById('teamsGrid').innerHTML = filtered.map(t => {
+    const filtered = teams.filter(t=>t.Season==selId&&t.Team).sort((a,b)=>(a.Rank||99)-(b.Rank||99));
+    if (!filtered.length) { document.getElementById('teamsGrid').innerHTML='<div class="loading-msg">No team data for this season.</div>'; return; }
+    document.getElementById('teamsGrid').innerHTML = filtered.map(t=>{
       const color = teamColor(t.TeamColor);
       return `<div class="team-card">
-        <div class="team-card-banner" style="background:${color};"></div>
+        <div class="team-card-banner" style="background:${color}"></div>
         <div class="team-card-body">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-            <div style="width:14px;height:14px;border-radius:50%;background:${color};flex-shrink:0;"></div>
-            <div class="team-name">${escHtml(t.Team)}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+            <div style="width:12px;height:12px;border-radius:50%;background:${color};flex-shrink:0;box-shadow:0 0 0 2px rgba(0,0,0,0.1)"></div>
+            <div class="team-name">${esc(t.Team)}</div>
           </div>
-          <div class="team-season-tag">Season ${escHtml(t.Season||'')} · ${escHtml(t.Division||'')}</div>
+          <div class="team-season-tag">${esc(t.Season||'')} · ${esc(t.Division||'')}</div>
           <div class="team-stats-row">
             <div class="team-stat"><div class="team-stat-val">${t.W||0}</div><div class="team-stat-label">W</div></div>
             <div class="team-stat"><div class="team-stat-val">${t.D||0}</div><div class="team-stat-label">D</div></div>
             <div class="team-stat"><div class="team-stat-val">${t.L||0}</div><div class="team-stat-label">L</div></div>
             <div class="team-stat"><div class="team-stat-val" style="color:var(--gold-500)">${t.PTS||0}</div><div class="team-stat-label">PTS</div></div>
           </div>
-          <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:11px;color:var(--gray-400);">
+          <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:11px;color:var(--gray-400);font-weight:500;">
             <span>GF: <strong style="color:var(--gray-700)">${t.GF||0}</strong></span>
             <span>GA: <strong style="color:var(--gray-700)">${t.GA||0}</strong></span>
             <span>GD: <strong style="color:${(t.GD||0)>=0?'var(--green-600)':'#dc2626'}">${(t.GD||0)>0?'+':''}${t.GD||0}</strong></span>
@@ -956,9 +1083,7 @@ async function renderTeams() {
         </div>
       </div>`;
     }).join('');
-  } catch(e) {
-    document.getElementById('teamsGrid').innerHTML = '<div class="loading-msg">Error loading teams.</div>';
-  }
+  } catch(e) { document.getElementById('teamsGrid').innerHTML='<div class="loading-msg">Error loading teams.</div>'; }
 }
 
 // ── HISTORY ──
@@ -966,82 +1091,55 @@ async function renderHistory() {
   if (!allSeasons.length) await detectCurrentSeason();
   try {
     const seasons = await getData('Seasons');
-    const valid = seasons.filter(s => s.SeasonId).sort((a,b) => {
-      const da = parseDate(a.StartDate), db = parseDate(b.StartDate);
-      return (db||0)-(da||0);
-    });
-    document.getElementById('historyCount').textContent = `${valid.length} season${valid.length!==1?'s':''} of BG Futsal`;
-
-    document.getElementById('seasonsGrid').innerHTML = valid.map(s => {
-      const winnerImg = s.SeasonWinnerImg ? `<img src="${escHtml(s.SeasonWinnerImg)}" class="award-img" alt="">` : '';
-      const bootImg  = s.GoldenBootImg  ? `<img src="${escHtml(s.GoldenBootImg)}"  class="award-img" alt="">` : '';
-      const gloveImg = s.GoldenGloveImg ? `<img src="${escHtml(s.GoldenGloveImg)}" class="award-img" alt="">` : '';
-      return `<div class="season-card">
+    const valid = seasons.filter(s=>s.SeasonId).sort((a,b)=>(parseDate(b.StartDate)||0)-(parseDate(a.StartDate)||0));
+    document.getElementById('historyNum').textContent = valid.length;
+    document.getElementById('seasonsGrid').innerHTML = valid.map(s=>`
+      <div class="season-card">
         <div class="season-card-header">
-          <div class="season-card-title">${escHtml(s.SeasonId)}</div>
-          ${s.Division ? `<div class="season-card-div">Div ${escHtml(s.Division)}</div>` : ''}
+          <div class="season-card-title">${esc(s.SeasonId)}</div>
+          ${s.Division?`<div class="season-card-div">Div ${esc(s.Division)}</div>`:''}
         </div>
         <div class="season-card-body">
           <div class="season-meta-row">
             <div class="season-meta-chip"><div class="season-meta-val">${s.Teams||'—'}</div><div class="season-meta-label">Teams</div></div>
             <div class="season-meta-chip"><div class="season-meta-val">${s.Games||'—'}</div><div class="season-meta-label">Games</div></div>
-            <div class="season-meta-chip"><div class="season-meta-val">${s.AvgGpG ? parseFloat(s.AvgGpG).toFixed(1) : '—'}</div><div class="season-meta-label">Goals/G</div></div>
+            <div class="season-meta-chip"><div class="season-meta-val">${s.AvgGpG?parseFloat(s.AvgGpG).toFixed(1):'—'}</div><div class="season-meta-label">Goals/G</div></div>
           </div>
-          ${s.SeasonWinner ? `<div class="season-award">
-            <div class="award-icon">🏆</div>
-            <div><div class="award-label">Season Winner</div><div class="award-val">${escHtml(s.SeasonWinner)}</div></div>
-            ${winnerImg}
-          </div>` : ''}
-          ${s.GoldenBoot ? `<div class="season-award">
-            <div class="award-icon">👟</div>
-            <div><div class="award-label">Golden Boot · ${escHtml(s.GoldenBootTeam||'')} · ${s.GoldenBootGoalsFor||''} goals</div><div class="award-val">${escHtml(s.GoldenBoot)}</div></div>
-            ${bootImg}
-          </div>` : ''}
-          ${s.GoldenGlove ? `<div class="season-award">
-            <div class="award-icon">🧤</div>
-            <div><div class="award-label">Golden Glove · ${escHtml(s.GoldenGloveTeam||'')} · ${s.GoldenGloveGoalsAgainst||''} GA</div><div class="award-val">${escHtml(s.GoldenGlove)}</div></div>
-            ${gloveImg}
-          </div>` : ''}
-          ${s.Notes ? `<div style="font-size:11px;color:var(--gray-500);margin-top:8px;padding-top:8px;border-top:1px solid var(--gray-100);">${escHtml(s.Notes)}</div>` : ''}
+          ${s.SeasonWinner?`<div class="season-award"><div class="award-icon">🏆</div><div><div class="award-label">Season Winner</div><div class="award-val">${esc(s.SeasonWinner)}</div></div>${s.SeasonWinnerImg?`<img src="${esc(s.SeasonWinnerImg)}" class="award-img" alt="">`:''}
+          </div>`:''}
+          ${s.GoldenBoot?`<div class="season-award"><div class="award-icon">👟</div><div><div class="award-label">Golden Boot · ${esc(s.GoldenBootTeam||'')} · ${s.GoldenBootGoalsFor||''} goals</div><div class="award-val">${esc(s.GoldenBoot)}</div></div>${s.GoldenBootImg?`<img src="${esc(s.GoldenBootImg)}" class="award-img" alt="">`:''}
+          </div>`:''}
+          ${s.GoldenGlove?`<div class="season-award"><div class="award-icon">🧤</div><div><div class="award-label">Golden Glove · ${esc(s.GoldenGloveTeam||'')} · ${s.GoldenGloveGoalsAgainst||''} GA</div><div class="award-val">${esc(s.GoldenGlove)}</div></div>${s.GoldenGloveImg?`<img src="${esc(s.GoldenGloveImg)}" class="award-img" alt="">`:''}
+          </div>`:''}
+          ${s.Notes?`<div style="font-size:11px;color:var(--gray-500);margin-top:8px;padding-top:8px;border-top:1px solid var(--gray-100);font-style:italic">${esc(s.Notes)}</div>`:''}
         </div>
-      </div>`;
-    }).join('');
-  } catch(e) {
-    document.getElementById('seasonsGrid').innerHTML = '<div class="loading-msg">Error loading season history.</div>';
-  }
+      </div>`).join('');
+  } catch(e) { document.getElementById('seasonsGrid').innerHTML='<div class="loading-msg">Error loading history.</div>'; }
 }
 
 // ── NEWS ──
 async function renderNews() {
   try {
     const news = await getData('SiteNews');
-    const valid = news.filter(n => n.Id);
-    if (!valid.length) {
-      document.getElementById('newsGrid').innerHTML = '<div class="loading-msg">No news articles yet.</div>';
-      return;
-    }
-    document.getElementById('newsGrid').innerHTML = valid.map(n => {
-      const imgHtml = n.ImageUrl
-        ? `<img src="${escHtml(n.ImageUrl)}" class="news-card-img" alt="" onerror="this.style.display='none'">`
-        : `<div class="news-card-img">⚽</div>`;
-      const linkHtml = n.Link ? `<a href="${escHtml(n.Link)}" class="news-link" target="_blank">Read more →</a>` : '';
-      return `<div class="news-card">
-        ${imgHtml}
+    const valid = news.filter(n=>n.Id);
+    if (!valid.length) { document.getElementById('newsGrid').innerHTML='<div class="loading-msg">No news articles yet.</div>'; return; }
+    document.getElementById('newsGrid').innerHTML = valid.map(n=>`
+      <div class="news-card">
+        ${n.ImageUrl
+          ? `<img src="${esc(n.ImageUrl)}" class="news-card-img" alt="" loading="lazy" onerror="this.parentNode.querySelector('.news-card-img-placeholder').style.display='flex';this.remove()">`
+          : ''}
+        <div class="news-card-img-placeholder" style="display:${n.ImageUrl?'none':'flex'}">⚽</div>
         <div class="news-card-body">
-          <div class="news-category">${escHtml(n.Category||'News')}</div>
-          <div class="news-title">${escHtml(n.Title||'')}</div>
+          <div class="news-category">${esc(n.Category||'News')}</div>
+          <div class="news-title">${esc(n.Title||'')}</div>
           <div class="news-date">${fmtDate(n.Date)}</div>
-          <div class="news-content">${escHtml(n.Content||'')}</div>
-          ${linkHtml}
+          <div class="news-content">${esc(n.Content||'')}</div>
+          ${n.Link?`<a href="${esc(n.Link)}" class="news-link" target="_blank">Read more →</a>`:''}
         </div>
-      </div>`;
-    }).join('');
-  } catch(e) {
-    document.getElementById('newsGrid').innerHTML = '<div class="loading-msg">Error loading news.</div>';
-  }
+      </div>`).join('');
+  } catch(e) { document.getElementById('newsGrid').innerHTML='<div class="loading-msg">Error loading news.</div>'; }
 }
 
-// ── Init ──
 renderHome();
 </script>
 </body>
