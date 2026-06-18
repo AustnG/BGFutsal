@@ -332,10 +332,9 @@ nav {
 .form-l { background: #ef4444; }
 .form-u { background: var(--gray-200); }
 
-/* ── Playoff divider ── */
-.playoff-divider td {
-  border-top: 2px dashed var(--gold-300) !important;
-  padding-top: 6px !important;
+/* ── Playoff qualifier row highlight ── */
+.standings-table tbody tr[style*="border-left"] td:first-child {
+  padding-left: 0;
 }
 
 /* ── Game rows ── */
@@ -744,7 +743,7 @@ footer {
       <div class="section-title"><div class="gold-bar"></div>League Standings</div>
       <div id="standingsTable"><div class="loading-msg"><div class="loading-spinner"></div></div></div>
     </div>
-    <p style="font-size:11px;color:var(--gray-400);margin-top:10px;font-weight:500;">PTS = Points &nbsp;·&nbsp; GD = Goal Difference &nbsp;·&nbsp; Top 8 advance to playoffs &nbsp;·&nbsp; Standings calculated live from game results</p>
+    <p style="font-size:11px;color:var(--gray-400);margin-top:10px;font-weight:500;"><span style="display:inline-block;width:3px;height:12px;background:var(--green-500);border-radius:2px;margin-right:5px;vertical-align:middle;"></span> = Playoff qualifier (Top 8) &nbsp;·&nbsp; PTS = Points &nbsp;·&nbsp; GD = Goal Difference</p>
   </div>
 </div>
 
@@ -887,12 +886,21 @@ async function detectCurrentSeason() {
 }
 
 // ── Season select helpers ──
-// Each dropdown now shows Season only (division is part of the season ID string already e.g. "2026 Spring B")
-function populateSeasonSelect(selectId, currentVal) {
+// CRITICAL FIX: only populate once per dropdown. After initial setup, the user's
+// selected value is NEVER overwritten — that was the root cause of dropdowns
+// appearing to change but data not updating.
+const _selectsInitialised = new Set();
+
+function populateSeasonSelect(selectId) {
   const sel = document.getElementById(selectId);
   if (!sel) { warn(`populateSeasonSelect: element #${selectId} not found`); return; }
 
-  // Always repopulate so changing pages reflects latest state
+  if (_selectsInitialised.has(selectId)) {
+    log(`populateSeasonSelect("#${selectId}"): already initialised, current value = "${sel.value}"`);
+    return; // ← never reset the user's choice
+  }
+
+  // First time only: build options and default to currentSeasonId
   sel.innerHTML = '';
   allSeasonIds.forEach(id => {
     const opt = document.createElement('option');
@@ -900,14 +908,13 @@ function populateSeasonSelect(selectId, currentVal) {
     opt.textContent = id;
     sel.appendChild(opt);
   });
+  sel.value = currentSeasonId;
+  _selectsInitialised.add(selectId);
 
-  const target = currentVal || currentSeasonId;
-  sel.value = target;
-  log(`populateSeasonSelect("#${selectId}"): set to "${target}", options: [${allSeasonIds.join(', ')}]`);
-
-  // Warn if the value didn't stick (means the ID isn't in the list)
-  if (sel.value !== target) {
-    warn(`  ⚠ Could not set dropdown to "${target}" — it's not in the options list!`);
+  log(`populateSeasonSelect("#${selectId}"): initialised, ${allSeasonIds.length} seasons, default="${currentSeasonId}"`);
+  if (sel.value !== currentSeasonId) {
+    warn(`  ⚠ Default season "${currentSeasonId}" not found in options list!`);
+    warn(`  Available seasons:`, allSeasonIds);
   }
 }
 
@@ -1123,10 +1130,15 @@ async function renderStandings() {
 function buildStandingsTable(teamRows, compact, seasonId, teamsMeta) {
   if (!teamRows.length) return '<div class="loading-msg" style="padding:1rem">No games found for this season.</div>';
 
-  const extraHead = compact ? '' : `<th class="hide-mobile">GP</th><th>GF</th><th>GA</th><th>GD</th><th class="hide-mobile">Form</th>`;
+  // Column headers — GP moved to immediately after Team, before W/D/L
+  const fullHead = `<th class="hide-mobile">GP</th><th>GF</th><th>GA</th><th>GD</th><th class="hide-mobile">Form</th>`;
+  const headCols = compact
+    ? `<th>W</th><th>D</th><th>L</th>`
+    : `<th class="hide-mobile">GP</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th class="hide-mobile">Form</th>`;
+
   let html = `<div style="overflow-x:auto"><table class="standings-table"><thead><tr>
     <th style="width:36px">#</th><th style="width:18px"></th><th>Team</th>
-    <th>W</th><th>D</th><th>L</th>${extraHead}<th>PTS</th>
+    ${headCols}<th>PTS</th>
   </tr></thead><tbody>`;
 
   teamRows.forEach((t, i) => {
@@ -1137,27 +1149,30 @@ function buildStandingsTable(teamRows, compact, seasonId, teamsMeta) {
     const gdStr = gd>0?'+'+gd:String(gd);
     const color = teamsMeta ? lookupTeamColor(t.team, seasonId, teamsMeta) : '#059669';
 
-    // Last 3 games form (sorted by date, most recent last → take last 3)
+    // Playoff qualifier highlight: green left-border on rows 1-8 (full table only)
+    const isQualifier = !compact && rank <= 8;
+    const rowStyle = isQualifier ? ' style="border-left:3px solid var(--green-500);"' : '';
+
+    // Last 3 games form
     let formHtml = '';
     if (!compact) {
       const sorted = [...t.games].sort((a,b) => (a.date||0) - (b.date||0));
       const last3 = sorted.slice(-3);
       const dots = last3.map(g => `<div class="form-dot ${g.result==='W'?'form-w':g.result==='D'?'form-d':'form-l'}" title="${g.result}"></div>`);
-      // Pad to 3 empty dots if fewer than 3 games
       while (dots.length < 3) dots.unshift(`<div class="form-dot form-u" title="—"></div>`);
       formHtml = `<td class="hide-mobile"><div class="form-dots">${dots.join('')}</div></td>`;
     }
 
-    const extraCells = compact ? '' : `<td class="hide-mobile">${t.gp}</td><td>${t.gf}</td><td>${t.ga}</td><td class="${gdClass}">${gdStr}</td>${formHtml}`;
-    // Playoff cutoff line at rank 9 (after top 8)
-    const playoffClass = (!compact && rank === 9) ? 'class="playoff-divider"' : '';
+    // GP before W/D/L
+    const dataCols = compact
+      ? `<td>${t.w}</td><td>${t.d}</td><td>${t.l}</td>`
+      : `<td class="hide-mobile">${t.gp}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td><td>${t.gf}</td><td>${t.ga}</td><td class="${gdClass}">${gdStr}</td>${formHtml}`;
 
-    html += `<tr ${playoffClass}>
+    html += `<tr${rowStyle}>
       <td><span class="rank-badge ${rClass}">${rank}</span></td>
       <td><div class="team-color-dot" style="background:${esc(color)}"></div></td>
       <td>${esc(t.team)}</td>
-      <td>${t.w}</td><td>${t.d}</td><td>${t.l}</td>
-      ${extraCells}
+      ${dataCols}
       <td class="pts-cell">${t.pts}</td>
     </tr>`;
   });
@@ -1193,10 +1208,11 @@ function renderScheduleGames(games) {
   const toShow = scheduleFilter==='all'?games:games.filter(g=>g.GameType===scheduleFilter);
   const weeks = {};
   toShow.forEach(g=>{ const wk=g.GameWeek||'TBD'; if(!weeks[wk])weeks[wk]=[]; weeks[wk].push(g); });
-  const keys = Object.keys(weeks).sort((a,b)=>{ if(a==='TBD')return 1; if(b==='TBD')return -1; return parseFloat(a)-parseFloat(b); });
+  // Most recent weeks first; TBD (upcoming) at top
+  const keys = Object.keys(weeks).sort((a,b)=>{ if(a==='TBD')return -1; if(b==='TBD')return 1; return parseFloat(b)-parseFloat(a); });
   let html = '';
   keys.forEach(wk=>{
-    const wg = weeks[wk].sort((a,b)=>(parseDate(a.GameDate)||0)-(parseDate(b.GameDate)||0));
+    const wg = weeks[wk].sort((a,b)=>(parseDate(b.GameDate)||0)-(parseDate(a.GameDate)||0));
     html += `<div class="game-week-group"><div class="week-header">${wk==='TBD'?'Upcoming':'Week '+wk}</div>`;
     wg.forEach(g=>{ html+=buildGameRow(g,true); });
     html += '</div>';
