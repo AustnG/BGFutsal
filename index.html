@@ -744,7 +744,7 @@ footer {
       <div class="section-title"><div class="gold-bar"></div>League Standings</div>
       <div id="standingsTable"><div class="loading-msg"><div class="loading-spinner"></div></div></div>
     </div>
-    <p style="font-size:11px;color:var(--gray-400);margin-top:10px;font-weight:500;">* Playoff qualifier &nbsp;·&nbsp; PTS = Points &nbsp;·&nbsp; GD = Goal Difference &nbsp;·&nbsp; CS% = Clean Sheet % &nbsp;·&nbsp; FTS = Failed to Score</p>
+    <p style="font-size:11px;color:var(--gray-400);margin-top:10px;font-weight:500;">PTS = Points &nbsp;·&nbsp; GD = Goal Difference &nbsp;·&nbsp; Top 8 advance to playoffs &nbsp;·&nbsp; Standings calculated live from game results</p>
   </div>
 </div>
 
@@ -810,26 +810,31 @@ footer {
 <script>
 const SHEET_ID = '1C4SkhAN0BS-wRu6uRTXu_TmoFEKzkXkiFt5BiXR5v-E';
 
+// ── Logging helpers ──
+const LOG = true; // set to false to silence in production
+function log(...args)  { if (LOG) console.log('[BGFutsal]', ...args); }
+function warn(...args) { if (LOG) console.warn('[BGFutsal]', ...args); }
+function err(...args)  { console.error('[BGFutsal]', ...args); }
+
 // hero pan effect
 window.addEventListener('load', () => {
   const bg = document.getElementById('heroBg');
   if (bg) setTimeout(() => bg.classList.add('loaded'), 100);
 });
 
+// ── Sheet fetch ──
 async function fetchSheet(tabName, raw) {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tabName)}`;
+  log(`Fetching tab "${tabName}" (raw=${raw}) → ${url}`);
   const res = await fetch(url);
   const text = await res.text();
   const json = JSON.parse(text.substring(47, text.length - 2));
   const cols = json.table.cols.map(c => c.label);
+  log(`Tab "${tabName}": ${json.table.rows.length} rows, cols:`, cols);
   return json.table.rows.map(row => {
     const obj = {};
     row.c.forEach((cell, i) => {
-      if (raw) {
-        obj[cols[i]] = cell ? cell.v : null;
-      } else {
-        obj[cols[i]] = cell ? (cell.f !== undefined && cell.f !== null ? cell.f : cell.v) : null;
-      }
+      obj[cols[i]] = cell ? (raw ? cell.v : (cell.f !== undefined && cell.f !== null ? cell.f : cell.v)) : null;
     });
     return obj;
   });
@@ -839,35 +844,168 @@ const cache = {};
 async function getData(tab)    { if (!cache[tab])        cache[tab]        = await fetchSheet(tab, false); return cache[tab]; }
 async function getDataRaw(tab) { if (!cache[tab+'_raw']) cache[tab+'_raw'] = await fetchSheet(tab, true);  return cache[tab+'_raw']; }
 
-let allSeasons = [], currentSeasonId = null;
+// ── Season state ──
+// allSeasonsMeta  = rows from the Seasons tab (awards, dates, etc.)
+// allSeasonIds    = unique Season IDs derived from Games tab (source of truth for what exists)
+// currentSeasonId = most recent season
+let allSeasonsMeta = [], allSeasonIds = [], currentSeasonId = null;
 
 async function detectCurrentSeason() {
-  if (allSeasons.length) return allSeasons;
-  const seasons = await getData('Seasons');
-  allSeasons = seasons.filter(r => r.SeasonId);
-  allSeasons.sort((a, b) => {
-    const da = parseDate(a.StartDate), db = parseDate(b.StartDate);
+  if (allSeasonIds.length) return; // already done
+  log('detectCurrentSeason() starting...');
+
+  // Pull both tabs in parallel
+  const [seasonsMeta, games] = await Promise.all([getData('Seasons'), getDataRaw('Games')]);
+
+  // Seasons tab metadata
+  allSeasonsMeta = seasonsMeta.filter(r => r.SeasonId);
+  log(`Seasons tab: ${allSeasonsMeta.length} valid rows`, allSeasonsMeta.map(s => s.SeasonId));
+
+  // Derive unique season IDs from Games tab (handles seasons missing from Seasons tab)
+  const fromGames = [...new Set(games.map(g => g.Season).filter(Boolean))];
+  log(`Unique Season values found in Games tab (${fromGames.length}):`, fromGames);
+
+  // Merge: start with Seasons tab order, add any from Games not already listed
+  const metaIds = allSeasonsMeta.map(s => s.SeasonId);
+  fromGames.forEach(id => { if (!metaIds.includes(id)) { metaIds.push(id); warn(`Season "${id}" found in Games but NOT in Seasons tab`); } });
+
+  // Sort by StartDate from Seasons tab; seasons only in Games go to the end
+  allSeasonIds = metaIds.sort((a, b) => {
+    const ma = allSeasonsMeta.find(s => s.SeasonId === a);
+    const mb = allSeasonsMeta.find(s => s.SeasonId === b);
+    const da = ma ? parseDate(ma.StartDate) : null;
+    const db = mb ? parseDate(mb.StartDate) : null;
+    if (!da && !db) return 0;
+    if (!da) return 1;
+    if (!db) return -1;
     return (db||0) - (da||0);
   });
-  if (allSeasons.length) currentSeasonId = allSeasons[0].SeasonId;
-  return allSeasons;
+
+  currentSeasonId = allSeasonIds[0] || null;
+  log(`Detected currentSeasonId = "${currentSeasonId}"`);
+  log('All season IDs in order:', allSeasonIds);
 }
 
-function populateSeasonSelect(selectId) {
+// ── Season select helpers ──
+// Each dropdown now shows Season only (division is part of the season ID string already e.g. "2026 Spring B")
+function populateSeasonSelect(selectId, currentVal) {
   const sel = document.getElementById(selectId);
-  if (!sel) return;
-  if (sel.options.length) return; // already populated
-  allSeasons.forEach(s => {
+  if (!sel) { warn(`populateSeasonSelect: element #${selectId} not found`); return; }
+
+  // Always repopulate so changing pages reflects latest state
+  sel.innerHTML = '';
+  allSeasonIds.forEach(id => {
     const opt = document.createElement('option');
-    opt.value = s.SeasonId;
-    opt.textContent = s.SeasonId + (s.Division ? ' · Div ' + s.Division : '');
+    opt.value = id;
+    opt.textContent = id;
     sel.appendChild(opt);
   });
-  sel.value = currentSeasonId;
+
+  const target = currentVal || currentSeasonId;
+  sel.value = target;
+  log(`populateSeasonSelect("#${selectId}"): set to "${target}", options: [${allSeasonIds.join(', ')}]`);
+
+  // Warn if the value didn't stick (means the ID isn't in the list)
+  if (sel.value !== target) {
+    warn(`  ⚠ Could not set dropdown to "${target}" — it's not in the options list!`);
+  }
 }
 
+// ── Core standings calculator (from Games tab) ──
+function calcStandings(games, seasonId) {
+  log(`calcStandings: season="${seasonId}", total games in tab=${games.length}`);
+
+  // Filter to this season — only played regular-season games (HomeScore not null)
+  // Include all GameTypes that aren't playoff rounds
+  const playoffTypes = ['quarter finals','semi finals','finals','quarterfinals','semifinals'];
+  const seasonGames = games.filter(g => {
+    if (g.Season !== seasonId) return false;
+    if (g.HomeScore === null || g.HomeScore === undefined) return false;
+    const gt = String(g.GameType||'').toLowerCase().trim();
+    return !playoffTypes.includes(gt);
+  });
+
+  log(`  Games matching season & played & non-playoff: ${seasonGames.length}`);
+  if (seasonGames.length === 0) {
+    warn(`  ⚠ No qualifying games found for season "${seasonId}". Check that Games[Season] exactly matches "${seasonId}"`);
+    // Show a sample of what Season values DO exist
+    const sample = [...new Set(games.slice(0,50).map(g=>g.Season))];
+    warn(`  Season values in first 50 game rows:`, sample);
+  }
+
+  // Build team map
+  const teams = {};
+  const ensureTeam = (name) => {
+    if (!name || String(name).trim() === '' || String(name).trim() === '-') return null;
+    const key = String(name).trim();
+    if (!teams[key]) {
+      teams[key] = { team: key, gp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0, games: [] };
+    }
+    return key;
+  };
+
+  seasonGames.forEach(g => {
+    const home = ensureTeam(g.HomeTeam);
+    const away = ensureTeam(g.AwayTeam);
+    if (!home || !away) return;
+
+    const hs = Number(g.HomeScore), as = Number(g.AwayScore);
+    const hp = Number(g.HomePoints ?? (hs > as ? 3 : hs === as ? 1 : 0));
+    const ap = Number(g.AwayPoints ?? (as > hs ? 3 : hs === as ? 1 : 0));
+    const gameDate = parseDate(g.GameDate);
+
+    // Home team
+    teams[home].gp++;
+    teams[home].gf += hs; teams[home].ga += as;
+    teams[home].pts += hp;
+    if (hp === 3) teams[home].w++;
+    else if (hp === 1) teams[home].d++;
+    else teams[home].l++;
+    teams[home].games.push({ date: gameDate, result: hp===3?'W':hp===1?'D':'L' });
+
+    // Away team
+    teams[away].gp++;
+    teams[away].gf += as; teams[away].ga += hs;
+    teams[away].pts += ap;
+    if (ap === 3) teams[away].w++;
+    else if (ap === 1) teams[away].d++;
+    else teams[away].l++;
+    teams[away].games.push({ date: gameDate, result: ap===3?'W':ap===1?'D':'L' });
+  });
+
+  // Sort: PTS → GD → GF → team name
+  const sorted = Object.values(teams).sort((a, b) => {
+    if (b.pts !== a.pts) return b.pts - a.pts;
+    const gdA = a.gf - a.ga, gdB = b.gf - b.ga;
+    if (gdB !== gdA) return gdB - gdA;
+    if (b.gf !== a.gf) return b.gf - a.gf;
+    return a.team.localeCompare(b.team);
+  });
+
+  log(`  calcStandings result: ${sorted.length} teams`);
+  sorted.forEach((t, i) => log(`    ${i+1}. ${t.team} — W${t.w} D${t.d} L${t.l} GF${t.gf} GA${t.ga} PTS${t.pts}`));
+  return sorted;
+}
+
+// ── Look up team color from Teams tab ──
+let teamsMetaCache = null;
+async function getTeamsMeta() {
+  if (!teamsMetaCache) teamsMetaCache = await getDataRaw('Teams');
+  return teamsMetaCache;
+}
+function lookupTeamColor(teamName, seasonId, teamsMeta) {
+  // Try exact season match first, then any season
+  const exact = teamsMeta.find(t => t.Team === teamName && t.Season === seasonId);
+  if (exact?.TeamColor) return teamColor(exact.TeamColor);
+  const any = teamsMeta.find(t => t.Team === teamName);
+  if (any?.TeamColor) return teamColor(any.TeamColor);
+  return '#059669';
+}
+
+// ── Navigation ──
 let currentPage = 'home';
 function showPage(id) {
+  log(`showPage("${id}")`);
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
@@ -880,13 +1018,15 @@ function showPage(id) {
   window.scrollTo(0, 0);
 }
 
+// ── Date / time helpers ──
 function parseDate(val) {
   if (!val) return null;
   if (typeof val === 'string' && val.startsWith('Date(')) {
     const p = val.slice(5,-1).split(',').map(Number);
     return new Date(p[0], p[1], p[2]);
   }
-  return new Date(val);
+  const d = new Date(val);
+  return isNaN(d) ? null : d;
 }
 function fmtDate(val) {
   const d = parseDate(val);
@@ -916,25 +1056,24 @@ function teamColor(v) {
 async function renderHome() {
   try {
     await detectCurrentSeason();
-    const [teams, games, news] = await Promise.all([getDataRaw('Teams'), getDataRaw('Games'), getData('SiteNews')]);
-    const curS = allSeasons[0];
-    if (curS) document.getElementById('headerSeasonBadge').textContent = (curS.SeasonId||'') + (curS.Division ? ' · Div '+curS.Division : '');
+    const [games, news, teamsMeta] = await Promise.all([getDataRaw('Games'), getData('SiteNews'), getTeamsMeta()]);
+    const curS = allSeasonsMeta.find(s => s.SeasonId === currentSeasonId);
+    const badgeText = currentSeasonId || '—';
+    document.getElementById('headerSeasonBadge').textContent = badgeText;
 
-    const sTeams = teams.filter(t => t.Season == currentSeasonId);
-    const sGames = games.filter(g => g.Season == currentSeasonId && g.HomeScore !== null);
-    const goals  = sGames.reduce((s,g) => s + (g.HomeScore||0) + (g.AwayScore||0), 0);
+    const standings = calcStandings(games, currentSeasonId);
+    const sGames = games.filter(g => g.Season === currentSeasonId && g.HomeScore !== null);
+    const goals  = sGames.reduce((s,g) => s + (Number(g.HomeScore)||0) + (Number(g.AwayScore)||0), 0);
 
     document.getElementById('homeHeroStats').innerHTML = `
-      <div class="stat-chip"><div class="stat-chip-label">Season</div><div class="stat-chip-val">${esc(curS?.SeasonId||'—')}</div><div class="stat-chip-sub">Division ${esc(curS?.Division||'—')}</div></div>
-      <div class="stat-chip"><div class="stat-chip-label">Teams</div><div class="stat-chip-val">${sTeams.length}</div><div class="stat-chip-sub">competing</div></div>
+      <div class="stat-chip"><div class="stat-chip-label">Season</div><div class="stat-chip-val">${esc(currentSeasonId||'—')}</div><div class="stat-chip-sub">${esc(curS?.Division ? 'Division '+curS.Division : '')}</div></div>
+      <div class="stat-chip"><div class="stat-chip-label">Teams</div><div class="stat-chip-val">${standings.length}</div><div class="stat-chip-sub">competing</div></div>
       <div class="stat-chip"><div class="stat-chip-label">Games played</div><div class="stat-chip-val">${sGames.length}</div><div class="stat-chip-sub">this season</div></div>
       <div class="stat-chip"><div class="stat-chip-label">Goals scored</div><div class="stat-chip-val">${goals}</div><div class="stat-chip-sub">${sGames.length?(goals/sGames.length).toFixed(1)+' per game':''}</div></div>`;
 
-    const sorted = sTeams.filter(t=>t.Team).sort((a,b)=>(a.Rank||99)-(b.Rank||99));
-    document.getElementById('homeStandings').innerHTML = buildStandingsTable(sorted.slice(0,8), true);
+    document.getElementById('homeStandings').innerHTML = buildStandingsTable(standings.slice(0,8), true, currentSeasonId, teamsMeta);
 
-    const played = games.filter(g=>g.Season==currentSeasonId&&g.HomeScore!==null)
-      .sort((a,b)=>(parseDate(b.GameDate)||0)-(parseDate(a.GameDate)||0)).slice(0,5);
+    const played = sGames.sort((a,b)=>(parseDate(b.GameDate)||0)-(parseDate(a.GameDate)||0)).slice(0,5);
     document.getElementById('homeResults').innerHTML = played.length
       ? played.map(g=>`<div class="result-mini">
           <div class="rm-team home">${esc(g.HomeTeam||'')}</div>
@@ -952,53 +1091,74 @@ async function renderHome() {
         </div>`).join('')
       : '<div style="font-size:13px;color:var(--gray-400);">No news yet.</div>';
   } catch(e) {
-    console.error(e);
+    err('renderHome error:', e);
     document.getElementById('homeHeroStats').innerHTML = '<div class="loading-msg">Could not load data. Make sure the sheet is published to the web.</div>';
   }
 }
 
 // ── STANDINGS ──
 async function renderStandings() {
-  if (!allSeasons.length) await detectCurrentSeason();
+  log('renderStandings() called');
+  if (!allSeasonIds.length) await detectCurrentSeason();
   populateSeasonSelect('standingsSeason');
-  const selId = document.getElementById('standingsSeason').value || currentSeasonId;
+
+  const selId = document.getElementById('standingsSeason')?.value || currentSeasonId;
+  log(`  Using season: "${selId}"`);
+
+  document.getElementById('standingsTable').innerHTML = '<div class="loading-msg"><div class="loading-spinner"></div>Calculating standings...</div>';
   try {
-    const teams = await getDataRaw('Teams');
-    const filtered = teams.filter(t=>t.Season==selId&&t.Team).sort((a,b)=>(a.Rank||99)-(b.Rank||99));
-    document.getElementById('standingsTable').innerHTML = buildStandingsTable(filtered, false);
-  } catch(e) { document.getElementById('standingsTable').innerHTML = '<div class="loading-msg">Error loading standings.</div>'; }
+    const [games, teamsMeta] = await Promise.all([getDataRaw('Games'), getTeamsMeta()]);
+    const standings = calcStandings(games, selId);
+    document.getElementById('standingsTable').innerHTML = buildStandingsTable(standings, false, selId, teamsMeta);
+    // Update footnote
+    const note = document.getElementById('standingsNote');
+    if (note) note.textContent = `Standings calculated from ${standings.reduce((s,t)=>s+t.gp,0)/2|0} games · Top 8 advance to playoffs`;
+  } catch(e) {
+    err('renderStandings error:', e);
+    document.getElementById('standingsTable').innerHTML = `<div class="loading-msg">Error: ${e.message}</div>`;
+  }
 }
 
-function buildStandingsTable(teams, compact) {
-  if (!teams.length) return '<div class="loading-msg" style="padding:1rem">No data for this season.</div>';
-  const extraHead = compact ? '' : `<th class="hide-mobile">GP</th><th>GF</th><th>GA</th><th>GD</th><th class="hide-mobile">CS%</th><th class="hide-mobile">FTS</th><th class="hide-mobile">Form</th>`;
+// ── Build standings table (shared by Home + Standings page) ──
+function buildStandingsTable(teamRows, compact, seasonId, teamsMeta) {
+  if (!teamRows.length) return '<div class="loading-msg" style="padding:1rem">No games found for this season.</div>';
+
+  const extraHead = compact ? '' : `<th class="hide-mobile">GP</th><th>GF</th><th>GA</th><th>GD</th><th class="hide-mobile">Form</th>`;
   let html = `<div style="overflow-x:auto"><table class="standings-table"><thead><tr>
     <th style="width:36px">#</th><th style="width:18px"></th><th>Team</th>
     <th>W</th><th>D</th><th>L</th>${extraHead}<th>PTS</th>
   </tr></thead><tbody>`;
 
-  teams.forEach((t,i) => {
-    const rank = t.Rank||(i+1);
+  teamRows.forEach((t, i) => {
+    const rank = i + 1;
     const rClass = rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':'rank-other';
-    const gd = t.GD||0, gdClass = gd>0?'gd-pos':gd<0?'gd-neg':'', gdStr = gd>0?'+'+gd:String(gd);
+    const gd = t.gf - t.ga;
+    const gdClass = gd>0?'gd-pos':gd<0?'gd-neg':'';
+    const gdStr = gd>0?'+'+gd:String(gd);
+    const color = teamsMeta ? lookupTeamColor(t.team, seasonId, teamsMeta) : '#059669';
+
+    // Last 3 games form (sorted by date, most recent last → take last 3)
     let formHtml = '';
     if (!compact) {
-      const dots = [];
-      for (let g=1;g<=10;g++) {
-        const v = String(t['Game'+String(g).padStart(2,'0')]||'').toUpperCase();
-        if (v) dots.push(`<div class="form-dot ${v==='W'?'form-w':v==='D'?'form-d':v==='L'?'form-l':'form-u'}" title="${v}"></div>`);
-      }
+      const sorted = [...t.games].sort((a,b) => (a.date||0) - (b.date||0));
+      const last3 = sorted.slice(-3);
+      const dots = last3.map(g => `<div class="form-dot ${g.result==='W'?'form-w':g.result==='D'?'form-d':'form-l'}" title="${g.result}"></div>`);
+      // Pad to 3 empty dots if fewer than 3 games
+      while (dots.length < 3) dots.unshift(`<div class="form-dot form-u" title="—"></div>`);
       formHtml = `<td class="hide-mobile"><div class="form-dots">${dots.join('')}</div></td>`;
     }
-    const extraCells = compact?'':`<td class="hide-mobile">${t.GP||0}</td><td>${t.GF||0}</td><td>${t.GA||0}</td><td class="${gdClass}">${gdStr}</td><td class="hide-mobile">${t['CS%']!=null?(parseFloat(t['CS%'])*100).toFixed(0)+'%':'—'}</td><td class="hide-mobile">${t.FTS||0}</td>${formHtml}`;
-    const playoffRow = (!compact && rank===5) ? 'class="playoff-divider"' : '';
-    html += `<tr ${playoffRow}>
+
+    const extraCells = compact ? '' : `<td class="hide-mobile">${t.gp}</td><td>${t.gf}</td><td>${t.ga}</td><td class="${gdClass}">${gdStr}</td>${formHtml}`;
+    // Playoff cutoff line at rank 9 (after top 8)
+    const playoffClass = (!compact && rank === 9) ? 'class="playoff-divider"' : '';
+
+    html += `<tr ${playoffClass}>
       <td><span class="rank-badge ${rClass}">${rank}</span></td>
-      <td><div class="team-color-dot" style="background:${esc(teamColor(t.TeamColor))}"></div></td>
-      <td>${esc(t.Team)}</td>
-      <td>${t.W||0}</td><td>${t.D||0}</td><td>${t.L||0}</td>
+      <td><div class="team-color-dot" style="background:${esc(color)}"></div></td>
+      <td>${esc(t.team)}</td>
+      <td>${t.w}</td><td>${t.d}</td><td>${t.l}</td>
       ${extraCells}
-      <td class="pts-cell">${t.PTS||0}</td>
+      <td class="pts-cell">${t.pts}</td>
     </tr>`;
   });
   return html + '</tbody></table></div>';
@@ -1007,17 +1167,26 @@ function buildStandingsTable(teams, compact) {
 // ── SCHEDULE ──
 let scheduleFilter = 'all';
 async function renderSchedule() {
-  if (!allSeasons.length) await detectCurrentSeason();
+  log('renderSchedule() called');
+  if (!allSeasonIds.length) await detectCurrentSeason();
   populateSeasonSelect('scheduleSeason');
-  const selId = document.getElementById('scheduleSeason').value || currentSeasonId;
+
+  const selId = document.getElementById('scheduleSeason')?.value || currentSeasonId;
+  log(`  Using season: "${selId}"`);
+
   try {
     const games = await getDataRaw('Games');
-    const filtered = games.filter(g=>g.Season==selId);
+    const filtered = games.filter(g => g.Season === selId);
+    log(`  Games for season "${selId}": ${filtered.length}`);
+
     const types = [...new Set(filtered.map(g=>g.GameType).filter(Boolean))];
     document.getElementById('scheduleFilter').innerHTML = ['all',...types].map(t=>
-      `<button class="filter-btn ${scheduleFilter===t?'active':''}" onclick="setScheduleFilter('${t}')">${t==='all'?'All games':esc(t)}</button>`).join('');
+      `<button class="filter-btn ${scheduleFilter===t?'active':''}" onclick="setScheduleFilter('${esc(t)}')">${t==='all'?'All games':esc(t)}</button>`).join('');
     renderScheduleGames(filtered);
-  } catch(e) { document.getElementById('scheduleGames').innerHTML = '<div class="loading-msg">Error loading schedule.</div>'; }
+  } catch(e) {
+    err('renderSchedule error:', e);
+    document.getElementById('scheduleGames').innerHTML = `<div class="loading-msg">Error: ${e.message}</div>`;
+  }
 }
 function setScheduleFilter(type) { scheduleFilter=type; renderSchedule(); }
 function renderScheduleGames(games) {
@@ -1051,47 +1220,58 @@ function buildGameRow(g, showMeta) {
 }
 
 // ── TEAMS ──
+// Teams page still reads from Teams tab for color/metadata, but calculates stats from Games
 async function renderTeams() {
-  if (!allSeasons.length) await detectCurrentSeason();
+  log('renderTeams() called');
+  if (!allSeasonIds.length) await detectCurrentSeason();
   populateSeasonSelect('teamsSeason');
-  const selId = document.getElementById('teamsSeason').value || currentSeasonId;
+  const selId = document.getElementById('teamsSeason')?.value || currentSeasonId;
+  log(`  Using season: "${selId}"`);
+  document.getElementById('teamsGrid').innerHTML = '<div class="loading-msg"><div class="loading-spinner"></div>Loading teams...</div>';
   try {
-    const teams = await getDataRaw('Teams');
-    const filtered = teams.filter(t=>t.Season==selId&&t.Team).sort((a,b)=>(a.Rank||99)-(b.Rank||99));
-    if (!filtered.length) { document.getElementById('teamsGrid').innerHTML='<div class="loading-msg">No team data for this season.</div>'; return; }
-    document.getElementById('teamsGrid').innerHTML = filtered.map(t=>{
-      const color = teamColor(t.TeamColor);
+    const [games, teamsMeta] = await Promise.all([getDataRaw('Games'), getTeamsMeta()]);
+    const standings = calcStandings(games, selId);
+    log(`  Teams for season "${selId}": ${standings.length}`);
+    if (!standings.length) { document.getElementById('teamsGrid').innerHTML='<div class="loading-msg">No team data for this season.</div>'; return; }
+    document.getElementById('teamsGrid').innerHTML = standings.map((t, i) => {
+      const color = lookupTeamColor(t.team, selId, teamsMeta);
+      const gd = t.gf - t.ga;
       return `<div class="team-card">
         <div class="team-card-banner" style="background:${color}"></div>
         <div class="team-card-body">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
             <div style="width:12px;height:12px;border-radius:50%;background:${color};flex-shrink:0;box-shadow:0 0 0 2px rgba(0,0,0,0.1)"></div>
-            <div class="team-name">${esc(t.Team)}</div>
+            <div class="team-name">${esc(t.team)}</div>
           </div>
-          <div class="team-season-tag">${esc(t.Season||'')} · ${esc(t.Division||'')}</div>
+          <div class="team-season-tag">${esc(selId)} · Rank #${i+1}</div>
           <div class="team-stats-row">
-            <div class="team-stat"><div class="team-stat-val">${t.W||0}</div><div class="team-stat-label">W</div></div>
-            <div class="team-stat"><div class="team-stat-val">${t.D||0}</div><div class="team-stat-label">D</div></div>
-            <div class="team-stat"><div class="team-stat-val">${t.L||0}</div><div class="team-stat-label">L</div></div>
-            <div class="team-stat"><div class="team-stat-val" style="color:var(--gold-500)">${t.PTS||0}</div><div class="team-stat-label">PTS</div></div>
+            <div class="team-stat"><div class="team-stat-val">${t.w}</div><div class="team-stat-label">W</div></div>
+            <div class="team-stat"><div class="team-stat-val">${t.d}</div><div class="team-stat-label">D</div></div>
+            <div class="team-stat"><div class="team-stat-val">${t.l}</div><div class="team-stat-label">L</div></div>
+            <div class="team-stat"><div class="team-stat-val" style="color:var(--gold-500)">${t.pts}</div><div class="team-stat-label">PTS</div></div>
           </div>
           <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:11px;color:var(--gray-400);font-weight:500;">
-            <span>GF: <strong style="color:var(--gray-700)">${t.GF||0}</strong></span>
-            <span>GA: <strong style="color:var(--gray-700)">${t.GA||0}</strong></span>
-            <span>GD: <strong style="color:${(t.GD||0)>=0?'var(--green-600)':'#dc2626'}">${(t.GD||0)>0?'+':''}${t.GD||0}</strong></span>
+            <span>GF: <strong style="color:var(--gray-700)">${t.gf}</strong></span>
+            <span>GA: <strong style="color:var(--gray-700)">${t.ga}</strong></span>
+            <span>GD: <strong style="color:${gd>=0?'var(--green-600)':'#dc2626'}">${gd>0?'+':''}${gd}</strong></span>
           </div>
         </div>
       </div>`;
     }).join('');
-  } catch(e) { document.getElementById('teamsGrid').innerHTML='<div class="loading-msg">Error loading teams.</div>'; }
+  } catch(e) {
+    err('renderTeams error:', e);
+    document.getElementById('teamsGrid').innerHTML=`<div class="loading-msg">Error: ${e.message}</div>`;
+  }
 }
 
 // ── HISTORY ──
 async function renderHistory() {
-  if (!allSeasons.length) await detectCurrentSeason();
+  log('renderHistory() called');
+  if (!allSeasonIds.length) await detectCurrentSeason();
   try {
     const seasons = await getData('Seasons');
     const valid = seasons.filter(s=>s.SeasonId).sort((a,b)=>(parseDate(b.StartDate)||0)-(parseDate(a.StartDate)||0));
+    log(`  History: ${valid.length} seasons`);
     document.getElementById('historyNum').textContent = valid.length;
     document.getElementById('seasonsGrid').innerHTML = valid.map(s=>`
       <div class="season-card">
@@ -1114,14 +1294,19 @@ async function renderHistory() {
           ${s.Notes?`<div style="font-size:11px;color:var(--gray-500);margin-top:8px;padding-top:8px;border-top:1px solid var(--gray-100);font-style:italic">${esc(s.Notes)}</div>`:''}
         </div>
       </div>`).join('');
-  } catch(e) { document.getElementById('seasonsGrid').innerHTML='<div class="loading-msg">Error loading history.</div>'; }
+  } catch(e) {
+    err('renderHistory error:', e);
+    document.getElementById('seasonsGrid').innerHTML=`<div class="loading-msg">Error: ${e.message}</div>`;
+  }
 }
 
 // ── NEWS ──
 async function renderNews() {
+  log('renderNews() called');
   try {
     const news = await getData('SiteNews');
     const valid = news.filter(n=>n.Id);
+    log(`  News items: ${valid.length}`);
     if (!valid.length) { document.getElementById('newsGrid').innerHTML='<div class="loading-msg">No news articles yet.</div>'; return; }
     document.getElementById('newsGrid').innerHTML = valid.map(n=>`
       <div class="news-card">
@@ -1137,9 +1322,13 @@ async function renderNews() {
           ${n.Link?`<a href="${esc(n.Link)}" class="news-link" target="_blank">Read more →</a>`:''}
         </div>
       </div>`).join('');
-  } catch(e) { document.getElementById('newsGrid').innerHTML='<div class="loading-msg">Error loading news.</div>'; }
+  } catch(e) {
+    err('renderNews error:', e);
+    document.getElementById('newsGrid').innerHTML=`<div class="loading-msg">Error: ${e.message}</div>`;
+  }
 }
 
+log('BG Futsal site initialising...');
 renderHome();
 </script>
 </body>
