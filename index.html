@@ -633,6 +633,168 @@ footer {
   .game-row { padding: 9px 10px; }
   .score-box { padding: 4px 8px; font-size: 15px; }
 }
+
+  /* ── Photo gallery (bottom of home) ── */
+  .photo-gallery {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    height: 280px;
+    overflow: hidden;
+  }
+  .photo-gallery-item {
+    overflow: hidden; position: relative; cursor: pointer;
+  }
+  .photo-gallery-item img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 0.5s ease, filter 0.3s;
+    filter: brightness(0.88) saturate(0.95);
+  }
+  .photo-gallery-item:hover img { transform: scale(1.07); filter: brightness(1) saturate(1.1); }
+  .photo-gallery-item:first-child { grid-column: span 2; }
+  @media (max-width: 640px) {
+    .photo-gallery { grid-template-columns: 1fr 1fr; height: 200px; }
+    .photo-gallery-item:first-child { grid-column: span 2; }
+  }
+
+  /* ── About page ── */
+  .about-hero {
+    position: relative; height: 320px; overflow: hidden;
+    display: flex; align-items: flex-end;
+    border-radius: var(--radius-lg); margin-bottom: 2rem;
+  }
+  .about-hero img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: center 30%;
+  }
+  .about-hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(5,46,22,0.1) 0%, rgba(5,46,22,0.75) 100%);
+  }
+  .about-hero-text {
+    position: relative; z-index: 2;
+    padding: 2rem; color: var(--white);
+  }
+  .about-hero-text h1 { font-size: 2rem; font-weight: 900; letter-spacing: -0.02em; }
+  .about-hero-text h1 em { font-style: normal; color: var(--gold-400); }
+  .about-hero-text p { font-size: 14px; color: var(--green-200); margin-top: 6px; }
+
+  .about-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 700px) { .about-grid { grid-template-columns: 1fr; } }
+
+  .about-card {
+    background: var(--white); border-radius: var(--radius-lg);
+    border: 1px solid rgba(0,0,0,0.06); box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .about-card-header {
+    background: var(--green-800); padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .about-card-header h3 { font-size: 15px; font-weight: 800; color: var(--white); }
+  .about-card-icon { font-size: 20px; }
+  .about-card-body { padding: 1.25rem; }
+  .about-card-body p { font-size: 14px; color: var(--gray-600); line-height: 1.7; margin-bottom: 0.75rem; }
+  .about-card-body p:last-child { margin-bottom: 0; }
+  .about-card-body ul { list-style: none; padding: 0; }
+  .about-card-body ul li {
+    font-size: 14px; color: var(--gray-600); line-height: 1.6;
+    padding: 5px 0; border-bottom: 1px solid var(--gray-100);
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+  .about-card-body ul li:last-child { border-bottom: none; }
+  .about-card-body ul li::before { content: "⚽"; font-size: 11px; margin-top: 3px; flex-shrink: 0; }
+  .about-cta {
+    background: linear-gradient(135deg, var(--green-800) 0%, var(--green-900) 100%);
+    border-radius: var(--radius-lg); padding: 2.5rem 2rem;
+    text-align: center; margin-top: 1.5rem;
+  }
+  .about-cta h3 { font-size: 22px; font-weight: 900; color: var(--white); margin-bottom: 8px; }
+  .about-cta p { font-size: 14px; color: var(--green-200); margin-bottom: 1.25rem; }
+  .about-photo-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  .about-photo-row img {
+    width: 100%; height: 220px; object-fit: cover;
+    border-radius: var(--radius-lg); display: block;
+  }
+  @media (max-width: 500px) { .about-photo-row { grid-template-columns: 1fr; } }
+
+  /* ── Rules page ── */
+  .rules-hero {
+    background: linear-gradient(135deg, var(--green-800) 0%, var(--green-900) 100%);
+    border-radius: var(--radius-lg); padding: 2rem;
+    margin-bottom: 1.75rem; display: flex; align-items: center; gap: 1.5rem;
+    position: relative; overflow: hidden;
+  }
+  .rules-hero::before {
+    content: "📋"; position: absolute; right: 1.5rem; top: 50%;
+    transform: translateY(-50%); font-size: 5rem; opacity: 0.12;
+  }
+  .rules-hero h1 { font-size: 22px; font-weight: 900; color: var(--white); margin-bottom: 4px; }
+  .rules-hero p { font-size: 13px; color: var(--green-200); }
+
+  .rules-section { margin-bottom: 1.5rem; }
+  .rules-section-title {
+    font-size: 11px; font-weight: 800; color: var(--green-700);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;
+  }
+  .rules-section-title::after { content: ''; flex: 1; height: 1px; background: var(--gray-200); }
+
+  .rules-card {
+    background: var(--white); border-radius: var(--radius-lg);
+    border: 1px solid rgba(0,0,0,0.06); box-shadow: var(--shadow-sm);
+    padding: 1.25rem; margin-bottom: 1rem;
+  }
+  .rules-list { list-style: none; padding: 0; margin: 0; }
+  .rules-list li {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 7px 0; border-bottom: 1px solid var(--gray-100);
+    font-size: 14px; color: var(--gray-700); line-height: 1.5;
+  }
+  .rules-list li:last-child { border-bottom: none; }
+  .rules-list li .rule-icon {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--green-100); color: var(--green-700);
+    font-size: 11px; font-weight: 800; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+  }
+  .rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 640px) { .rules-grid { grid-template-columns: 1fr; } }
+
+  .faq-item {
+    background: var(--white); border-radius: var(--radius-md);
+    border: 1px solid rgba(0,0,0,0.06); box-shadow: var(--shadow-sm);
+    margin-bottom: 8px; overflow: hidden;
+  }
+  .faq-q {
+    padding: 1rem 1.1rem; font-size: 14px; font-weight: 700;
+    color: var(--gray-900); cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    user-select: none;
+  }
+  .faq-q:hover { background: var(--green-50); }
+  .faq-q .faq-arrow { font-size: 12px; color: var(--green-600); transition: transform 0.2s; }
+  .faq-item.open .faq-arrow { transform: rotate(180deg); }
+  .faq-a {
+    display: none; padding: 0 1.1rem 1rem;
+    font-size: 13px; color: var(--gray-600); line-height: 1.6;
+    border-top: 1px solid var(--gray-100);
+  }
+  .faq-item.open .faq-a { display: block; }
+
+  .card-highlight {
+    background: var(--green-50); border: 1.5px solid var(--green-200);
+    border-radius: var(--radius-md); padding: 1rem 1.1rem;
+    margin-bottom: 8px;
+  }
+  .card-highlight h4 { font-size: 13px; font-weight: 800; color: var(--green-800); margin-bottom: 4px; }
+  .card-highlight p { font-size: 13px; color: var(--green-700); line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -659,6 +821,8 @@ footer {
     <button class="nav-btn" onclick="showPage('teams')">Teams</button>
     <button class="nav-btn" onclick="showPage('history')">Season History</button>
     <button class="nav-btn" onclick="showPage('news')">News</button>
+    <button class="nav-btn" onclick="showPage('about')">About</button>
+    <button class="nav-btn" onclick="showPage('rules')">Rules &amp; FAQs</button>
   </div>
 </nav>
 
@@ -680,13 +844,7 @@ footer {
     </div>
   </div>
 
-  <!-- Photo strip -->
-  <div class="photo-strip">
-    <div class="photo-strip-item"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgjlO46blYNR5-LYlr8C8m0lVaESDqu9sTMczhqCyfIZ2xwSJPTzpPZkYa6V5hgG1cmzZoo2Aa_h5_gTeI0lRwPqn1yGGj_DK0h20NLykGfiXOzuUeAJCTcU9Mg6NBVwXL6SjD4IcGgcRq9HUyMFbbVvrxWJ-zsgXUNiAptUTercms2xzIUZuhInYAjDMU/s1800/001.jpg" alt=""></div>
-    <div class="photo-strip-item"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjuwBPpny5oCM7-l3YKRxqmmAWf-qHJBLPUS1njHoWk6g6SjDDa5hfW9LVSjmSYNTw4hweyeOq8ih7qmy82mWSRHwmQPmX2x-OjsZWACI2nEY9_C_HLEy6ba8UO9r-LMwT5k3tg2roLT6H1gb9FYBjg-5vbqbvt-90wX9uGy2ubcbgnh6bKZDLfP2PO0Nk/s1066/002.jpg" alt=""></div>
-    <div class="photo-strip-item"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjHKNgO4_y5Cxl2Tkf14GRa5d2ZCXtIW3gsaVch-_42qriZC9Ruyzmx_8V4OA2wmk28JiPdc77gcUElMu4LoJFRdBRA3w2NgFb0GPCWcPku5b07iUR8nqQHkp3y1o9y8WmWgQTPND-ajCBO0J5T6-KF5VX8dXnCpdCqogiDrA0qYwtpjCLHEa_pcU53CyM/s1800/003.jpg" alt=""></div>
-    <div class="photo-strip-item"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjJ64NF6cRveW2IXBGCPo2ifM19xGVZeYzpV6lPra9y2N0k_fcfGZ5ufeY4DJtjX7cspc8MvSC5cmuNm19Hn9ATkxANvhTx5S_XbOtEiBmHerJbKn2cQ5C4p3I8JGBOYQNYqB-3cypmmPEXZuMd3DDH5Avyw3GtXDp0wcVTqiysuU9i2SyZo7onI7k6pFM/s1066/004.jpg" alt=""></div>
-  </div>
+
 
   <!-- Stats + content -->
   <div class="container">
@@ -716,17 +874,14 @@ footer {
       </div>
     </div>
 
-    <!-- About section -->
-    <div class="about-section">
-      <div class="about-photos">
-        <div class="about-photo"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiLOPRJ9SBivB1I7kQ2tP2Ugskzxc_56hZmHamPEebZ9sruqdvgau61EQIGhpTVJJ4PRbUqrfcRv7BVnUWTbNBHJBwtvKj0n8bQZOrS1bq_CidnM35W-t3Iw0CUgEICtSoJ3KAbbwFmSKRVvgUR-D4oI7BeT3_Kv-Yhib0F5SawVWjesH5hnCzxvfnv_b8/s1440/about01.jpg" alt="BG Futsal action"></div>
-        <div class="about-photo"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiA7HFPTaoY3x51OuJFrk_-viNQcHhailWe2i3X0RthbobcVEgwKwc8OGr5hS04Sa0LAESjs9FTCcB9WbIC2tsS31Djln-UI_Erd69ImWU4SY9A-7-w-ktNNnpRaxLwTdgl6Zz317LESkvNQe4FZRjfjOaoEcNmMsnQsch9TjuUAWSUEw0scOqKq6bmduw/s1600/about02.jpg" alt="BG Futsal community"></div>
-      </div>
-      <div class="about-content">
-        <h2>About <em>BG Futsal</em></h2>
-        <p>BG International Futsal has been bringing competitive indoor football to Bowling Green for years — welcoming players from all over the world who call this city home.</p>
-        <p>Fast-paced, technical, and community-driven. Multiple divisions, seasons all year round.</p>
-        <button class="about-content-btn" onclick="showPage('history')">View season history →</button>
+    <!-- Photo gallery at bottom of home page -->
+    <div style="margin-top:2rem;">
+      <div class="section-title"><div class="gold-bar"></div>Life on the Court</div>
+      <div class="photo-gallery">
+        <div class="photo-gallery-item"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgjlO46blYNR5-LYlr8C8m0lVaESDqu9sTMczhqCyfIZ2xwSJPTzpPZkYa6V5hgG1cmzZoo2Aa_h5_gTeI0lRwPqn1yGGj_DK0h20NLykGfiXOzuUeAJCTcU9Mg6NBVwXL6SjD4IcGgcRq9HUyMFbbVvrxWJ-zsgXUNiAptUTercms2xzIUZuhInYAjDMU/s1800/001.jpg" alt="BG Futsal action"></div>
+        <div class="photo-gallery-item"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjuwBPpny5oCM7-l3YKRxqmmAWf-qHJBLPUS1njHoWk6g6SjDDa5hfW9LVSjmSYNTw4hweyeOq8ih7qmy82mWSRHwmQPmX2x-OjsZWACI2nEY9_C_HLEy6ba8UO9r-LMwT5k3tg2roLT6H1gb9FYBjg-5vbqbvt-90wX9uGy2ubcbgnh6bKZDLfP2PO0Nk/s1066/002.jpg" alt="BG Futsal match"></div>
+        <div class="photo-gallery-item"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjHKNgO4_y5Cxl2Tkf14GRa5d2ZCXtIW3gsaVch-_42qriZC9Ruyzmx_8V4OA2wmk28JiPdc77gcUElMu4LoJFRdBRA3w2NgFb0GPCWcPku5b07iUR8nqQHkp3y1o9y8WmWgQTPND-ajCBO0J5T6-KF5VX8dXnCpdCqogiDrA0qYwtpjCLHEa_pcU53CyM/s1800/003.jpg" alt="BG Futsal goalkeeper"></div>
+        <div class="photo-gallery-item"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjJ64NF6cRveW2IXBGCPo2ifM19xGVZeYzpV6lPra9y2N0k_fcfGZ5ufeY4DJtjX7cspc8MvSC5cmuNm19Hn9ATkxANvhTx5S_XbOtEiBmHerJbKn2cQ5C4p3I8JGBOYQNYqB-3cypmmPEXZuMd3DDH5Avyw3GtXDp0wcVTqiysuU9i2SyZo7onI7k6pFM/s1066/004.jpg" alt="BG Futsal community"></div>
       </div>
     </div>
   </div>
@@ -791,6 +946,193 @@ footer {
   </div>
 </div>
 
+
+<!-- ══ ABOUT ══ -->
+<div id="page-about" class="page">
+  <div class="container">
+    <div class="about-hero">
+      <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiLOPRJ9SBivB1I7kQ2tP2Ugskzxc_56hZmHamPEebZ9sruqdvgau61EQIGhpTVJJ4PRbUqrfcRv7BVnUWTbNBHJBwtvKj0n8bQZOrS1bq_CidnM35W-t3Iw0CUgEICtSoJ3KAbbwFmSKRVvgUR-D4oI7BeT3_Kv-Yhib0F5SawVWjesH5hnCzxvfnv_b8/s1440/about01.jpg" alt="BG Futsal">
+      <div class="about-hero-overlay"></div>
+      <div class="about-hero-text">
+        <h1>About <em>BG Futsal</em></h1>
+        <p>Bowling Green, Kentucky's competitive indoor futsal league</p>
+      </div>
+    </div>
+
+    <div class="about-photo-row">
+      <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiLOPRJ9SBivB1I7kQ2tP2Ugskzxc_56hZmHamPEebZ9sruqdvgau61EQIGhpTVJJ4PRbUqrfcRv7BVnUWTbNBHJBwtvKj0n8bQZOrS1bq_CidnM35W-t3Iw0CUgEICtSoJ3KAbbwFmSKRVvgUR-D4oI7BeT3_Kv-Yhib0F5SawVWjesH5hnCzxvfnv_b8/s1440/about01.jpg" alt="BG Futsal action">
+      <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiA7HFPTaoY3x51OuJFrk_-viNQcHhailWe2i3X0RthbobcVEgwKwc8OGr5hS04Sa0LAESjs9FTCcB9WbIC2tsS31Djln-UI_Erd69ImWU4SY9A-7-w-ktNNnpRaxLwTdgl6Zz317LESkvNQe4FZRjfjOaoEcNmMsnQsch9TjuUAWSUEw0scOqKq6bmduw/s1600/about02.jpg" alt="BG Futsal community">
+    </div>
+
+    <div class="about-grid">
+      <div class="about-card">
+        <div class="about-card-header"><div class="about-card-icon">⚽</div><h3>Who We Are</h3></div>
+        <div class="about-card-body">
+          <p>Bowling Green Futsal (BG Futsal) is an adult futsal league based in Bowling Green, KY. We are committed to providing a high-quality, safe, and competitive environment for players of all skill levels to enjoy the beautiful game of futsal.</p>
+        </div>
+      </div>
+      <div class="about-card">
+        <div class="about-card-header"><div class="about-card-icon">🎯</div><h3>Our Mission</h3></div>
+        <div class="about-card-body">
+          <p>To grow the sport of futsal in South Central Kentucky by offering organized league play that emphasizes sportsmanship, community, and player development.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="section-title"><div class="gold-bar"></div>League Structure</div>
+      <p style="font-size:14px;color:var(--gray-600);line-height:1.7;margin-bottom:1.25rem;">BG Futsal currently operates with two primary divisions to ensure competitive balance across the league. Our seasons typically run in the spring and winter months at local indoor facilities.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="card-highlight">
+          <h4>🏆 Division A</h4>
+          <p>For more experienced and competitive teams. Higher level of play with strong inter-team rivalries built over multiple seasons.</p>
+        </div>
+        <div class="card-highlight">
+          <h4>⚽ Division B</h4>
+          <p>For recreational teams and players newer to futsal. A welcoming environment to develop skills and enjoy the game.</p>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--gray-500);margin-top:1rem;font-style:italic;">Teams are promoted or relegated between divisions based on season performance to maintain parity and fair play.</p>
+    </div>
+
+    <div class="about-card" style="margin-bottom:1.5rem;">
+      <div class="about-card-header"><div class="about-card-icon">🤝</div><h3>Community &amp; Impact</h3></div>
+      <div class="about-card-body">
+        <p>Beyond the court, we are dedicated to building a vibrant sports community in Bowling Green. We collaborate with local partners and sponsors to support the growth of the game and provide a platform for local athletes to connect.</p>
+        <p>Players from all over the world call Bowling Green home — and BG Futsal is where that diverse community comes together on the pitch.</p>
+      </div>
+    </div>
+
+    <div class="about-cta">
+      <h3>Ready to play?</h3>
+      <p>We can't wait to see you on the court. Check the News page for upcoming season registration announcements.</p>
+      <button class="about-content-btn" onclick="showPage('news')">View latest news →</button>
+      &nbsp;
+      <button class="about-content-btn" style="background:transparent;border:1.5px solid var(--gold-400);color:var(--gold-400);" onclick="showPage('rules')">League rules →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RULES & FAQs ══ -->
+<div id="page-rules" class="page">
+  <div class="container">
+    <div class="rules-hero">
+      <div>
+        <h1>League Rules &amp; FAQs</h1>
+        <p>Everything you need to know about how BG Futsal operates.</p>
+      </div>
+    </div>
+
+    <!-- Overview rules -->
+    <div class="rules-section">
+      <div class="rules-section-title">Game Overview</div>
+      <div class="rules-card">
+        <ul class="rules-list">
+          <li><div class="rule-icon">1</div>6v6 including the goalkeeper. Minimum of 5 players required to start a game.</li>
+          <li><div class="rule-icon">2</div>2 × 20 minute halves + 5 minute halftime (45 minutes total).</li>
+          <li><div class="rule-icon">3</div>Unlimited substitutions. No jewelry permitted during play.</li>
+          <li><div class="rule-icon">4</div>Restarts are kick-ins and must be taken within 5 seconds of placing the ball.</li>
+          <li><div class="rule-icon">5</div>Balls hitting the ceiling or hanging objects are restarted as kick-ins for the opposing team from the nearest sideline point.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Goalkeeper rules -->
+    <div class="rules-section">
+      <div class="rules-section-title">Goalkeeper Rules</div>
+      <div class="rules-card">
+        <ul class="rules-list">
+          <li><div class="rule-icon">⛳</div>Goalkeepers may only handle the ball within the designated goal box.</li>
+          <li><div class="rule-icon">⛳</div>Goalkeepers cannot pick up deliberate back passes.</li>
+          <li><div class="rule-icon">⛳</div>Goalkeepers can only hold the ball for 5 seconds.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Fouls & Cards -->
+    <div class="rules-section">
+      <div class="rules-section-title">Fouls &amp; Discipline</div>
+      <div class="rules-grid">
+        <div class="rules-card">
+          <div style="font-size:12px;font-weight:800;color:var(--green-700);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Fouls</div>
+          <ul class="rules-list">
+            <li><div class="rule-icon">⚠</div><strong>No slide tackling</strong> — automatic foul.</li>
+            <li><div class="rule-icon">⚠</div>5 team fouls result in a penalty kick. Every 3 additional fouls also result in a penalty kick.</li>
+          </ul>
+        </div>
+        <div class="rules-card">
+          <div style="font-size:12px;font-weight:800;color:var(--green-700);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Cards</div>
+          <ul class="rules-list">
+            <li><div class="rule-icon" style="background:var(--gold-100);color:#92400e;">🟨</div><strong>Yellow card:</strong> Player stays on court. Two yellows in a match = Red card.</li>
+            <li><div class="rule-icon" style="background:#fee2e2;color:#7f1d1d;">🟥</div><strong>Red card:</strong> Ejected from match. Team plays short-handed for 2 min or until opposing team scores. 1–3 game suspension follows. Fighting: up to 2 years suspension.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arena & Equipment -->
+    <div class="rules-section">
+      <div class="rules-section-title">Arena &amp; Equipment</div>
+      <div class="rules-grid">
+        <div class="rules-card">
+          <div style="font-size:12px;font-weight:800;color:var(--green-700);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Court &amp; Goals</div>
+          <ul class="rules-list">
+            <li><div class="rule-icon">🏟</div>Two side-by-side wooden basketball courts.</li>
+            <li><div class="rule-icon">🥅</div>Goals approx. 6.5 ft high × 12 ft wide.</li>
+          </ul>
+        </div>
+        <div class="rules-card">
+          <div style="font-size:12px;font-weight:800;color:var(--green-700);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Ball &amp; Player Gear</div>
+          <ul class="rules-list">
+            <li><div class="rule-icon">⚽</div>Size 4 futsal ball (weighted).</li>
+            <li><div class="rule-icon">👟</div>Flat-soled indoor/athletic shoes required — no cleats.</li>
+            <li><div class="rule-icon">👕</div>Matching shirts/jerseys recommended. Shin guards allowed but not required.</li>
+          </ul>
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--gray-500);margin-top:8px;font-style:italic;">⚠ Insurance waivers must be signed by every player before playing. No exceptions. Team captains are responsible for team conduct.</p>
+    </div>
+
+    <!-- FAQs -->
+    <div class="rules-section">
+      <div class="rules-section-title">Frequently Asked Questions</div>
+
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">When are the games? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Fridays: 7:30 PM – 9:30 PM &nbsp;|&nbsp; Saturdays: 5:00 PM – 9:00 PM &nbsp;|&nbsp; Sundays: 3:00 PM – 7:00 PM. Generally one game per weekend per team.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">How do I register? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Registration is announced before each season on our Home page and social media channels. Individual free agent lists may also be available.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">How many players are on a roster? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Up to 12 players per team.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">Are there age restrictions? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">BG Futsal is an adult league, generally 16 and older.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">Is the league co-ed? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Yes, teams can be co-ed.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">What are the fees? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Fees vary per season and cover facility rental, referees, and administration. Exact amounts are announced at the start of each registration period.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">Can players switch teams? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">A player may switch teams once, but only within the first 4 games of a season. A player cannot rejoin the same team within the same season.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">What happens if a team doesn't have enough players? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">If a team has fewer than 5 players at the start of a game, they concede 1 goal and receive a 10-minute grace period. If still short after 10 minutes, the game is a forfeit (0–2 loss).</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <footer>
   <div class="footer-inner">
     <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiNRwWE_BLwGLGC1q961MbnXnpEQ3DdwUMMtNvQrThrmTYx4uwvlDzD7IfLy6uz1BNxoiuegW9oLI_3WWgUPHwRczZDI_uHKxchhLtWfL_hn79NEA5Easdt4M4zOzPhzcFZs26w083zFJjzjHMZUJvfn3YAaZUgJFJ26ATSmnU-murkGsyM3yKHIxHeSSA/s320/bgif1100x1100-white.png" alt="BG Futsal" class="footer-logo">
@@ -801,6 +1143,8 @@ footer {
       <button onclick="showPage('teams')">Teams</button>
       <button onclick="showPage('history')">History</button>
       <button onclick="showPage('news')">News</button>
+      <button onclick="showPage('about')">About</button>
+      <button onclick="showPage('rules')">Rules &amp; FAQs</button>
     </div>
     <div class="footer-text">© 2025 BG International Futsal · Bowling Green, KY · bgfutsal.com</div>
   </div>
@@ -1016,7 +1360,7 @@ function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
-  const pages = ['home','standings','schedule','teams','history','news'];
+  const pages = ['home','standings','schedule','teams','history','news','about','rules'];
   const idx = pages.indexOf(id);
   if (idx >= 0) document.querySelectorAll('.nav-btn')[idx].classList.add('active');
   currentPage = id;
@@ -1345,6 +1689,15 @@ async function renderNews() {
 }
 
 log('BG Futsal site initialising...');
+
+// ── FAQ accordion ──
+function toggleFaq(item) {
+  const wasOpen = item.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+  if (!wasOpen) item.classList.add('open');
+}
+
 renderHome();
 </script>
 </body>
