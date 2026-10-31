@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install dependencies
         run: npm install
@@ -37,13 +37,14 @@ jobs:
       - name: Copy index.html to 404.html for SPA client-side routing
         run: cp dist/index.html dist/404.html
 
-      - name: Ensure CNAME in dist
+      - name: Ensure CNAME and .nojekyll in dist
         run: |
           if [ -f public/CNAME ]; then
             cp public/CNAME dist/CNAME
           elif [ -f CNAME ]; then
             cp CNAME dist/CNAME
           fi
+          touch dist/.nojekyll
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

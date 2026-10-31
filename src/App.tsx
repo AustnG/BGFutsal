@@ -31,10 +31,16 @@ export default function App() {
   // Season & Division Selection
   const currentSeason = data.seasons.find((s) => s.isCurrent) || data.seasons[0];
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>(
-    currentSeason?.id || 's2026-spring'
+    currentSeason?.id || 's2026-winter'
   );
 
-  const seasonDivisions = data.divisions.filter((d) => d.seasonId === selectedSeasonId);
+  // Active Season for current view:
+  // Homepage always showcases the active/latest season.
+  // Seasons Hub respects user's selected season.
+  const effectiveSeasonId =
+    activeTab === 'home' ? currentSeason?.id || selectedSeasonId : selectedSeasonId;
+
+  const seasonDivisions = data.divisions.filter((d) => d.seasonId === effectiveSeasonId);
   const [selectedDivisionId, setSelectedDivisionId] = useState<string>(
     seasonDivisions[0]?.id || ''
   );
@@ -51,16 +57,24 @@ export default function App() {
   const [selectedStory, setSelectedStory] = useState<NewsStory | null>(null);
   const [bannerDismissed, setBannerDismissed] = useState<boolean>(false);
 
+  // Keep selectedSeasonId valid when data loads from Google Sheets
+  useEffect(() => {
+    const active = data.seasons.find((s) => s.isCurrent);
+    if (active && (!selectedSeasonId || !data.seasons.some((s) => s.id === selectedSeasonId))) {
+      setSelectedSeasonId(active.id);
+    }
+  }, [data.seasons, selectedSeasonId]);
+
   // Sync active division if season changes or divisions load
   useEffect(() => {
-    const divs = data.divisions.filter((d) => d.seasonId === selectedSeasonId);
+    const divs = data.divisions.filter((d) => d.seasonId === effectiveSeasonId);
     if (divs.length > 0) {
       const exists = divs.some((d) => d.id === selectedDivisionId);
       if (!exists) {
         setSelectedDivisionId(divs[0].id);
       }
     }
-  }, [selectedSeasonId, data.divisions, selectedDivisionId]);
+  }, [effectiveSeasonId, data.divisions, selectedDivisionId]);
 
   // Star / Unstar Team
   const handleToggleStarTeam = (teamName: string) => {
@@ -136,14 +150,21 @@ export default function App() {
     });
   };
 
-  // Filtered Divisions & Standings
-  const currentDivisions = data.divisions.filter((d) => d.seasonId === selectedSeasonId);
-  const effectiveDivisionId = selectedDivisionId || currentDivisions[0]?.id || '';
+  // Filtered Divisions & Standings strictly scoped by season
+  const currentDivisions = data.divisions.filter((d) => d.seasonId === effectiveSeasonId);
+  const effectiveDivisionId =
+    currentDivisions.find((d) => d.id === selectedDivisionId)?.id ||
+    currentDivisions[0]?.id ||
+    '';
+
+  const currentSeasonTeams = data.teams.filter((t) => t.seasonId === effectiveSeasonId);
+  const currentSeasonMatches = data.matches.filter((m) => m.seasonId === effectiveSeasonId);
 
   const activeDivisionStandings = computeStandings(
-    data.teams,
-    data.matches,
-    effectiveDivisionId
+    currentSeasonTeams,
+    currentSeasonMatches,
+    effectiveDivisionId,
+    effectiveSeasonId
   );
 
   // Apply Search & My Team filters to standings
@@ -220,10 +241,10 @@ export default function App() {
         {activeTab === 'home' && (
           <HomeView
             seasons={data.seasons}
-            selectedSeasonId={selectedSeasonId}
+            selectedSeasonId={effectiveSeasonId}
             onSelectSeason={setSelectedSeasonId}
             divisions={data.divisions}
-            selectedDivisionId={selectedDivisionId}
+            selectedDivisionId={effectiveDivisionId}
             onSelectDivision={setSelectedDivisionId}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -234,7 +255,7 @@ export default function App() {
             onOpenStoryModal={(story) => setSelectedStory(story)}
             starredTeam={starredTeam}
             onToggleStarTeam={handleToggleStarTeam}
-            matches={data.matches}
+            matches={currentSeasonMatches}
             onNavigateToCompetition={handleNavigateToCompetition}
             onNavigateToInfo={handleNavigateToPage}
           />
@@ -247,7 +268,7 @@ export default function App() {
             selectedSeasonId={selectedSeasonId}
             onSelectSeason={setSelectedSeasonId}
             divisions={data.divisions}
-            selectedDivisionId={selectedDivisionId}
+            selectedDivisionId={effectiveDivisionId}
             onSelectDivision={setSelectedDivisionId}
             standings={filteredStandings}
             matches={data.matches}

@@ -7,9 +7,12 @@ import { Match, StandingRow, Team, PlayoffMatch } from '../types/league';
 export function computeStandings(
   teams: Team[],
   matches: Match[],
-  divisionId: string
+  divisionId: string,
+  seasonId?: string
 ): StandingRow[] {
-  const divisionTeams = teams.filter((t) => t.divisionId === divisionId);
+  const divisionTeams = teams.filter(
+    (t) => t.divisionId === divisionId && (!seasonId || t.seasonId === seasonId)
+  );
   const teamMap = new Map<string, Team>();
   divisionTeams.forEach((t) => teamMap.set(t.name.trim().toLowerCase(), t));
 
@@ -43,9 +46,12 @@ export function computeStandings(
     });
   });
 
-  // Filter completed matches for this division
+  // Filter completed matches for this division and season
   const divisionMatches = matches.filter(
-    (m) => m.divisionId === divisionId && m.status === 'final'
+    (m) =>
+      m.divisionId === divisionId &&
+      (!seasonId || m.seasonId === seasonId) &&
+      m.status === 'final'
   );
 
   // Helper to find team id by name fuzzy/trimmed
@@ -234,13 +240,19 @@ export function computeStandings(
 export function computeRankTimeline(
   teams: Team[],
   matches: Match[],
-  divisionId: string
+  divisionId: string,
+  seasonId?: string
 ) {
   const divisionMatches = matches.filter(
-    (m) => m.divisionId === divisionId && m.status === 'final'
+    (m) =>
+      m.divisionId === divisionId &&
+      (!seasonId || m.seasonId === seasonId) &&
+      m.status === 'final'
   );
 
-  const divisionTeams = teams.filter((t) => t.divisionId === divisionId);
+  const divisionTeams = teams.filter(
+    (t) => t.divisionId === divisionId && (!seasonId || t.seasonId === seasonId)
+  );
   if (divisionMatches.length === 0 || divisionTeams.length === 0) {
     return { gameweeks: [], teamPaths: [] };
   }
@@ -256,7 +268,7 @@ export function computeRankTimeline(
 
   gameweeks.forEach((gw) => {
     const matchesUpToGw = divisionMatches.filter((m) => (m.gameweek || 1) <= gw);
-    const standings = computeStandings(teams, matchesUpToGw, divisionId);
+    const standings = computeStandings(teams, matchesUpToGw, divisionId, seasonId);
     const rankMap = new Map<string, number>();
     standings.forEach((s) => rankMap.set(s.teamId, s.rank));
     weeklyStandings.set(gw, rankMap);

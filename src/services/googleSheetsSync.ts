@@ -422,6 +422,29 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
     matches = [];
     let lastKnownSeason = seasons[0]?.id || 's2026-winter';
 
+    const findExistingTeamName = (season: string, rawName: string): string | null => {
+      const clean = rawName.trim().toLowerCase();
+      if (knownTeamSeasonMap.has(`${season}:::${clean}`)) return rawName;
+      const simplified = clean
+        .split(/[\s_-]+/)
+        .map((w) => w.replace(/s$/, ''))
+        .join(' ');
+      for (const t of teams) {
+        if (t.seasonId === season) {
+          const tSimp = t.name
+            .trim()
+            .toLowerCase()
+            .split(/[\s_-]+/)
+            .map((w) => w.replace(/s$/, ''))
+            .join(' ');
+          if (tSimp === simplified) {
+            return t.name;
+          }
+        }
+      }
+      return null;
+    };
+
     rawMatchRows.forEach((r, i) => {
       const homeName = (r.home_team || r.hometeam || r.home || '').trim();
       const awayName = (r.away_team || r.awayteam || r.away || '').trim();
@@ -439,7 +462,9 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
       const divId = resolveDivisionId(seasonId, r.division_id || r.division, rawSeason);
 
       // Auto-register any teams from matches not yet explicitly defined in Teams tab
-      if (homeName && !knownTeamSeasonMap.has(`${seasonId}:::${homeName.toLowerCase()}`)) {
+      let resolvedHomeName = findExistingTeamName(seasonId, homeName);
+      if (!resolvedHomeName && homeName) {
+        resolvedHomeName = homeName;
         teams.push({
           id: `${seasonId}-${homeName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
           divisionId: divId,
@@ -450,7 +475,10 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         });
         knownTeamSeasonMap.add(`${seasonId}:::${homeName.toLowerCase()}`);
       }
-      if (awayName && !knownTeamSeasonMap.has(`${seasonId}:::${awayName.toLowerCase()}`)) {
+
+      let resolvedAwayName = findExistingTeamName(seasonId, awayName);
+      if (!resolvedAwayName && awayName) {
+        resolvedAwayName = awayName;
         teams.push({
           id: `${seasonId}-${awayName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
           divisionId: divId,
@@ -499,8 +527,8 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         gameweek: Number(r.gameweek || r.round || 1),
         date: r.date || '',
         time: r.time || '',
-        homeTeam: homeName,
-        awayTeam: awayName,
+        homeTeam: resolvedHomeName || homeName,
+        awayTeam: resolvedAwayName || awayName,
         homeScore,
         awayScore,
         status,
