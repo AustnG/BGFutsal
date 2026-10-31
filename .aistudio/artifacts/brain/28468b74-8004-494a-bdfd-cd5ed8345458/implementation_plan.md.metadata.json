@@ -1,0 +1,6 @@
+{
+  "summary":  "Live Google Sheets database integration connected to published web CSV endpoints across all 6 tabs (Seasons, Divisions, Teams, Matches, Honors, News), supporting rearranged Matches and News columns, automatic 60-second background polling, and real league data across 23 seasons, 977 matches, 262 teams, 46 stories with cover images, and season champions.",
+  "updatedAt":  "2026-10-31T17:01:03.976039838Z",
+  "requestFeedback":  true,
+  "userFacing":  true
+}
