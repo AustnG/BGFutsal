@@ -36,7 +36,7 @@ export default function App() {
 
   const seasonDivisions = data.divisions.filter((d) => d.seasonId === selectedSeasonId);
   const [selectedDivisionId, setSelectedDivisionId] = useState<string>(
-    seasonDivisions[0]?.id || 'all'
+    seasonDivisions[0]?.id || ''
   );
 
   // Quick Team Search & "My Team" Bookmark
@@ -51,10 +51,10 @@ export default function App() {
   const [selectedStory, setSelectedStory] = useState<NewsStory | null>(null);
   const [bannerDismissed, setBannerDismissed] = useState<boolean>(false);
 
-  // Sync active division if season changes
+  // Sync active division if season changes or divisions load
   useEffect(() => {
     const divs = data.divisions.filter((d) => d.seasonId === selectedSeasonId);
-    if (divs.length > 0 && selectedDivisionId !== 'all') {
+    if (divs.length > 0) {
       const exists = divs.some((d) => d.id === selectedDivisionId);
       if (!exists) {
         setSelectedDivisionId(divs[0].id);
@@ -138,10 +138,7 @@ export default function App() {
 
   // Filtered Divisions & Standings
   const currentDivisions = data.divisions.filter((d) => d.seasonId === selectedSeasonId);
-  const effectiveDivisionId =
-    selectedDivisionId === 'all'
-      ? currentDivisions[0]?.id || 'div-prem-2026'
-      : selectedDivisionId;
+  const effectiveDivisionId = selectedDivisionId || currentDivisions[0]?.id || '';
 
   const activeDivisionStandings = computeStandings(
     data.teams,

@@ -231,7 +231,7 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
     }
   });
 
-  // 1. Parse Seasons
+  // 1. Parse Seasons (Sorted: Current active first, then newest to oldest)
   let seasons: Season[] = INITIAL_LEAGUE_DATA.seasons;
   const rawSeasonRows = tabCSVs['Seasons'] ? parseCSV(tabCSVs['Seasons']) : [];
   if (rawSeasonRows.length > 0) {
@@ -261,12 +261,31 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
     // Ensure at least one season is marked current if none has is_current = TRUE
     if (!seasons.some((s) => s.isCurrent) && seasons.length > 0) {
       const currentCandidate =
-        seasons.find((s) => s.id === 's2026-spring' || s.id.includes('2026')) ||
+        seasons.find((s) => s.id === 's2026-winter' || s.id.includes('2026')) ||
         seasons[seasons.length - 1];
       if (currentCandidate) {
         currentCandidate.isCurrent = true;
       }
     }
+
+    // Sort seasons: current active season first, then most recent to oldest
+    const getSeasonWeight = (s: Season): number => {
+      const yearMatch = (s.id + ' ' + s.name + ' ' + s.startDate).match(/(20\d\d)/);
+      const year = yearMatch ? parseInt(yearMatch[1], 10) : 2020;
+      const lower = (s.id + ' ' + s.name).toLowerCase();
+      let termWeight = 1;
+      if (lower.includes('winter')) termWeight = 4;
+      else if (lower.includes('fall')) termWeight = 3;
+      else if (lower.includes('summer')) termWeight = 2;
+      else if (lower.includes('spring')) termWeight = 1;
+      return year * 10 + termWeight;
+    };
+
+    seasons.sort((a, b) => {
+      if (a.isCurrent && !b.isCurrent) return -1;
+      if (!a.isCurrent && b.isCurrent) return 1;
+      return getSeasonWeight(b) - getSeasonWeight(a);
+    });
   }
 
   // 2. Parse Divisions
@@ -275,7 +294,7 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
   if (rawDivRows.length > 0) {
     divisions = rawDivRows.map((r, i) => ({
       id: r.division_id || r.id || `div-${i + 1}`,
-      seasonId: r.season_id || seasons[0]?.id || 's2026-spring',
+      seasonId: r.season_id || seasons[0]?.id || 's2026-winter',
       name: r.name || r.division_name || `Division ${i + 1}`,
       tier: Number(r.tier || r.tier_level || i + 1),
     }));
@@ -285,7 +304,7 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
   const existingDivSeasonIds = new Set(divisions.map((d) => d.seasonId));
   seasons.forEach((s) => {
     if (!existingDivSeasonIds.has(s.id)) {
-      const isDivB = s.id.endsWith(' B');
+      const isDivB = s.id.endsWith(' B') || s.name.endsWith(' B');
       divisions.push({
         id: `${s.id}-main`,
         seasonId: s.id,
@@ -294,6 +313,68 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
       });
     }
   });
+
+  // Helpers to resolve season and division IDs from raw text
+  const resolveSeasonId = (rawSeason?: string): string => {
+    if (!rawSeason) {
+      const curr = seasons.find((s) => s.isCurrent);
+      return curr ? curr.id : seasons[0]?.id || 's2026-winter';
+    }
+    const clean = rawSeason.trim().toLowerCase();
+    for (const s of seasons) {
+      if (s.id.toLowerCase() === clean) return s.id;
+      const sNameClean = s.name.toLowerCase();
+      if (clean.includes(sNameClean) || sNameClean.includes(clean)) return s.id;
+    }
+    const yearMatch = clean.match(/(20\d\d)/);
+    if (yearMatch) {
+      const y = yearMatch[1];
+      const isWinter = clean.includes('winter');
+      const isSpring = clean.includes('spring');
+      const isFall = clean.includes('fall');
+      const matched = seasons.find((s) => {
+        const sL = (s.id + ' ' + s.name).toLowerCase();
+        return (
+          sL.includes(y) &&
+          ((isWinter && sL.includes('winter')) ||
+            (isSpring && sL.includes('spring')) ||
+            (isFall && sL.includes('fall')))
+        );
+      });
+      if (matched) return matched.id;
+    }
+    return seasons[0]?.id || 's2026-winter';
+  };
+
+  const resolveDivisionId = (seasonId: string, rawDiv?: string, rawSeason?: string): string => {
+    const seasonDivs = divisions.filter((d) => d.seasonId === seasonId);
+    if (seasonDivs.length === 0) return '';
+    if (seasonDivs.length === 1) return seasonDivs[0].id;
+
+    const divStr = ((rawDiv || '') + ' ' + (rawSeason || '')).toUpperCase();
+    if (
+      divStr.includes('DIVISION B') ||
+      divStr.includes(' B') ||
+      divStr.endsWith('B') ||
+      divStr.includes('TIER 2') ||
+      divStr.includes('DIV-B')
+    ) {
+      const b = seasonDivs.find(
+        (d) =>
+          d.name.toUpperCase().includes('B') ||
+          d.id.toLowerCase().includes('div-b') ||
+          d.tier === 2
+      );
+      if (b) return b.id;
+    }
+    const a = seasonDivs.find(
+      (d) =>
+        d.name.toUpperCase().includes('A') ||
+        d.id.toLowerCase().includes('div-a') ||
+        d.tier === 1
+    );
+    return a ? a.id : seasonDivs[0].id;
+  };
 
   // 3. Parse Teams
   let teams: Team[] = INITIAL_LEAGUE_DATA.teams;
@@ -304,12 +385,9 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
       const teamName = (r.name || r.team_id || '').trim();
       if (!teamName) return; // Skip empty row
 
-      const season = (r.season || r.season_id || seasons[0]?.id || '').trim();
-      let divId = (r.division_id || r.division || '').trim();
-      if (!divId) {
-        const matchDiv = divisions.find((d) => d.seasonId === season);
-        divId = matchDiv?.id || `${season}-main`;
-      }
+      const rawSeason = (r.season || r.season_id || '').trim();
+      const season = resolveSeasonId(rawSeason);
+      const divId = resolveDivisionId(season, r.division_id || r.division, rawSeason);
 
       const statusVal = (r.status || '').toLowerCase().trim();
       const droppedVal = (r.dropped || '').toLowerCase().trim();
@@ -342,7 +420,7 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
   const rawMatchRows = tabCSVs['Matches'] ? parseCSV(tabCSVs['Matches']) : [];
   if (rawMatchRows.length > 0) {
     matches = [];
-    let lastKnownSeason = seasons[0]?.id || '2021 Winter A';
+    let lastKnownSeason = seasons[0]?.id || 's2026-winter';
 
     rawMatchRows.forEach((r, i) => {
       const homeName = (r.home_team || r.hometeam || r.home || '').trim();
@@ -351,18 +429,14 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
       // Skip row if both teams are blank
       if (!homeName && !awayName) return;
 
-      let seasonId = (r.season_id || r.season || '').trim();
-      if (seasonId) {
-        lastKnownSeason = seasonId;
+      let rawSeason = (r.season_id || r.season || '').trim();
+      if (rawSeason) {
+        lastKnownSeason = rawSeason;
       } else {
-        seasonId = lastKnownSeason;
+        rawSeason = lastKnownSeason;
       }
-
-      let divId = (r.division_id || r.division || '').trim();
-      if (!divId) {
-        const matchDiv = divisions.find((d) => d.seasonId === seasonId);
-        divId = matchDiv?.id || `${seasonId}-main`;
-      }
+      const seasonId = resolveSeasonId(rawSeason);
+      const divId = resolveDivisionId(seasonId, r.division_id || r.division, rawSeason);
 
       // Auto-register any teams from matches not yet explicitly defined in Teams tab
       if (homeName && !knownTeamSeasonMap.has(`${seasonId}:::${homeName.toLowerCase()}`)) {

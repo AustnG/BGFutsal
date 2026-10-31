@@ -245,19 +245,11 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
       </div>
 
       {/* Subtle Table Footer Note */}
-      <div className="bg-slate-50/80 px-4 sm:px-5 py-2 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-[11px] text-slate-500 font-mono">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span>Playoff qualifier</span>
-          </div>
-          <span className="text-slate-300 hidden sm:inline">·</span>
-          <div className="flex items-center gap-1">
-            <span className="border-b-2 border-emerald-600 pb-0.5 font-semibold text-emerald-700">Underline</span>
-            <span>= Latest match</span>
-          </div>
+      <div className="bg-slate-50/80 px-4 sm:px-5 py-2 border-t border-slate-200/60 flex items-center justify-between gap-1.5 text-[11px] text-slate-500 font-mono">
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <span>Playoff qualifier</span>
         </div>
-        <span>Tiebreaker: PTS &gt; GD &gt; GF &gt; H2H</span>
       </div>
     </div>
   );

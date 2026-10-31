@@ -64,20 +64,8 @@ export const SeasonDivisionControls: React.FC<SeasonDivisionControlsProps> = ({
           </>
         )}
 
-        {/* Division Tabs */}
+        {/* Division Tabs (No 'All' option - each division has its own distinct tab) */}
         <div className="flex items-center gap-1 p-0.5 bg-slate-100/90 rounded-lg border border-slate-200/60">
-          {seasonDivisions.length > 1 && (
-            <button
-              onClick={() => onSelectDivision('all')}
-              className={`px-3 py-1 text-xs rounded-md transition-colors cursor-pointer ${
-                selectedDivisionId === 'all'
-                  ? 'bg-gradient-to-r from-[#0a1526] to-[#0e213b] text-emerald-400 font-semibold shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 font-medium'
-              }`}
-            >
-              All
-            </button>
-          )}
           {seasonDivisions.map((div) => (
             <button
               key={div.id}

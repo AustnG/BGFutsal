@@ -55,10 +55,7 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
   const activeDivision =
     seasonDivisions.find((d) => d.id === selectedDivisionId) || seasonDivisions[0];
 
-  const effectiveDivisions =
-    selectedDivisionId === 'all'
-      ? seasonDivisions
-      : seasonDivisions.filter((d) => d.id === selectedDivisionId);
+  const effectiveDivisions = activeDivision ? [activeDivision] : seasonDivisions;
 
   const seasonMatches = matches.filter((m) => m.seasonId === selectedSeasonId);
   const upcomingRegularMatches = seasonMatches.filter((m) => m.status === 'upcoming');
@@ -93,11 +90,10 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
     (!isRegularSeasonOngoing && currentSeason.status === 'completed') ||
     isPostseasonLive;
 
-  // Divisions to render honors for
-  const divisionsForHonors =
-    selectedDivisionId === 'all'
-      ? seasonDivisions.filter((div) => seasonHonors.some((h) => h.divisionId === div.id))
-      : seasonDivisions.filter((div) => div.id === selectedDivisionId);
+  // Divisions to render honors for (scoped to current selected division)
+  const divisionsForHonors = seasonDivisions.filter(
+    (div) => div.id === activeDivision?.id
+  );
 
   return (
     <div className="space-y-8 sm:space-y-10">
@@ -131,19 +127,10 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
                 {isPostseasonLive ? 'Postseason Championship Tournament' : 'Championship Postseason & Honors'}
               </h2>
               <span className="text-xs text-slate-400 font-normal">
-                · {currentSeason.name} {selectedDivisionId !== 'all' && activeDivision ? activeDivision.name : 'All Divisions'}
+                · {currentSeason.name} {activeDivision ? `· ${activeDivision.name}` : ''}
               </span>
             </div>
-            {isPostseasonLive ? (
-              <span className="text-xs font-mono text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-md font-medium self-start sm:self-auto flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Live Postseason Active
-              </span>
-            ) : (
-              <span className="text-xs font-mono text-amber-700 bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 rounded-md font-medium self-start sm:self-auto">
-                Official League Laurels
-              </span>
-            )}
+
           </div>
 
           {/* Honors Cards (if awards have been recorded) */}
@@ -249,9 +236,7 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
             <h2 className="text-base sm:text-lg font-semibold text-[#0a1526] tracking-tight">
               {currentSeason.isCurrent ? 'Division Standings & Progression' : 'Historical Final Standings'}
             </h2>
-            <span className="text-xs text-slate-400 font-normal hidden sm:inline">
-              · {activeDivision?.name || 'League Table'}
-            </span>
+
           </div>
 
           {/* Segmented View Switcher: Table | Trajectory */}
@@ -324,7 +309,7 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
           matches={matches.filter((m) => m.seasonId === selectedSeasonId)}
           teams={teams.filter((t) => t.seasonId === selectedSeasonId)}
           divisionId={selectedDivisionId}
-          divisionName={activeDivision?.name || 'All Divisions'}
+          divisionName={activeDivision?.name || 'Division'}
           starredTeam={starredTeam}
           onToggleStarTeam={onToggleStarTeam}
           searchQuery={searchQuery}
