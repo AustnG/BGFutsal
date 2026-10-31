@@ -27,16 +27,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build production bundle
         run: npm run build
 
       - name: Copy index.html to 404.html for SPA client-side routing
         run: cp dist/index.html dist/404.html
+
+      - name: Ensure CNAME in dist
+        run: |
+          if [ -f public/CNAME ]; then
+            cp public/CNAME dist/CNAME
+          elif [ -f CNAME ]; then
+            cp CNAME dist/CNAME
+          fi
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
