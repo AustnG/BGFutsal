@@ -58,8 +58,9 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
   const effectiveDivisions = activeDivision ? [activeDivision] : seasonDivisions;
 
   const seasonMatches = matches.filter((m) => m.seasonId === selectedSeasonId);
-  const upcomingRegularMatches = seasonMatches.filter((m) => m.status === 'upcoming');
-  const isRegularSeasonOngoing = upcomingRegularMatches.length > 0;
+  const divisionMatches = seasonMatches.filter(
+    (m) => activeDivision && m.divisionId === activeDivision.id
+  );
 
   const [localDisplayMode, setLocalDisplayMode] = useState<TableDisplayMode>('table');
   const activeDisplayMode = propDisplayMode !== undefined ? propDisplayMode : localDisplayMode;
@@ -73,22 +74,21 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
   const seasonHonors = honors.filter((h) => h.seasonId === selectedSeasonId);
   const hasSeasonHonors = seasonHonors.length > 0;
 
-  // Check if any postseason matches are recorded in the database
-  const hasPostseasonMatches = seasonMatches.some(
-    (m) => (m.gameweek && m.gameweek > 10) || (m.notes && m.notes.toLowerCase().includes('playoff'))
-  );
+  // Postseason matches specifically recorded in database
+  const divisionPostseasonMatches = divisionMatches.filter((m) => m.isPostseason);
+  const seasonPostseasonMatches = seasonMatches.filter((m) => m.isPostseason);
+  const hasPostseasonMatches = divisionPostseasonMatches.length > 0 || seasonPostseasonMatches.length > 0;
 
-  // Postseason is live if regular season is concluded and season is active, or postseason matches exist
-  const isPostseasonLive = (!isRegularSeasonOngoing && currentSeason.status === 'active') || hasPostseasonMatches;
+  // Regular season status
+  const isSeasonActive = currentSeason.isCurrent || currentSeason.status === 'active';
 
-  // Check if ANY postseason info or honors exist for this season in the database
-  // If neither exists yet (e.g. regular season in progress, no playoff matches entered, no honors awarded),
-  // hide this entire championship section completely from view!
-  const hasChampionshipOrPostseasonData =
-    hasSeasonHonors ||
+  // CRITICAL: Playoff bracket should NEVER appear during regular season unless postseason matches
+  // have actually been entered/scheduled in the database!
+  const showPlayoffBracket =
     hasPostseasonMatches ||
-    (!isRegularSeasonOngoing && currentSeason.status === 'completed') ||
-    isPostseasonLive;
+    (!isSeasonActive && currentSeason.status === 'completed' && divisionMatches.length >= 6);
+
+  const showChampionshipSection = hasSeasonHonors || showPlayoffBracket;
 
   // Divisions to render honors for (scoped to current selected division)
   const divisionsForHonors = seasonDivisions.filter(
@@ -117,14 +117,14 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
       </section>
 
       {/* 2. CHAMPIONSHIP SEASON BRACKET & POSTSEASON HONORS
-          (Rendered when postseason matches/status or season awards exist in the database) */}
-      {hasChampionshipOrPostseasonData && (
+          (Rendered when postseason matches exist or season awards are recorded) */}
+      {showChampionshipSection && (
         <section id="sec-playoffs" className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1 border-b border-slate-200/60">
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-4 rounded-full bg-amber-500" />
               <h2 className="text-base sm:text-lg font-semibold text-[#0a1526] tracking-tight">
-                {isPostseasonLive ? 'Postseason Championship Tournament' : 'Championship Postseason & Honors'}
+                {showPlayoffBracket ? 'Postseason Championship Tournament' : 'Championship Postseason & Honors'}
               </h2>
               <span className="text-xs text-slate-400 font-normal">
                 · {currentSeason.name} {activeDivision ? `· ${activeDivision.name}` : ''}
@@ -215,15 +215,22 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
             </div>
           )}
 
-          {/* Championship Tournament Playoff Bracket */}
-          <div className="pt-1">
-            <PlayoffBracketView
-              standings={standings}
-              divisionId={activeDivision?.id || 'div-prem-2026'}
-              divisionName={activeDivision?.name || 'Premier Division'}
-              starredTeam={starredTeam}
-            />
-          </div>
+          {/* Championship Tournament Playoff Bracket (only displayed when postseason matches exist or season is concluded) */}
+          {showPlayoffBracket && (
+            <div className="pt-1">
+              <PlayoffBracketView
+                standings={standings}
+                divisionId={activeDivision?.id || 'div-prem-2026'}
+                divisionName={activeDivision?.name || 'Premier Division'}
+                starredTeam={starredTeam}
+                postseasonMatches={
+                  divisionPostseasonMatches.length > 0
+                    ? divisionPostseasonMatches
+                    : seasonPostseasonMatches
+                }
+              />
+            </div>
+          )}
         </section>
       )}
 

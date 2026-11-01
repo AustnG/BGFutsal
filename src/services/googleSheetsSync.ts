@@ -419,8 +419,9 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
   let matches: Match[] = INITIAL_LEAGUE_DATA.matches;
   const rawMatchRows = tabCSVs['Matches'] ? parseCSV(tabCSVs['Matches']) : [];
   if (rawMatchRows.length > 0) {
-    matches = [];
     let lastKnownSeason = seasons[0]?.id || 's2026-winter';
+    let previousWasPostseason = false;
+    let previousSeasonId = '';
 
     const findExistingTeamName = (season: string, rawName: string): string | null => {
       const clean = rawName.trim().toLowerCase();
@@ -520,11 +521,71 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
       if (statusVal.includes('postpone')) status = 'postponed';
       if (statusVal.includes('cancel')) status = 'cancelled';
 
+      // Detect Postseason / Playoff matches
+      const rawGwStr = (r.gameweek || r.gw || '').toString().trim();
+      const rawGwLower = rawGwStr.toLowerCase();
+      const rawRoundStr = (r.round || r.round_name || r.stage || r.match_type || '').toString().trim().toLowerCase();
+      const rawNotesStr = (r.notes || '').toString().trim().toLowerCase();
+      const rawTeamsStr = `${homeName} ${awayName}`.toLowerCase();
+
+      const isPlayoffKeyword = (str: string) =>
+        str.includes('playoff') ||
+        str.includes('postseason') ||
+        str.includes('quarter') ||
+        str.includes('qf') ||
+        str.includes('semi') ||
+        str.includes('sf') ||
+        str.includes('championship') ||
+        str.includes('final') ||
+        /\[\d+\]/.test(str);
+
+      let isPostseason =
+        isPlayoffKeyword(rawGwLower) ||
+        isPlayoffKeyword(rawRoundStr) ||
+        isPlayoffKeyword(rawNotesStr) ||
+        isPlayoffKeyword(rawTeamsStr);
+
+      // If gameweek is empty/blank but follows a playoff match in the same season, it belongs to the postseason block
+      if (!rawGwStr && previousWasPostseason && previousSeasonId === seasonId) {
+        isPostseason = true;
+      }
+
+      // Safe numerical gameweek parsing
+      let parsedGw = 1;
+      const parsedNum = parseInt(rawGwStr, 10);
+      if (!isNaN(parsedNum)) {
+        parsedGw = parsedNum;
+        if (parsedGw > 10) {
+          isPostseason = true;
+        }
+      } else if (isPostseason) {
+        parsedGw = 0;
+      }
+
+      // Determine round name
+      let roundName = '';
+      const combinedMeta = `${rawGwLower} ${rawRoundStr} ${rawNotesStr} ${rawTeamsStr}`;
+      if (combinedMeta.includes('quarter') || combinedMeta.includes('qf')) {
+        roundName = 'Quarterfinal';
+      } else if (combinedMeta.includes('semi') || combinedMeta.includes('sf')) {
+        roundName = 'Semifinal';
+      } else if (combinedMeta.includes('final') || combinedMeta.includes('championship') || combinedMeta.includes('champ')) {
+        roundName = 'Championship Final';
+      } else if (isPostseason) {
+        roundName = 'Playoff';
+      }
+
+      previousWasPostseason = isPostseason;
+      previousSeasonId = seasonId;
+
       matches.push({
         id: r.match_id || r.id || `m-${i + 1}`,
         seasonId,
         divisionId: divId,
-        gameweek: Number(r.gameweek || r.round || 1),
+        gameweek: parsedGw,
+        stage: isPostseason ? 'playoff' : 'regular',
+        isPostseason,
+        roundName: roundName || (parsedGw > 0 ? `GW ${parsedGw}` : 'Playoff'),
         date: r.date || '',
         time: r.time || '',
         homeTeam: resolvedHomeName || homeName,
@@ -535,6 +596,32 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         forfeit,
         notes: r.notes || '',
       });
+    });
+
+    // Second pass: assign QF / SF / Final to postseason matches in 8-team tournament structure
+    const seasonDivMap = new Map<string, Match[]>();
+    matches.forEach((m) => {
+      const key = `${m.seasonId}:::${m.divisionId}`;
+      if (!seasonDivMap.has(key)) seasonDivMap.set(key, []);
+      seasonDivMap.get(key)!.push(m);
+    });
+
+    seasonDivMap.forEach((divMatchList) => {
+      const playoffs = divMatchList.filter((m) => m.isPostseason);
+      if (playoffs.length > 0) {
+        // Standard single elimination bracket: 4 QFs, 2 SFs, 1 Championship Final
+        const chunks = Math.ceil(playoffs.length / 7);
+        for (let c = 0; c < chunks; c++) {
+          const slice = playoffs.slice(c * 7, (c + 1) * 7);
+          slice.forEach((m, idx) => {
+            if (!m.roundName || m.roundName === 'Playoff') {
+              if (idx < 4) m.roundName = 'Quarterfinal';
+              else if (idx < 6) m.roundName = 'Semifinal';
+              else m.roundName = 'Championship Final';
+            }
+          });
+        }
+      }
     });
   }
 

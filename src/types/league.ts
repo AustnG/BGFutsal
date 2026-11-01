@@ -38,6 +38,9 @@ export interface Match {
   seasonId: string;
   divisionId: string;
   gameweek: number;
+  stage?: 'regular' | 'playoff';
+  isPostseason?: boolean;
+  roundName?: string; // e.g. "Quarterfinal", "Semifinal", "Championship Final", "Playoff", or "GW 1"
   date: string; // e.g. "2026-02-15" or "Sun, Feb 15"
   time: string; // e.g. "18:30" or "6:30 PM"
   homeTeam: string;
@@ -101,9 +104,13 @@ export interface PlayoffMatch {
   seedB: number;
   teamA?: StandingRow;
   teamB?: StandingRow;
-  scoreA?: number;
-  scoreB?: number;
+  teamAName?: string;
+  teamBName?: string;
+  scoreA?: number | null;
+  scoreB?: number | null;
+  status?: MatchStatus;
   winner?: StandingRow;
+  winnerName?: string;
   time?: string;
   date?: string;
 }

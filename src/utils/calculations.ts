@@ -47,11 +47,13 @@ export function computeStandings(
   });
 
   // Filter completed matches for this division and season
+  // Postseason knockout games are excluded so they do not distort regular season points/records
   const divisionMatches = matches.filter(
     (m) =>
       m.divisionId === divisionId &&
       (!seasonId || m.seasonId === seasonId) &&
-      m.status === 'final'
+      m.status === 'final' &&
+      !m.isPostseason
   );
 
   // Helper to find team id by name fuzzy/trimmed
@@ -247,7 +249,8 @@ export function computeRankTimeline(
     (m) =>
       m.divisionId === divisionId &&
       (!seasonId || m.seasonId === seasonId) &&
-      m.status === 'final'
+      m.status === 'final' &&
+      !m.isPostseason
   );
 
   const divisionTeams = teams.filter(
@@ -295,11 +298,12 @@ export function computeRankTimeline(
 
 /**
  * Generates an 8-team single-elimination playoff bracket for a division.
- * Seeds: 1 vs 8, 4 vs 5, 2 vs 7, 3 vs 6.
+ * Uses real playoff matches from Google Sheets if available; otherwise seeds 1 vs 8, 4 vs 5, 2 vs 7, 3 vs 6.
  */
 export function computePlayoffs(
   standings: StandingRow[],
-  divisionId: string
+  divisionId: string,
+  actualPostseasonMatches: Match[] = []
 ): PlayoffMatch[] {
   const top8 = standings.slice(0, 8);
 
@@ -307,6 +311,189 @@ export function computePlayoffs(
     return top8[seedNum - 1];
   };
 
+  const findStandingByTeam = (teamName?: string): StandingRow | undefined => {
+    if (!teamName) return undefined;
+    const clean = teamName.trim().toLowerCase();
+    return standings.find((s) => s.teamName.trim().toLowerCase() === clean);
+  };
+
+  const getSeedNumber = (teamName?: string, defaultSeed: number = 1): number => {
+    if (!teamName) return defaultSeed;
+    const standing = findStandingByTeam(teamName);
+    return standing ? standing.rank : defaultSeed;
+  };
+
+  // If actual postseason matches were recorded in the database, map them into the bracket
+  if (actualPostseasonMatches.length > 0) {
+    let qfList = actualPostseasonMatches.filter((m) => m.roundName === 'Quarterfinal');
+    let sfList = actualPostseasonMatches.filter((m) => m.roundName === 'Semifinal');
+    let finalList = actualPostseasonMatches.filter(
+      (m) => m.roundName?.includes('Final') || m.roundName?.includes('Championship')
+    );
+
+    // Fallback if 7 matches in sequence without specific round tags
+    if (qfList.length === 0 && actualPostseasonMatches.length >= 4) {
+      qfList = actualPostseasonMatches.slice(0, 4);
+      sfList = actualPostseasonMatches.slice(4, 6);
+      finalList = actualPostseasonMatches.slice(6, 7);
+    }
+
+    const defaultSeedPairs = [
+      { seedA: 1, seedB: 8 },
+      { seedA: 4, seedB: 5 },
+      { seedA: 2, seedB: 7 },
+      { seedA: 3, seedB: 6 },
+    ];
+
+    const playoffMatches: PlayoffMatch[] = [];
+
+    // 4 Quarterfinals
+    for (let i = 0; i < 4; i++) {
+      const m = qfList[i];
+      const defaults = defaultSeedPairs[i];
+      const homeStanding = m ? findStandingByTeam(m.homeTeam) : getSeed(defaults.seedA);
+      const awayStanding = m ? findStandingByTeam(m.awayTeam) : getSeed(defaults.seedB);
+
+      let winner: StandingRow | undefined = undefined;
+      let winnerName: string | undefined = undefined;
+      if (m && m.status === 'final') {
+        if (m.forfeit === 'home') {
+          winner = awayStanding;
+          winnerName = m.awayTeam;
+        } else if (m.forfeit === 'away') {
+          winner = homeStanding;
+          winnerName = m.homeTeam;
+        } else if (m.homeScore !== null && m.homeScore !== undefined && m.awayScore !== null && m.awayScore !== undefined) {
+          if (m.homeScore > m.awayScore) {
+            winner = homeStanding;
+            winnerName = m.homeTeam;
+          } else if (m.awayScore > m.homeScore) {
+            winner = awayStanding;
+            winnerName = m.awayTeam;
+          }
+        }
+      }
+
+      playoffMatches.push({
+        id: m?.id || `${divisionId}-qf-${i + 1}`,
+        round: 'Quarterfinal',
+        matchNumber: i + 1,
+        seedA: m ? getSeedNumber(m.homeTeam, defaults.seedA) : defaults.seedA,
+        seedB: m ? getSeedNumber(m.awayTeam, defaults.seedB) : defaults.seedB,
+        teamA: homeStanding,
+        teamB: awayStanding,
+        teamAName: m?.homeTeam || homeStanding?.teamName || `Seed ${defaults.seedA}`,
+        teamBName: m?.awayTeam || awayStanding?.teamName || `Seed ${defaults.seedB}`,
+        scoreA: m?.homeScore,
+        scoreB: m?.awayScore,
+        status: m?.status || 'upcoming',
+        winner,
+        winnerName,
+        date: m?.date || 'Sun, May 10',
+        time: m?.time || `${18 + i}:00`,
+      });
+    }
+
+    // 2 Semifinals
+    const sfDefaults = [
+      { seedA: 1, seedB: 4 },
+      { seedA: 2, seedB: 3 },
+    ];
+
+    for (let i = 0; i < 2; i++) {
+      const m = sfList[i];
+      const defaults = sfDefaults[i];
+      const homeStanding = m ? findStandingByTeam(m.homeTeam) : undefined;
+      const awayStanding = m ? findStandingByTeam(m.awayTeam) : undefined;
+
+      let winner: StandingRow | undefined = undefined;
+      let winnerName: string | undefined = undefined;
+      if (m && m.status === 'final') {
+        if (m.forfeit === 'home') {
+          winner = awayStanding;
+          winnerName = m.awayTeam;
+        } else if (m.forfeit === 'away') {
+          winner = homeStanding;
+          winnerName = m.homeTeam;
+        } else if (m.homeScore !== null && m.homeScore !== undefined && m.awayScore !== null && m.awayScore !== undefined) {
+          if (m.homeScore > m.awayScore) {
+            winner = homeStanding;
+            winnerName = m.homeTeam;
+          } else if (m.awayScore > m.homeScore) {
+            winner = awayStanding;
+            winnerName = m.awayTeam;
+          }
+        }
+      }
+
+      playoffMatches.push({
+        id: m?.id || `${divisionId}-sf-${i + 1}`,
+        round: 'Semifinal',
+        matchNumber: 5 + i,
+        seedA: m ? getSeedNumber(m.homeTeam, defaults.seedA) : defaults.seedA,
+        seedB: m ? getSeedNumber(m.awayTeam, defaults.seedB) : defaults.seedB,
+        teamA: homeStanding,
+        teamB: awayStanding,
+        teamAName: m?.homeTeam || (i === 0 ? 'Winner QF 1' : 'Winner QF 3'),
+        teamBName: m?.awayTeam || (i === 0 ? 'Winner QF 2' : 'Winner QF 4'),
+        scoreA: m?.homeScore,
+        scoreB: m?.awayScore,
+        status: m?.status || 'upcoming',
+        winner,
+        winnerName,
+        date: m?.date || 'Sun, May 17',
+        time: m?.time || `${18 + i}:00`,
+      });
+    }
+
+    // 1 Championship Final
+    const finalM = finalList[0];
+    const finalHomeStanding = finalM ? findStandingByTeam(finalM.homeTeam) : undefined;
+    const finalAwayStanding = finalM ? findStandingByTeam(finalM.awayTeam) : undefined;
+
+    let finalWinner: StandingRow | undefined = undefined;
+    let finalWinnerName: string | undefined = undefined;
+    if (finalM && finalM.status === 'final') {
+      if (finalM.forfeit === 'home') {
+        finalWinner = finalAwayStanding;
+        finalWinnerName = finalM.awayTeam;
+      } else if (finalM.forfeit === 'away') {
+        finalWinner = finalHomeStanding;
+        finalWinnerName = finalM.homeTeam;
+      } else if (finalM.homeScore !== null && finalM.homeScore !== undefined && finalM.awayScore !== null && finalM.awayScore !== undefined) {
+        if (finalM.homeScore > finalM.awayScore) {
+          finalWinner = finalHomeStanding;
+          finalWinnerName = finalM.homeTeam;
+        } else if (finalM.awayScore > finalM.homeScore) {
+          finalWinner = finalAwayStanding;
+          finalWinnerName = finalM.awayTeam;
+        }
+      }
+    }
+
+    playoffMatches.push({
+      id: finalM?.id || `${divisionId}-final`,
+      round: 'Championship',
+      matchNumber: 7,
+      seedA: finalM ? getSeedNumber(finalM.homeTeam, 1) : 1,
+      seedB: finalM ? getSeedNumber(finalM.awayTeam, 2) : 2,
+      teamA: finalHomeStanding,
+      teamB: finalAwayStanding,
+      teamAName: finalM?.homeTeam || 'Finalist 1',
+      teamBName: finalM?.awayTeam || 'Finalist 2',
+      scoreA: finalM?.homeScore,
+      scoreB: finalM?.awayScore,
+      status: finalM?.status || 'upcoming',
+      winner: finalWinner,
+      winnerName: finalWinnerName,
+      date: finalM?.date || 'Sun, May 17',
+      time: finalM?.time || '20:30',
+    });
+
+    return playoffMatches;
+  }
+
+  // Projected bracket based on top 8 standings
   const matches: PlayoffMatch[] = [
     // Quarterfinals
     {
@@ -317,6 +504,8 @@ export function computePlayoffs(
       seedB: 8,
       teamA: getSeed(1),
       teamB: getSeed(8),
+      teamAName: getSeed(1)?.teamName || 'Seed 1',
+      teamBName: getSeed(8)?.teamName || 'Seed 8',
       date: 'Sun, May 10',
       time: '18:00',
     },
@@ -328,6 +517,8 @@ export function computePlayoffs(
       seedB: 5,
       teamA: getSeed(4),
       teamB: getSeed(5),
+      teamAName: getSeed(4)?.teamName || 'Seed 4',
+      teamBName: getSeed(5)?.teamName || 'Seed 5',
       date: 'Sun, May 10',
       time: '19:00',
     },
@@ -339,6 +530,8 @@ export function computePlayoffs(
       seedB: 7,
       teamA: getSeed(2),
       teamB: getSeed(7),
+      teamAName: getSeed(2)?.teamName || 'Seed 2',
+      teamBName: getSeed(7)?.teamName || 'Seed 7',
       date: 'Sun, May 10',
       time: '20:00',
     },
@@ -350,6 +543,8 @@ export function computePlayoffs(
       seedB: 6,
       teamA: getSeed(3),
       teamB: getSeed(6),
+      teamAName: getSeed(3)?.teamName || 'Seed 3',
+      teamBName: getSeed(6)?.teamName || 'Seed 6',
       date: 'Sun, May 10',
       time: '21:00',
     },
@@ -363,6 +558,8 @@ export function computePlayoffs(
       seedB: 4,
       teamA: getSeed(1),
       teamB: getSeed(4),
+      teamAName: 'Winner QF 1',
+      teamBName: 'Winner QF 2',
       date: 'Sun, May 17',
       time: '18:00',
     },
@@ -374,6 +571,8 @@ export function computePlayoffs(
       seedB: 3,
       teamA: getSeed(2),
       teamB: getSeed(3),
+      teamAName: 'Winner QF 3',
+      teamBName: 'Winner QF 4',
       date: 'Sun, May 17',
       time: '19:00',
     },
@@ -387,6 +586,8 @@ export function computePlayoffs(
       seedB: 2,
       teamA: getSeed(1),
       teamB: getSeed(2),
+      teamAName: 'Finalist 1',
+      teamBName: 'Finalist 2',
       date: 'Sun, May 17',
       time: '20:30',
     },

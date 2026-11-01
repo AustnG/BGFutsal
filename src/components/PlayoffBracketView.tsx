@@ -1,5 +1,6 @@
 import React from 'react';
-import { StandingRow } from '../types/league';
+import { Trophy } from 'lucide-react';
+import { Match, StandingRow } from '../types/league';
 import { computePlayoffs } from '../utils/calculations';
 
 interface PlayoffBracketViewProps {
@@ -7,6 +8,7 @@ interface PlayoffBracketViewProps {
   divisionId: string;
   divisionName: string;
   starredTeam: string | null;
+  postseasonMatches?: Match[];
 }
 
 export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
@@ -14,8 +16,9 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
   divisionId,
   divisionName,
   starredTeam,
+  postseasonMatches = [],
 }) => {
-  const playoffMatches = computePlayoffs(standings, divisionId);
+  const playoffMatches = computePlayoffs(standings, divisionId, postseasonMatches);
 
   const qfMatches = playoffMatches.filter((m) => m.round === 'Quarterfinal');
   const sfMatches = playoffMatches.filter((m) => m.round === 'Semifinal');
@@ -47,7 +50,13 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
 
             <div className="space-y-2.5">
               {qfMatches.map((m) => {
-                const hasStarred = starredTeam && (m.teamA?.teamName === starredTeam || m.teamB?.teamName === starredTeam);
+                const teamNameA = m.teamAName || m.teamA?.teamName || `Seed ${m.seedA}`;
+                const teamNameB = m.teamBName || m.teamB?.teamName || `Seed ${m.seedB}`;
+                const hasStarred = starredTeam && (teamNameA === starredTeam || teamNameB === starredTeam);
+                const hasScores = m.scoreA !== null && m.scoreA !== undefined && m.scoreB !== null && m.scoreB !== undefined;
+                const aWon = hasScores && (m.scoreA! > m.scoreB! || m.winnerName === teamNameA);
+                const bWon = hasScores && (m.scoreB! > m.scoreA! || m.winnerName === teamNameB);
+
                 return (
                   <div
                     key={m.id}
@@ -59,23 +68,39 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                   >
                     <div className="text-[10px] font-mono text-slate-400 flex items-center justify-between">
                       <span className="text-[#0a1526] font-medium">M{m.matchNumber}</span>
-                      <span>{m.time}</span>
+                      <span>{m.date ? `${m.date} · ${m.time}` : m.time}</span>
                     </div>
 
                     <div className="flex items-center justify-between font-medium text-[#0a1526]">
-                      <span className="truncate">
+                      <span className={`truncate ${aWon ? 'font-semibold text-emerald-950' : bWon ? 'text-slate-400 font-normal' : ''}`}>
                         <span className="text-emerald-600 font-mono mr-1.5 font-medium">#{m.seedA}</span>
-                        {m.teamA?.teamName || `Seed ${m.seedA}`}
+                        {teamNameA}
                       </span>
-                      <span className="font-mono text-slate-400">—</span>
+                      <span className="font-mono text-slate-500 min-w-[20px] text-right">
+                        {hasScores ? (
+                          <span className={aWon ? 'text-emerald-700 font-bold' : 'text-slate-400 font-normal'}>
+                            {m.scoreA}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </span>
                     </div>
 
                     <div className="flex items-center justify-between font-medium text-[#0a1526]">
-                      <span className="truncate">
+                      <span className={`truncate ${bWon ? 'font-semibold text-emerald-950' : aWon ? 'text-slate-400 font-normal' : ''}`}>
                         <span className="text-slate-400 font-mono mr-1.5">#{m.seedB}</span>
-                        {m.teamB?.teamName || `Seed ${m.seedB}`}
+                        {teamNameB}
                       </span>
-                      <span className="font-mono text-slate-400">—</span>
+                      <span className="font-mono text-slate-500 min-w-[20px] text-right">
+                        {hasScores ? (
+                          <span className={bWon ? 'text-emerald-700 font-bold' : 'text-slate-400 font-normal'}>
+                            {m.scoreB}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </span>
                     </div>
                   </div>
                 );
@@ -90,33 +115,57 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
             </span>
 
             <div className="space-y-14 pt-6">
-              {sfMatches.map((m) => (
-                <div
-                  key={m.id}
-                  className="bg-slate-50/80 rounded-lg p-3 border border-slate-200/70 text-xs space-y-1.5 shadow-xs"
-                >
-                  <div className="text-[10px] font-mono text-slate-400 flex items-center justify-between">
-                    <span className="text-[#0a1526] font-medium">Semi {m.matchNumber === 5 ? '1' : '2'}</span>
-                    <span>{m.time}</span>
-                  </div>
+              {sfMatches.map((m) => {
+                const teamNameA = m.teamAName || m.teamA?.teamName || 'Winner QF';
+                const teamNameB = m.teamBName || m.teamB?.teamName || 'Winner QF';
+                const hasScores = m.scoreA !== null && m.scoreA !== undefined && m.scoreB !== null && m.scoreB !== undefined;
+                const aWon = hasScores && (m.scoreA! > m.scoreB! || m.winnerName === teamNameA);
+                const bWon = hasScores && (m.scoreB! > m.scoreA! || m.winnerName === teamNameB);
 
-                  <div className="flex items-center justify-between font-medium text-[#0a1526]">
-                    <span className="truncate">
-                      <span className="text-emerald-600 font-mono mr-1.5 font-medium">#{m.seedA}</span>
-                      {m.teamA?.teamName || 'Winner QF'}
-                    </span>
-                    <span className="font-mono text-slate-400">—</span>
-                  </div>
+                return (
+                  <div
+                    key={m.id}
+                    className="bg-slate-50/80 rounded-lg p-3 border border-slate-200/70 text-xs space-y-1.5 shadow-xs"
+                  >
+                    <div className="text-[10px] font-mono text-slate-400 flex items-center justify-between">
+                      <span className="text-[#0a1526] font-medium">Semi {m.matchNumber === 5 ? '1' : '2'}</span>
+                      <span>{m.date ? `${m.date} · ${m.time}` : m.time}</span>
+                    </div>
 
-                  <div className="flex items-center justify-between font-medium text-[#0a1526]">
-                    <span className="truncate">
-                      <span className="text-slate-400 font-mono mr-1.5">#{m.seedB}</span>
-                      {m.teamB?.teamName || 'Winner QF'}
-                    </span>
-                    <span className="font-mono text-slate-400">—</span>
+                    <div className="flex items-center justify-between font-medium text-[#0a1526]">
+                      <span className={`truncate ${aWon ? 'font-semibold text-emerald-950' : bWon ? 'text-slate-400 font-normal' : ''}`}>
+                        <span className="text-emerald-600 font-mono mr-1.5 font-medium">#{m.seedA}</span>
+                        {teamNameA}
+                      </span>
+                      <span className="font-mono text-slate-500 min-w-[20px] text-right">
+                        {hasScores ? (
+                          <span className={aWon ? 'text-emerald-700 font-bold' : 'text-slate-400 font-normal'}>
+                            {m.scoreA}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between font-medium text-[#0a1526]">
+                      <span className={`truncate ${bWon ? 'font-semibold text-emerald-950' : aWon ? 'text-slate-400 font-normal' : ''}`}>
+                        <span className="text-slate-400 font-mono mr-1.5">#{m.seedB}</span>
+                        {teamNameB}
+                      </span>
+                      <span className="font-mono text-slate-500 min-w-[20px] text-right">
+                        {hasScores ? (
+                          <span className={bWon ? 'text-emerald-700 font-bold' : 'text-slate-400 font-normal'}>
+                            {m.scoreB}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -127,36 +176,66 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
             </span>
 
             <div className="pt-20">
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#071324] via-[#0c1f38] to-[#06101e] text-white rounded-xl p-4 border border-[#1b3459] text-xs space-y-2.5 shadow-lg">
-                {/* Subtle Ambient Emerald & Gold Accent Light Blur */}
-                <div className="absolute -top-10 -right-10 w-28 h-28 bg-emerald-500/15 rounded-full blur-xl pointer-events-none" />
-                <div className="absolute -bottom-10 -left-10 w-28 h-28 bg-amber-500/10 rounded-full blur-xl pointer-events-none" />
-                <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent pointer-events-none" />
+              {(() => {
+                const teamNameA = finalMatch?.teamAName || finalMatch?.teamA?.teamName || 'Finalist 1';
+                const teamNameB = finalMatch?.teamBName || finalMatch?.teamB?.teamName || 'Finalist 2';
+                const hasFinalScores =
+                  finalMatch?.scoreA !== null &&
+                  finalMatch?.scoreA !== undefined &&
+                  finalMatch?.scoreB !== null &&
+                  finalMatch?.scoreB !== undefined;
+                const aWon = hasFinalScores && (finalMatch!.scoreA! > finalMatch!.scoreB! || finalMatch!.winnerName === teamNameA);
+                const bWon = hasFinalScores && (finalMatch!.scoreB! > finalMatch!.scoreA! || finalMatch!.winnerName === teamNameB);
 
-                <div className="text-[10px] font-mono text-amber-400 flex items-center justify-between font-semibold relative z-10">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
-                    Championship Trophy Match
-                  </span>
-                  <span className="text-slate-300 font-normal">May 17 · 20:30</span>
-                </div>
+                return (
+                  <div className="relative overflow-hidden bg-gradient-to-br from-[#071324] via-[#0c1f38] to-[#06101e] text-white rounded-xl p-4 border border-[#1b3459] text-xs space-y-2.5 shadow-lg">
+                    {/* Ambient Light Accent */}
+                    <div className="absolute -top-10 -right-10 w-28 h-28 bg-emerald-500/15 rounded-full blur-xl pointer-events-none" />
+                    <div className="absolute -bottom-10 -left-10 w-28 h-28 bg-amber-500/10 rounded-full blur-xl pointer-events-none" />
+                    <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent pointer-events-none" />
 
-                <div className="flex items-center justify-between font-semibold text-white">
-                  <span className="truncate">
-                    <span className="text-amber-400 font-mono mr-1.5 font-bold">#1</span>
-                    {finalMatch?.teamA?.teamName || 'Finalist 1'}
-                  </span>
-                  <span className="font-mono text-slate-400">—</span>
-                </div>
+                    <div className="text-[10px] font-mono text-amber-400 flex items-center justify-between font-semibold relative z-10">
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
+                        Championship Trophy Match
+                      </span>
+                      <span className="text-slate-300 font-normal">
+                        {finalMatch?.date ? `${finalMatch.date} · ${finalMatch.time}` : 'May 17 · 20:30'}
+                      </span>
+                    </div>
 
-                <div className="flex items-center justify-between font-semibold text-white">
-                  <span className="truncate">
-                    <span className="text-emerald-400 font-mono mr-1.5 font-bold">#2</span>
-                    {finalMatch?.teamB?.teamName || 'Finalist 2'}
-                  </span>
-                  <span className="font-mono text-slate-400">—</span>
-                </div>
-              </div>
+                    <div className="flex items-center justify-between font-semibold text-white">
+                      <span className={`truncate ${aWon ? 'text-amber-300 font-bold' : bWon ? 'text-slate-400 font-normal' : ''}`}>
+                        <span className="text-amber-400 font-mono mr-1.5 font-bold">#{finalMatch?.seedA || 1}</span>
+                        {teamNameA}
+                      </span>
+                      <span className="font-mono text-amber-300 text-sm min-w-[20px] text-right">
+                        {hasFinalScores ? finalMatch!.scoreA : '—'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between font-semibold text-white">
+                      <span className={`truncate ${bWon ? 'text-emerald-300 font-bold' : aWon ? 'text-slate-400 font-normal' : ''}`}>
+                        <span className="text-emerald-400 font-mono mr-1.5 font-bold">#{finalMatch?.seedB || 2}</span>
+                        {teamNameB}
+                      </span>
+                      <span className="font-mono text-emerald-300 text-sm min-w-[20px] text-right">
+                        {hasFinalScores ? finalMatch!.scoreB : '—'}
+                      </span>
+                    </div>
+
+                    {finalMatch?.winnerName && (
+                      <div className="mt-2 pt-2 border-t border-amber-500/25 flex items-center justify-between text-[11px]">
+                        <span className="text-amber-400 font-mono flex items-center gap-1.5 font-semibold">
+                          <Trophy className="w-3.5 h-3.5 text-amber-400" />
+                          Tournament Champion
+                        </span>
+                        <span className="font-bold text-white text-xs">{finalMatch.winnerName}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

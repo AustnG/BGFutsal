@@ -19,15 +19,21 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   starredTeam,
   searchQuery,
 }) => {
-  const [selectedGameweek, setSelectedGameweek] = useState<number | 'all'>('all');
+  const [selectedGameweek, setSelectedGameweek] = useState<number | 'all' | 'playoffs'>('all');
 
   const divisionMatches = matches.filter((m) =>
     divisionId === 'all' ? true : m.divisionId === divisionId
   );
 
-  const gameweeks = Array.from(new Set(divisionMatches.map((m) => m.gameweek || 1))).sort(
-    (a, b) => a - b
-  );
+  const regularGameweeks = Array.from(
+    new Set(
+      divisionMatches
+        .filter((m) => !m.isPostseason && m.gameweek > 0)
+        .map((m) => m.gameweek)
+    )
+  ).sort((a, b) => a - b);
+
+  const hasPlayoffMatches = divisionMatches.some((m) => m.isPostseason);
 
   const teamColorMap = new Map<string, string>();
   teams.forEach((t) => teamColorMap.set(t.name.trim().toLowerCase(), t.color));
@@ -37,7 +43,11 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   };
 
   const filteredMatches = divisionMatches.filter((m) => {
-    if (selectedGameweek !== 'all' && m.gameweek !== selectedGameweek) return false;
+    if (selectedGameweek === 'playoffs') {
+      if (!m.isPostseason) return false;
+    } else if (selectedGameweek !== 'all') {
+      if (m.isPostseason || m.gameweek !== selectedGameweek) return false;
+    }
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       if (!m.homeTeam.toLowerCase().includes(q) && !m.awayTeam.toLowerCase().includes(q)) return false;
@@ -60,7 +70,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           >
             All Weeks
           </button>
-          {gameweeks.map((gw) => (
+          {regularGameweeks.map((gw) => (
             <button
               key={gw}
               onClick={() => setSelectedGameweek(gw)}
@@ -73,6 +83,18 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               GW {gw}
             </button>
           ))}
+          {hasPlayoffMatches && (
+            <button
+              onClick={() => setSelectedGameweek('playoffs')}
+              className={`text-xs px-2.5 py-1 rounded-md transition-colors cursor-pointer whitespace-nowrap ${
+                selectedGameweek === 'playoffs'
+                  ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white font-semibold shadow-xs'
+                  : 'text-amber-800 bg-amber-50 hover:bg-amber-100 font-medium'
+              }`}
+            >
+              Playoffs
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-500 hidden sm:flex">
@@ -108,7 +130,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               {/* Header: Gameweek, Date, Time & Status Indicator */}
               <div className="flex items-center justify-between text-[11px] font-mono mb-2.5 pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <span className="text-[#0a1526] font-semibold">GW {m.gameweek || 1}</span>
+                  <span className={`font-semibold ${m.isPostseason ? 'text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider' : 'text-[#0a1526]'}`}>
+                    {m.isPostseason ? (m.roundName || 'Playoff') : `GW ${m.gameweek || 1}`}
+                  </span>
                   <span className="text-slate-300">·</span>
                   <span className="text-slate-500 font-normal">{m.date}</span>
                   <span className="text-slate-300">·</span>
