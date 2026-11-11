@@ -31,9 +31,6 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
         <h3 className="font-semibold text-slate-900 uppercase tracking-wider">
           {divisionName} Championship Bracket
         </h3>
-        <span className="text-slate-500 text-xs font-medium">
-          8-Club Single Elimination
-        </span>
       </div>
 
       {/* Bracket Grid */}

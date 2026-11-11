@@ -126,9 +126,6 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
               <h2 className="text-base sm:text-lg font-semibold text-[#0a1526] tracking-tight">
                 {showPlayoffBracket ? 'Postseason Championship Tournament' : 'Championship Postseason & Honors'}
               </h2>
-              <span className="text-xs text-slate-400 font-normal">
-                · {currentSeason.name} {activeDivision ? `· ${activeDivision.name}` : ''}
-              </span>
             </div>
 
           </div>
