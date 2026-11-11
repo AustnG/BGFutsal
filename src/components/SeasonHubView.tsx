@@ -150,59 +150,100 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
-                      {/* Division Winner */}
-                      <div className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-white space-y-2.5 shadow-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                      {/* Division Champion - Bold Warm Amber / Gold Gradient */}
+                      <div className="relative overflow-hidden p-4 sm:p-5 rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-500 via-amber-600 to-yellow-600 text-white space-y-3 shadow-lg shadow-amber-600/20 hover:shadow-xl hover:shadow-amber-600/30 transition-all group">
+                        <div className="absolute inset-0 bg-gradient-to-b from-white/15 via-transparent to-black/10 pointer-events-none" />
+                        <div className="absolute -top-10 -right-10 w-28 h-28 bg-white/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform" />
+
+                        <div className="flex items-center justify-between relative z-10">
+                          <span className="text-[11px] uppercase tracking-wider text-amber-100 font-bold font-mono flex items-center gap-1.5">
+                            <span className="w-1.5 h-3.5 rounded-full bg-white/80" />
                             Division Champion
                           </span>
-                          <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 shadow-2xs">
-                            <Trophy className="w-4 h-4" />
+                          <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-xs border border-white/30 flex items-center justify-center text-white shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                            <Trophy className="w-4 h-4 text-white" />
                           </div>
                         </div>
-                        <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                          {divisionWinner?.recipient || divisionWinner?.teamName || 'Record Pending'}
-                        </h3>
-                        <p className="text-xs text-slate-600 leading-relaxed">
-                          {divisionWinner?.statDetail || 'Historical champion recorded.'}
-                        </p>
+
+                        <div className="relative z-10 space-y-1.5">
+                          <h3 className="text-lg sm:text-xl font-black text-white tracking-tight leading-snug drop-shadow-xs">
+                            {divisionWinner?.recipient || divisionWinner?.teamName || 'Record Pending'}
+                          </h3>
+                          {divisionWinner?.statDetail && (
+                            <div className="pt-0.5">
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-black/25 backdrop-blur-xs border border-white/25 text-xs font-semibold text-amber-100">
+                                {divisionWinner.statDetail}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
-                      {/* Golden Boot */}
-                      <div className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-white space-y-2.5 shadow-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                      {/* Top Scorer (Golden Boot) - Bold Emerald / Teal Striker Gradient */}
+                      <div className="relative overflow-hidden p-4 sm:p-5 rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 text-white space-y-3 shadow-lg shadow-emerald-600/20 hover:shadow-xl hover:shadow-emerald-600/30 transition-all group">
+                        <div className="absolute inset-0 bg-gradient-to-b from-white/15 via-transparent to-black/10 pointer-events-none" />
+                        <div className="absolute -top-10 -right-10 w-28 h-28 bg-white/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform" />
+
+                        <div className="flex items-center justify-between relative z-10">
+                          <span className="text-[11px] uppercase tracking-wider text-emerald-100 font-bold font-mono flex items-center gap-1.5">
+                            <span className="w-1.5 h-3.5 rounded-full bg-white/80" />
                             Top Scorer
                           </span>
-                          <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shadow-2xs">
-                            <Award className="w-4 h-4" />
+                          <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-xs border border-white/30 flex items-center justify-center text-white shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                            <Award className="w-4 h-4 text-white" />
                           </div>
                         </div>
-                        <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                          {goldenBoot?.recipient || 'Record Pending'}
-                        </h3>
-                        <div className="text-xs text-slate-600">
-                          <span className="font-semibold text-slate-900">{goldenBoot?.teamName}</span>
-                          <p className="mt-0.5 text-xs text-emerald-800 font-medium">{goldenBoot?.statDetail}</p>
+
+                        <div className="relative z-10 space-y-1.5">
+                          <h3 className="text-lg sm:text-xl font-black text-white tracking-tight leading-snug drop-shadow-xs">
+                            {goldenBoot?.recipient || 'Record Pending'}
+                          </h3>
+                          <div className="flex flex-wrap items-center gap-2 pt-0.5 text-xs">
+                            {goldenBoot?.teamName && (
+                              <span className="font-semibold text-emerald-100">
+                                {goldenBoot.teamName}
+                              </span>
+                            )}
+                            {goldenBoot?.statDetail && (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-black/25 backdrop-blur-xs border border-white/25 text-xs font-bold text-white">
+                                {goldenBoot.statDetail}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
-                      {/* Golden Glove */}
-                      <div className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-white space-y-2.5 shadow-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                      {/* Best Defense (Golden Glove) - Bold Sapphire / Indigo Gradient */}
+                      <div className="relative overflow-hidden p-4 sm:p-5 rounded-2xl border border-blue-400/40 bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 text-white space-y-3 shadow-lg shadow-blue-600/20 hover:shadow-xl hover:shadow-blue-600/30 transition-all group">
+                        <div className="absolute inset-0 bg-gradient-to-b from-white/15 via-transparent to-black/10 pointer-events-none" />
+                        <div className="absolute -top-10 -right-10 w-28 h-28 bg-white/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform" />
+
+                        <div className="flex items-center justify-between relative z-10">
+                          <span className="text-[11px] uppercase tracking-wider text-blue-100 font-bold font-mono flex items-center gap-1.5">
+                            <span className="w-1.5 h-3.5 rounded-full bg-white/80" />
                             Best Defense
                           </span>
-                          <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 shadow-2xs">
-                            <Shield className="w-4 h-4" />
+                          <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-xs border border-white/30 flex items-center justify-center text-white shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                            <Shield className="w-4 h-4 text-white" />
                           </div>
                         </div>
-                        <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                          {goldenGlove?.recipient || 'Record Pending'}
-                        </h3>
-                        <div className="text-xs text-slate-600">
-                          <span className="font-semibold text-slate-900">{goldenGlove?.teamName}</span>
-                          <p className="mt-0.5 text-xs text-slate-700 font-medium">{goldenGlove?.statDetail}</p>
+
+                        <div className="relative z-10 space-y-1.5">
+                          <h3 className="text-lg sm:text-xl font-black text-white tracking-tight leading-snug drop-shadow-xs">
+                            {goldenGlove?.recipient || 'Record Pending'}
+                          </h3>
+                          <div className="flex flex-wrap items-center gap-2 pt-0.5 text-xs">
+                            {goldenGlove?.teamName && (
+                              <span className="font-semibold text-blue-100">
+                                {goldenGlove.teamName}
+                              </span>
+                            )}
+                            {goldenGlove?.statDetail && (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-black/25 backdrop-blur-xs border border-white/25 text-xs font-bold text-white">
+                                {goldenGlove.statDetail}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

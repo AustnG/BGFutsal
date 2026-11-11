@@ -393,6 +393,14 @@ export function computePlayoffs(
           } else if (m.awayScore > m.homeScore) {
             winner = awayStanding;
             winnerName = m.awayTeam;
+          } else if (m.homePk !== null && m.homePk !== undefined && m.awayPk !== null && m.awayPk !== undefined) {
+            if (m.homePk > m.awayPk) {
+              winner = homeStanding;
+              winnerName = m.homeTeam;
+            } else if (m.awayPk > m.homePk) {
+              winner = awayStanding;
+              winnerName = m.awayTeam;
+            }
           }
         }
       }
@@ -409,6 +417,8 @@ export function computePlayoffs(
         teamBName: m?.awayTeam || awayStanding?.teamName || `Seed ${defaults.seedB}`,
         scoreA: m?.homeScore,
         scoreB: m?.awayScore,
+        pkA: m?.homePk,
+        pkB: m?.awayPk,
         status: m?.status || 'upcoming',
         winner,
         winnerName,
@@ -445,6 +455,14 @@ export function computePlayoffs(
           } else if (m.awayScore > m.homeScore) {
             winner = awayStanding;
             winnerName = m.awayTeam;
+          } else if (m.homePk !== null && m.homePk !== undefined && m.awayPk !== null && m.awayPk !== undefined) {
+            if (m.homePk > m.awayPk) {
+              winner = homeStanding;
+              winnerName = m.homeTeam;
+            } else if (m.awayPk > m.homePk) {
+              winner = awayStanding;
+              winnerName = m.awayTeam;
+            }
           }
         }
       }
@@ -461,6 +479,8 @@ export function computePlayoffs(
         teamBName: m?.awayTeam || (i === 0 ? 'Winner QF 2' : 'Winner QF 4'),
         scoreA: m?.homeScore,
         scoreB: m?.awayScore,
+        pkA: m?.homePk,
+        pkB: m?.awayPk,
         status: m?.status || 'upcoming',
         winner,
         winnerName,
@@ -490,6 +510,14 @@ export function computePlayoffs(
         } else if (finalM.awayScore > finalM.homeScore) {
           finalWinner = finalAwayStanding;
           finalWinnerName = finalM.awayTeam;
+        } else if (finalM.homePk !== null && finalM.homePk !== undefined && finalM.awayPk !== null && finalM.awayPk !== undefined) {
+          if (finalM.homePk > finalM.awayPk) {
+            finalWinner = finalHomeStanding;
+            finalWinnerName = finalM.homeTeam;
+          } else if (finalM.awayPk > finalM.homePk) {
+            finalWinner = finalAwayStanding;
+            finalWinnerName = finalM.awayTeam;
+          }
         }
       }
     }
@@ -506,6 +534,8 @@ export function computePlayoffs(
       teamBName: finalM?.awayTeam || 'Finalist 2',
       scoreA: finalM?.homeScore,
       scoreB: finalM?.awayScore,
+      pkA: finalM?.homePk,
+      pkB: finalM?.awayPk,
       status: finalM?.status || 'upcoming',
       winner: finalWinner,
       winnerName: finalWinnerName,

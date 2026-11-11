@@ -141,21 +141,28 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   Next on Arena Main Court
                 </span>
                 <span className="text-[11px] text-slate-400 font-normal">
-                  Official matchday schedule
+                  Official matchday schedule · Central Time (CT)
                 </span>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1 max-w-3xl">
-              {upcomingMatches.map((m) => (
-                <div
-                  key={m.id}
-                  className="bg-gradient-to-b from-[#0e213b] to-[#081628] rounded-xl p-2.5 sm:p-3 border border-[#1a3154] hover:border-emerald-500/50 transition-colors space-y-1 shadow-xs"
-                >
-                  <div className="text-[10px] font-mono text-slate-400 flex items-center justify-between">
-                    <span className="text-emerald-400 font-semibold">GW {m.gameweek || 1}</span>
-                    <span className="text-slate-300">{m.time}</span>
-                  </div>
+              {upcomingMatches.map((m) => {
+                const formattedTime = m.time
+                  ? m.time.toUpperCase().includes('CT')
+                    ? m.time
+                    : `${m.time} CT`
+                  : 'TBD';
+
+                return (
+                  <div
+                    key={m.id}
+                    className="bg-gradient-to-b from-[#0e213b] to-[#081628] rounded-xl p-2.5 sm:p-3 border border-[#1a3154] hover:border-emerald-500/50 transition-colors space-y-1 shadow-xs"
+                  >
+                    <div className="text-[10px] font-mono text-slate-400 flex items-center justify-between">
+                      <span className="text-emerald-400 font-semibold">GW {m.gameweek || 1}</span>
+                      <span className="text-slate-300">{formattedTime}</span>
+                    </div>
                   <div className="text-xs font-semibold text-white truncate">
                     {m.homeTeam}
                   </div>
@@ -164,7 +171,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     {m.awayTeam}
                   </div>
                 </div>
-              ))}
+              );
+            })}
             </div>
 
             <button

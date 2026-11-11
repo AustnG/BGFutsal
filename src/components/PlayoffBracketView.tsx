@@ -24,6 +24,11 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
   const sfMatches = playoffMatches.filter((m) => m.round === 'Semifinal');
   const finalMatch = playoffMatches.find((m) => m.round === 'Championship');
 
+  const formatBracketTime = (time?: string) => {
+    if (!time) return '';
+    return time.toUpperCase().includes('CT') ? time : `${time} CT`;
+  };
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 space-y-3 shadow-xs">
       {/* Header */}
@@ -48,8 +53,17 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                 const teamNameB = m.teamBName || m.teamB?.teamName || `Seed ${m.seedB}`;
                 const hasStarred = starredTeam && (teamNameA === starredTeam || teamNameB === starredTeam);
                 const hasScores = m.scoreA !== null && m.scoreA !== undefined && m.scoreB !== null && m.scoreB !== undefined;
-                const aWon = hasScores && (m.scoreA! > m.scoreB! || m.winnerName === teamNameA);
-                const bWon = hasScores && (m.scoreB! > m.scoreA! || m.winnerName === teamNameB);
+                const hasPk = hasScores && m.scoreA === m.scoreB && m.pkA !== null && m.pkA !== undefined && m.pkB !== null && m.pkB !== undefined;
+                const aWon = hasScores && (
+                  m.scoreA! > m.scoreB! ||
+                  (hasPk && m.pkA! > m.pkB!) ||
+                  m.winnerName === teamNameA
+                );
+                const bWon = hasScores && (
+                  m.scoreB! > m.scoreA! ||
+                  (hasPk && m.pkB! > m.pkA!) ||
+                  m.winnerName === teamNameB
+                );
 
                 return (
                   <div
@@ -61,8 +75,15 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                     }`}
                   >
                     <div className="text-[11px] text-slate-500 flex items-center justify-between">
-                      <span className="text-slate-900 font-semibold font-mono tabular-nums">M{m.matchNumber}</span>
-                      <span className="font-mono tabular-nums">{m.date ? `${m.date} · ${m.time}` : m.time}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-slate-900 font-semibold font-mono tabular-nums">M{m.matchNumber}</span>
+                        {hasPk && (
+                          <span className="text-[9px] uppercase tracking-wider font-bold text-amber-700 bg-amber-50 px-1 py-0.5 rounded font-mono">
+                            PK
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-mono tabular-nums">{m.date ? `${m.date} · ${formatBracketTime(m.time)}` : formatBracketTime(m.time)}</span>
                     </div>
 
                     <div className="flex items-center justify-between font-medium text-slate-900">
@@ -74,6 +95,11 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                         {hasScores ? (
                           <span className={aWon ? 'text-emerald-700 font-bold' : 'text-slate-400 font-normal'}>
                             {m.scoreA}
+                            {hasPk && (
+                              <span className="text-[10px] text-slate-500 font-normal ml-0.5">
+                                ({m.pkA})
+                              </span>
+                            )}
                           </span>
                         ) : (
                           '—'
@@ -90,6 +116,11 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                         {hasScores ? (
                           <span className={bWon ? 'text-emerald-700 font-bold' : 'text-slate-400 font-normal'}>
                             {m.scoreB}
+                            {hasPk && (
+                              <span className="text-[10px] text-slate-500 font-normal ml-0.5">
+                                ({m.pkB})
+                              </span>
+                            )}
                           </span>
                         ) : (
                           '—'
@@ -113,8 +144,17 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                 const teamNameA = m.teamAName || m.teamA?.teamName || 'Winner QF';
                 const teamNameB = m.teamBName || m.teamB?.teamName || 'Winner QF';
                 const hasScores = m.scoreA !== null && m.scoreA !== undefined && m.scoreB !== null && m.scoreB !== undefined;
-                const aWon = hasScores && (m.scoreA! > m.scoreB! || m.winnerName === teamNameA);
-                const bWon = hasScores && (m.scoreB! > m.scoreA! || m.winnerName === teamNameB);
+                const hasPk = hasScores && m.scoreA === m.scoreB && m.pkA !== null && m.pkA !== undefined && m.pkB !== null && m.pkB !== undefined;
+                const aWon = hasScores && (
+                  m.scoreA! > m.scoreB! ||
+                  (hasPk && m.pkA! > m.pkB!) ||
+                  m.winnerName === teamNameA
+                );
+                const bWon = hasScores && (
+                  m.scoreB! > m.scoreA! ||
+                  (hasPk && m.pkB! > m.pkA!) ||
+                  m.winnerName === teamNameB
+                );
 
                 return (
                   <div
@@ -122,8 +162,15 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                     className="bg-slate-50 rounded-lg p-3 border border-slate-200 text-xs space-y-1.5 shadow-xs"
                   >
                     <div className="text-[11px] text-slate-500 flex items-center justify-between">
-                      <span className="text-slate-900 font-semibold font-mono tabular-nums">Semi {m.matchNumber === 5 ? '1' : '2'}</span>
-                      <span className="font-mono tabular-nums">{m.date ? `${m.date} · ${m.time}` : m.time}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-slate-900 font-semibold font-mono tabular-nums">Semi {m.matchNumber === 5 ? '1' : '2'}</span>
+                        {hasPk && (
+                          <span className="text-[9px] uppercase tracking-wider font-bold text-amber-700 bg-amber-50 px-1 py-0.5 rounded font-mono">
+                            PK
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-mono tabular-nums">{m.date ? `${m.date} · ${formatBracketTime(m.time)}` : formatBracketTime(m.time)}</span>
                     </div>
 
                     <div className="flex items-center justify-between font-medium text-slate-900">
@@ -135,6 +182,11 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                         {hasScores ? (
                           <span className={aWon ? 'text-emerald-700 font-bold' : 'text-slate-400 font-normal'}>
                             {m.scoreA}
+                            {hasPk && (
+                              <span className="text-[10px] text-slate-500 font-normal ml-0.5">
+                                ({m.pkA})
+                              </span>
+                            )}
                           </span>
                         ) : (
                           '—'
@@ -151,6 +203,11 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                         {hasScores ? (
                           <span className={bWon ? 'text-emerald-700 font-bold' : 'text-slate-400 font-normal'}>
                             {m.scoreB}
+                            {hasPk && (
+                              <span className="text-[10px] text-slate-500 font-normal ml-0.5">
+                                ({m.pkB})
+                              </span>
+                            )}
                           </span>
                         ) : (
                           '—'
@@ -178,15 +235,37 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                   finalMatch?.scoreA !== undefined &&
                   finalMatch?.scoreB !== null &&
                   finalMatch?.scoreB !== undefined;
-                const aWon = hasFinalScores && (finalMatch!.scoreA! > finalMatch!.scoreB! || finalMatch!.winnerName === teamNameA);
-                const bWon = hasFinalScores && (finalMatch!.scoreB! > finalMatch!.scoreA! || finalMatch!.winnerName === teamNameB);
+                const finalHasPk =
+                  hasFinalScores &&
+                  finalMatch.scoreA === finalMatch.scoreB &&
+                  finalMatch.pkA !== null &&
+                  finalMatch.pkA !== undefined &&
+                  finalMatch.pkB !== null &&
+                  finalMatch.pkB !== undefined;
+                const aWon = hasFinalScores && (
+                  finalMatch!.scoreA! > finalMatch!.scoreB! ||
+                  (finalHasPk && finalMatch.pkA! > finalMatch.pkB!) ||
+                  finalMatch!.winnerName === teamNameA
+                );
+                const bWon = hasFinalScores && (
+                  finalMatch!.scoreB! > finalMatch!.scoreA! ||
+                  (finalHasPk && finalMatch.pkB! > finalMatch.pkA!) ||
+                  finalMatch!.winnerName === teamNameB
+                );
 
                 return (
                   <div className="bg-slate-900 text-white rounded-xl p-4 border border-slate-800 text-xs space-y-2.5 shadow-sm">
                     <div className="text-[11px] text-emerald-400 flex items-center justify-between font-semibold">
-                      <span>Championship Trophy Match</span>
+                      <div className="flex items-center gap-1.5">
+                        <span>Championship Trophy Match</span>
+                        {finalHasPk && (
+                          <span className="text-[9px] uppercase tracking-wider font-bold text-amber-300 bg-amber-950/60 border border-amber-500/30 px-1 py-0.5 rounded font-mono">
+                            PK
+                          </span>
+                        )}
+                      </div>
                       <span className="text-slate-400 font-normal font-mono tabular-nums">
-                        {finalMatch?.date ? `${finalMatch.date} · ${finalMatch.time}` : 'TBD'}
+                        {finalMatch?.date ? `${finalMatch.date} · ${formatBracketTime(finalMatch.time)}` : 'TBD'}
                       </span>
                     </div>
 
@@ -196,7 +275,18 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                         {teamNameA}
                       </span>
                       <span className="font-mono tabular-nums text-white text-sm min-w-[20px] text-right font-bold">
-                        {hasFinalScores ? finalMatch!.scoreA : '—'}
+                        {hasFinalScores ? (
+                          <span>
+                            {finalMatch!.scoreA}
+                            {finalHasPk && (
+                              <span className="text-xs text-slate-400 font-normal ml-0.5">
+                                ({finalMatch.pkA})
+                              </span>
+                            )}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
                       </span>
                     </div>
 
@@ -206,7 +296,18 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                         {teamNameB}
                       </span>
                       <span className="font-mono tabular-nums text-white text-sm min-w-[20px] text-right font-bold">
-                        {hasFinalScores ? finalMatch!.scoreB : '—'}
+                        {hasFinalScores ? (
+                          <span>
+                            {finalMatch!.scoreB}
+                            {finalHasPk && (
+                              <span className="text-xs text-slate-400 font-normal ml-0.5">
+                                ({finalMatch.pkB})
+                              </span>
+                            )}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
                       </span>
                     </div>
 

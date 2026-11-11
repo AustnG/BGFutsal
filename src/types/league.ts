@@ -47,6 +47,8 @@ export interface Match {
   awayTeam: string;
   homeScore?: number | null;
   awayScore?: number | null;
+  homePk?: number | null; // Penalty shootout goals
+  awayPk?: number | null; // Penalty shootout goals
   status: MatchStatus;
   forfeit?: ForfeitType; // if 'home', away wins 2-0; if 'away', home wins 2-0
   notes?: string;
@@ -109,6 +111,8 @@ export interface PlayoffMatch {
   teamBName?: string;
   scoreA?: number | null;
   scoreB?: number | null;
+  pkA?: number | null;
+  pkB?: number | null;
   status?: MatchStatus;
   winner?: StandingRow;
   winnerName?: string;

@@ -255,8 +255,8 @@ export default function App() {
         />
       )}
 
-      {/* 3. Main Body Content Viewport with Responsive Mobile Padding */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 pb-24 md:pb-8">
+      {/* 3. Main Body Content Viewport */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 pb-8 sm:pb-12">
         {/* 1. HOME: News & Stories + Matchday Pulse + Live Standings with Co-located Controls */}
         {activeTab === 'home' && (
           <HomeView

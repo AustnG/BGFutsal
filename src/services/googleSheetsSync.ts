@@ -517,6 +517,31 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         awayScore = Number(r.away_score);
       }
 
+      // Penalty Shootout (PKs)
+      let homePk: number | null = null;
+      let awayPk: number | null = null;
+      const rawHomePk = r.home_pk ?? r.homepk ?? r.home_pks ?? r.homepks ?? r.home_penalty ?? r.home_penalties ?? r.pk_home;
+      const rawAwayPk = r.away_pk ?? r.awaypk ?? r.away_pks ?? r.awaypks ?? r.away_penalty ?? r.away_penalties ?? r.pk_away;
+
+      if (rawHomePk !== undefined && rawHomePk !== null && String(rawHomePk).trim() !== '' && !isNaN(Number(rawHomePk))) {
+        homePk = Number(rawHomePk);
+      }
+      if (rawAwayPk !== undefined && rawAwayPk !== null && String(rawAwayPk).trim() !== '' && !isNaN(Number(rawAwayPk))) {
+        awayPk = Number(rawAwayPk);
+      }
+
+      // Fallback: extract PK shootout from notes or round text if columns were omitted
+      if (homePk === null || awayPk === null) {
+        const textToSearch = `${r.notes || ''} ${r.round || ''} ${r.status || ''}`;
+        const matchPk1 = textToSearch.match(/(?:pk|pks|penalty|penalties|shootout)[:\s]*\(?(\d+)[\s\-–—:]+(\d+)\)?/i);
+        const matchPk2 = textToSearch.match(/\(?(\d+)[\s\-–—:]+(\d+)\)?\s*(?:pk|pks|penalties|penalty)/i);
+        const matchPk = matchPk1 || matchPk2;
+        if (matchPk) {
+          homePk = parseInt(matchPk[1], 10);
+          awayPk = parseInt(matchPk[2], 10);
+        }
+      }
+
       let status: 'final' | 'upcoming' | 'postponed' | 'cancelled' = 'upcoming';
       if (forfeit !== 'none' || (homeScore !== null && awayScore !== null)) {
         status = 'final';
@@ -604,6 +629,8 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         awayTeam: resolvedAwayName || awayName,
         homeScore,
         awayScore,
+        homePk,
+        awayPk,
         status,
         forfeit,
         notes: r.notes || '',

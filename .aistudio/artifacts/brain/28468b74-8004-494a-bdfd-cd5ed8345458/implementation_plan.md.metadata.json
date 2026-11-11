@@ -1,6 +1,0 @@
-{
-  "summary":  "Implementation plan to add client-side hash routing (/#/home, /#/seasons, /#/about, /#/rules) ensuring direct page linking and browser back/forward support with 100% GitHub Pages static hosting compatibility.",
-  "updatedAt":  "2026-11-11T04:20:43.297683399Z",
-  "requestFeedback":  true,
-  "userFacing":  true
-}
