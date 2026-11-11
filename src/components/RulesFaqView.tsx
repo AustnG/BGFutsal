@@ -59,75 +59,70 @@ export const RulesFaqView: React.FC = () => {
 
   return (
     <div className="space-y-8 sm:space-y-10 max-w-4xl mx-auto">
-      {/* 1. HERO SPOTLIGHT: Pitch-Navy Gradient Paneling */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#071324] via-[#0a1c36] to-[#06111f] text-white rounded-2xl p-6 sm:p-8 border border-[#172d4c] shadow-lg">
-        {/* Subtle Ambient Emerald Accent Glow */}
-        <div className="absolute -top-24 -right-24 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent pointer-events-none" />
-
-        <div className="relative z-10 space-y-3">
+      {/* 1. HERO SPOTLIGHT: Deep Slate Card */}
+      <section className="bg-slate-900 text-white rounded-2xl p-6 sm:p-8 border border-slate-800 shadow-sm">
+        <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
-            <span className="text-[11px] font-mono uppercase tracking-widest text-emerald-400 font-semibold">
+            <span className="text-xs uppercase tracking-wider text-emerald-400 font-semibold">
               Official League Handbook
             </span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight text-white leading-tight">
+          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
             Rules & FAQs
           </h1>
 
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal max-w-2xl">
+          <p className="text-sm text-slate-300 leading-relaxed font-normal max-w-2xl">
             Official competition regulations, FIFA futsal rules of the game, and matchday standards for team managers, players, and referees.
           </p>
         </div>
       </section>
 
-      {/* 2. THREE KEY RULES: Color-Paneled Highlights */}
+      {/* 2. THREE KEY RULES: Clean Cards */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-        {/* 4-Second Clock - Emerald Paneling */}
-        <div className="relative overflow-hidden p-4 rounded-xl border border-emerald-300/80 bg-gradient-to-br from-emerald-500/12 via-emerald-500/[0.03] to-white shadow-xs space-y-2">
+        {/* 4-Second Clock */}
+        <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-800 font-semibold">
+            <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">
               Restarts
             </span>
-            <div className="w-7 h-7 rounded-lg bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 shadow-xs">
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shadow-2xs">
               <Clock className="w-3.5 h-3.5" />
             </div>
           </div>
-          <h3 className="text-sm font-semibold text-[#0a1526]">4-Second Clock</h3>
+          <h3 className="text-sm font-semibold text-slate-900">4-Second Clock</h3>
           <p className="text-xs text-slate-600 leading-relaxed font-normal">
             All kick-ins, corners, and goal clearances must be released within 4 seconds of referee signal.
           </p>
         </div>
 
-        {/* Accumulated Fouls - Amber Paneling */}
-        <div className="relative overflow-hidden p-4 rounded-xl border border-amber-300/80 bg-gradient-to-br from-amber-500/12 via-amber-500/[0.03] to-white shadow-xs space-y-2">
+        {/* Accumulated Fouls */}
+        <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-amber-800 font-semibold">
+            <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">
               Team Fouls
             </span>
-            <div className="w-7 h-7 rounded-lg bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-700 shadow-xs">
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shadow-2xs">
               <Activity className="w-3.5 h-3.5" />
             </div>
           </div>
-          <h3 className="text-sm font-semibold text-[#0a1526]">Accumulated Limit</h3>
+          <h3 className="text-sm font-semibold text-slate-900">Accumulated Limit</h3>
           <p className="text-xs text-slate-600 leading-relaxed font-normal">
             5 fouls per half limit. 6th foul awards a direct 10-meter penalty kick without a defensive wall.
           </p>
         </div>
 
-        {/* Footwear & Safety - Sky Paneling */}
-        <div className="relative overflow-hidden p-4 rounded-xl border border-sky-300/80 bg-gradient-to-br from-sky-500/12 via-sky-500/[0.03] to-white shadow-xs space-y-2">
+        {/* Footwear & Safety */}
+        <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-sky-800 font-semibold">
+            <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">
               Equipment
             </span>
-            <div className="w-7 h-7 rounded-lg bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-700 shadow-xs">
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shadow-2xs">
               <ShieldAlert className="w-3.5 h-3.5" />
             </div>
           </div>
-          <h3 className="text-sm font-semibold text-[#0a1526]">Court Flats Only</h3>
+          <h3 className="text-sm font-semibold text-slate-900">Court Flats Only</h3>
           <p className="text-xs text-slate-600 leading-relaxed font-normal">
             Flat, non-marking indoor court flats only (no turf shoes or cleats on hardwood). Shin guards mandatory.
           </p>
@@ -135,10 +130,10 @@ export const RulesFaqView: React.FC = () => {
       </section>
 
       {/* 3. CORE REGULATIONS SUMMARY */}
-      <section className="bg-white p-5 sm:p-6 rounded-xl border border-slate-200/80 shadow-xs space-y-3">
+      <section className="bg-white p-5 sm:p-6 rounded-xl border border-slate-200 shadow-xs space-y-3">
         <div className="flex items-center gap-2">
-          <BookOpen className="w-4 h-4 text-emerald-600" />
-          <h2 className="text-sm font-semibold text-[#0a1526]">
+          <BookOpen className="w-4 h-4 text-emerald-700" />
+          <h2 className="text-sm font-semibold text-slate-900">
             Official Match Format & Regulations
           </h2>
         </div>
@@ -154,19 +149,16 @@ export const RulesFaqView: React.FC = () => {
 
       {/* 4. EXPANDABLE FAQ ACCORDION */}
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-4 rounded-full bg-emerald-500" />
-            <h2 className="text-base sm:text-lg font-semibold text-[#0a1526] tracking-tight">
-              Frequently Asked Questions
-            </h2>
-          </div>
-          <span className="text-xs font-mono text-slate-400">
+        <div className="flex items-baseline justify-between pb-1 border-b border-slate-200">
+          <h2 className="text-lg font-bold text-slate-900 tracking-tight">
+            Frequently Asked Questions
+          </h2>
+          <span className="text-xs text-slate-500">
             {faqs.length} Regulations
           </span>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200/80 divide-y divide-slate-100 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 shadow-xs overflow-hidden">
           {faqs.map((faq, idx) => {
             const isOpen = openFaq === idx;
             return (
@@ -176,24 +168,24 @@ export const RulesFaqView: React.FC = () => {
               >
                 <button
                   onClick={() => toggleFaq(idx)}
-                  className="w-full p-4 sm:p-4.5 flex items-center justify-between text-left gap-4 font-semibold text-[#0a1526] text-xs sm:text-sm hover:text-emerald-700 transition-colors cursor-pointer"
+                  className="w-full p-4 flex items-center justify-between text-left gap-4 font-semibold text-slate-900 text-xs sm:text-sm hover:text-emerald-700 transition-colors cursor-pointer"
                 >
                   <span className="flex items-center gap-2.5">
                     {faq.category && (
-                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium hidden sm:inline-block border border-slate-200/60">
+                      <span className="text-[11px] uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium hidden sm:inline-block border border-slate-200">
                         {faq.category}
                       </span>
                     )}
                     <span>{faq.q}</span>
                   </span>
                   {isOpen ? (
-                    <ChevronUp className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <ChevronUp className="w-4 h-4 text-emerald-700 shrink-0" />
                   ) : (
                     <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
                   )}
                 </button>
                 {isOpen && (
-                  <div className="px-4 sm:px-4.5 pb-4 text-xs sm:text-sm text-slate-600 leading-relaxed font-normal animate-in fade-in duration-150 border-l-2 border-emerald-500 ml-4 mb-2">
+                  <div className="px-4 pb-4 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed font-normal animate-in fade-in duration-150">
                     {faq.a}
                   </div>
                 )}
@@ -204,8 +196,8 @@ export const RulesFaqView: React.FC = () => {
       </section>
 
       {/* 5. MATCHDAY DESK NOTICE */}
-      <section className="flex items-start gap-3.5 p-4 sm:p-5 bg-gradient-to-r from-emerald-500/10 via-emerald-500/[0.04] to-white border border-emerald-200/80 rounded-xl text-xs text-emerald-950 leading-relaxed shadow-xs">
-        <AlertCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+      <section className="flex items-start gap-3.5 p-4 sm:p-5 bg-emerald-50/50 border border-emerald-200 rounded-xl text-xs text-emerald-950 leading-relaxed shadow-2xs">
+        <AlertCircle className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
         <p>
           <strong className="font-semibold text-emerald-900">Have a rule question on game night?</strong> Referees and league directors are on-site at the Bowling Green Futsal Arena scorekeeper desk 30 minutes before every scheduled kickoff to answer captain inquiries.
         </p>

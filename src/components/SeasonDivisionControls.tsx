@@ -65,14 +65,14 @@ export const SeasonDivisionControls: React.FC<SeasonDivisionControlsProps> = ({
         )}
 
         {/* Division Tabs (No 'All' option - each division has its own distinct tab) */}
-        <div className="flex items-center gap-1 p-0.5 bg-slate-100/90 rounded-lg border border-slate-200/60">
+        <div className="flex items-center gap-1 p-0.5 bg-slate-100 rounded-lg border border-slate-200">
           {seasonDivisions.map((div) => (
             <button
               key={div.id}
               onClick={() => onSelectDivision(div.id)}
               className={`px-3 py-1 text-xs rounded-md transition-colors cursor-pointer ${
                 selectedDivisionId === div.id
-                  ? 'bg-gradient-to-r from-[#0a1526] to-[#0e213b] text-emerald-400 font-semibold shadow-xs'
+                  ? 'bg-slate-900 text-white font-semibold shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 font-medium'
               }`}
             >
@@ -91,7 +91,7 @@ export const SeasonDivisionControls: React.FC<SeasonDivisionControlsProps> = ({
             placeholder="Search club..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full bg-slate-50/90 border border-slate-200 text-slate-900 text-xs rounded-lg pl-8 pr-7 py-1.5 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+            className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs rounded-lg pl-8 pr-7 py-1.5 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-colors"
           />
           {searchQuery && (
             <button
@@ -108,7 +108,7 @@ export const SeasonDivisionControls: React.FC<SeasonDivisionControlsProps> = ({
             onClick={onToggleOnlyMyTeam}
             className={`px-2.5 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
               onlyMyTeam
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white border-emerald-600 shadow-xs'
+                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
                 : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
             }`}
             title="Filter to My Team"

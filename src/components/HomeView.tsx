@@ -1,8 +1,9 @@
-import React from 'react';
-import { ArrowRight, User, Calendar, Clock, MapPin, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight, User, Calendar, Clock, MapPin, Sparkles, X } from 'lucide-react';
 import { Division, Match, NewsStory, Season, StandingRow } from '../types/league';
 import { StandingsTable } from './StandingsTable';
 import { SeasonDivisionControls } from './SeasonDivisionControls';
+import { NewsStoriesView } from './NewsStoriesView';
 
 interface HomeViewProps {
   seasons: Season[];
@@ -44,6 +45,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
   matches,
   onNavigateToCompetition,
 }) => {
+  const [showAllStoriesModal, setShowAllStoriesModal] = useState(false);
+
   const seasonDivisions = divisions.filter((d) => d.seasonId === selectedSeasonId);
   const activeDivision =
     seasonDivisions.find((d) => d.id === selectedDivisionId) || seasonDivisions[0];
@@ -183,18 +186,19 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <h2 className="text-base sm:text-lg font-semibold text-[#0a1526] tracking-tight">
               Current Standings & Form
             </h2>
-            <span className="text-xs text-slate-400 font-normal">
-              · {activeDivision?.name || 'League Table'}
-            </span>
           </div>
 
-          <button
-            onClick={() => onNavigateToCompetition('standings')}
+          <a
+            href="#/seasons"
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigateToCompetition('standings');
+            }}
             className="text-xs font-medium text-emerald-700 hover:text-emerald-800 transition-colors inline-flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
           >
             <span>Open Seasons Hub</span>
             <ArrowRight className="w-3 h-3" />
-          </button>
+          </a>
         </div>
 
         {/* Filter Toolbar Placed directly adjacent to Standings (Divisions Only on Homepage) */}
@@ -218,6 +222,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <StandingsTable
           standings={standings}
           divisionName={activeDivision?.name || 'League Table'}
+          title="League Standings"
           starredTeam={starredTeam}
           onToggleStarTeam={onToggleStarTeam}
         />
@@ -233,9 +238,21 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 Latest Stories & Updates
               </h2>
             </div>
-            <span className="text-xs text-slate-400 font-mono font-normal">
-              BGFutsal Dispatch
-            </span>
+            <div className="flex items-center gap-3">
+              {stories.length > 4 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllStoriesModal(true)}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
+                >
+                  <span>View All Updates ({stories.length})</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <span className="text-xs text-slate-400 font-mono font-normal hidden sm:inline">
+                BGFutsal Dispatch
+              </span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
@@ -275,6 +292,39 @@ export const HomeView: React.FC<HomeViewProps> = ({
             ))}
           </div>
         </section>
+      )}
+
+      {/* All Stories Archive Modal */}
+      {showAllStoriesModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm p-3 sm:p-6 lg:p-8 flex items-center justify-center animate-in fade-in duration-200">
+          <div className="bg-slate-50 rounded-2xl border border-slate-200 shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-4 rounded-full bg-emerald-500" />
+                <h3 className="text-base font-bold text-slate-900">League News & Updates Archive</h3>
+                <span className="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                  {stories.length} stories
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAllStoriesModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                aria-label="Close archive modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar">
+              <NewsStoriesView
+                stories={stories}
+                onOpenStoryModal={(story) => {
+                  onOpenStoryModal(story);
+                }}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

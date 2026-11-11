@@ -154,58 +154,58 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
                       {/* Division Winner */}
-                      <div className="relative overflow-hidden p-4 sm:p-5 rounded-xl border border-amber-300/80 bg-gradient-to-br from-amber-500/12 via-amber-500/[0.03] to-white space-y-2.5 shadow-xs hover:border-amber-400 hover:shadow-md transition-all">
+                      <div className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-white space-y-2.5 shadow-xs">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-mono uppercase tracking-wider text-amber-800 font-semibold">
+                          <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">
                             Division Champion
                           </span>
-                          <div className="w-8 h-8 rounded-lg bg-amber-100/90 border border-amber-200/90 flex items-center justify-center text-amber-700 shadow-xs">
+                          <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 shadow-2xs">
                             <Trophy className="w-4 h-4" />
                           </div>
                         </div>
-                        <h3 className="text-base sm:text-lg font-semibold text-[#0a1526] tracking-tight">
+                        <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
                           {divisionWinner?.recipient || divisionWinner?.teamName || 'Record Pending'}
                         </h3>
-                        <p className="text-xs text-slate-500 leading-relaxed font-mono">
+                        <p className="text-xs text-slate-600 leading-relaxed">
                           {divisionWinner?.statDetail || 'Historical champion recorded.'}
                         </p>
                       </div>
 
                       {/* Golden Boot */}
-                      <div className="relative overflow-hidden p-4 sm:p-5 rounded-xl border border-emerald-300/80 bg-gradient-to-br from-emerald-500/12 via-emerald-500/[0.03] to-white space-y-2.5 shadow-xs hover:border-emerald-500 hover:shadow-md transition-all">
+                      <div className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-white space-y-2.5 shadow-xs">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-800 font-semibold">
-                            The Golden Boot
+                          <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                            Top Scorer
                           </span>
-                          <div className="w-8 h-8 rounded-lg bg-emerald-100/90 border border-emerald-200/90 flex items-center justify-center text-emerald-700 shadow-xs">
+                          <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shadow-2xs">
                             <Award className="w-4 h-4" />
                           </div>
                         </div>
-                        <h3 className="text-base sm:text-lg font-semibold text-[#0a1526] tracking-tight">
+                        <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
                           {goldenBoot?.recipient || 'Record Pending'}
                         </h3>
-                        <div className="text-xs text-slate-500">
-                          <span className="font-medium text-[#0a1526]">{goldenBoot?.teamName}</span>
-                          <p className="font-mono mt-0.5 text-[11px] text-emerald-700 font-medium">{goldenBoot?.statDetail}</p>
+                        <div className="text-xs text-slate-600">
+                          <span className="font-semibold text-slate-900">{goldenBoot?.teamName}</span>
+                          <p className="mt-0.5 text-xs text-emerald-800 font-medium">{goldenBoot?.statDetail}</p>
                         </div>
                       </div>
 
                       {/* Golden Glove */}
-                      <div className="relative overflow-hidden p-4 sm:p-5 rounded-xl border border-sky-300/80 bg-gradient-to-br from-sky-500/12 via-sky-500/[0.03] to-white space-y-2.5 shadow-xs hover:border-sky-400 hover:shadow-md transition-all">
+                      <div className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-white space-y-2.5 shadow-xs">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-mono uppercase tracking-wider text-sky-800 font-semibold">
-                            The Golden Glove
+                          <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                            Best Defense
                           </span>
-                          <div className="w-8 h-8 rounded-lg bg-sky-100/90 border border-sky-200/90 flex items-center justify-center text-sky-700 shadow-xs">
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 shadow-2xs">
                             <Shield className="w-4 h-4" />
                           </div>
                         </div>
-                        <h3 className="text-base sm:text-lg font-semibold text-[#0a1526] tracking-tight">
+                        <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
                           {goldenGlove?.recipient || 'Record Pending'}
                         </h3>
-                        <div className="text-xs text-slate-500">
-                          <span className="font-medium text-[#0a1526]">{goldenGlove?.teamName}</span>
-                          <p className="font-mono mt-0.5 text-[11px] text-sky-700 font-medium">{goldenGlove?.statDetail}</p>
+                        <div className="text-xs text-slate-600">
+                          <span className="font-semibold text-slate-900">{goldenGlove?.teamName}</span>
+                          <p className="mt-0.5 text-xs text-slate-700 font-medium">{goldenGlove?.statDetail}</p>
                         </div>
                       </div>
                     </div>
@@ -235,24 +235,22 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
       )}
 
       {/* 3. TABLE STANDINGS / TRAJECTORY TABLE */}
-      <section id="sec-standings" className="space-y-3">
+      <section id="sec-standings" className="space-y-4">
         {/* Section Header with Segmented View Switcher */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1 border-b border-slate-200/60">
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-4 rounded-full bg-emerald-500" />
-            <h2 className="text-base sm:text-lg font-semibold text-[#0a1526] tracking-tight">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1 border-b border-slate-200">
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight">
               {currentSeason.isCurrent ? 'Division Standings & Progression' : 'Historical Final Standings'}
             </h2>
-
           </div>
 
           {/* Segmented View Switcher: Table | Trajectory */}
-          <div className="flex items-center gap-1 p-0.5 bg-slate-100/90 rounded-lg border border-slate-200/60 self-start sm:self-auto">
+          <div className="flex items-center gap-1 p-0.5 bg-slate-100 rounded-lg border border-slate-200 self-start sm:self-auto">
             <button
               onClick={() => setDisplayMode('table')}
               className={`px-3 py-1 text-xs rounded-md transition-colors cursor-pointer flex items-center gap-1.5 ${
                 activeDisplayMode === 'table'
-                  ? 'bg-gradient-to-r from-[#0a1526] to-[#0e213b] text-emerald-400 font-semibold shadow-xs'
+                  ? 'bg-slate-900 text-white font-semibold shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 font-medium'
               }`}
               title="Show Division Standings Table"
@@ -265,7 +263,7 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
               onClick={() => setDisplayMode('trajectory')}
               className={`px-3 py-1 text-xs rounded-md transition-colors cursor-pointer flex items-center gap-1.5 ${
                 activeDisplayMode === 'trajectory'
-                  ? 'bg-gradient-to-r from-[#0a1526] to-[#0e213b] text-emerald-400 font-semibold shadow-xs'
+                  ? 'bg-slate-900 text-white font-semibold shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 font-medium'
               }`}
               title="Show Weekly Rank Progression Chart"
@@ -282,6 +280,7 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
             <StandingsTable
               standings={standings}
               divisionName={activeDivision?.name || 'League Table'}
+              title="League Standings"
               starredTeam={starredTeam}
               onToggleStarTeam={onToggleStarTeam}
             />

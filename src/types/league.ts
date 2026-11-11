@@ -94,6 +94,7 @@ export interface StandingRow {
   points: number;
   form: ('W' | 'D' | 'L')[];
   isPlayoffQualified: boolean; // Top 8 in division
+  isTied?: boolean; // True if tied on points and all tie-breakers with another team
 }
 
 export interface PlayoffMatch {

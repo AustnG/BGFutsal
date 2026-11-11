@@ -192,9 +192,11 @@ export function loadInitialData(): { data: LeagueDatabase; syncStatus: SyncStatu
  */
 export function saveLeagueDataToStorage(data: LeagueDatabase, sheetUrl: string) {
   try {
-    localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(data));
-    localStorage.setItem(STORAGE_KEY_SHEET_URL, sheetUrl);
-    localStorage.setItem(STORAGE_KEY_LAST_SYNC, new Date().toLocaleString());
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(data));
+      localStorage.setItem(STORAGE_KEY_SHEET_URL, sheetUrl);
+      localStorage.setItem(STORAGE_KEY_LAST_SYNC, new Date().toLocaleString());
+    }
   } catch (err) {
     console.warn('Failed to save to localStorage:', err);
   }
@@ -416,9 +418,10 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
   const knownTeamSeasonMap = new Set(teams.map((t) => `${t.seasonId}:::${t.name.trim().toLowerCase()}`));
 
   // 4. Parse Matches (Handling user's updated column ordering)
-  let matches: Match[] = INITIAL_LEAGUE_DATA.matches;
+  let matches: Match[] = [];
   const rawMatchRows = tabCSVs['Matches'] ? parseCSV(tabCSVs['Matches']) : [];
   if (rawMatchRows.length > 0) {
+    const seenMatchIds = new Set<string>();
     let lastKnownSeason = seasons[0]?.id || 's2026-winter';
     let previousWasPostseason = false;
     let previousSeasonId = '';
@@ -578,8 +581,17 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
       previousWasPostseason = isPostseason;
       previousSeasonId = seasonId;
 
+      let matchId = (r.match_id || r.id || '').trim();
+      if (!matchId) {
+        matchId = `m-${i + 1}`;
+      }
+      if (seenMatchIds.has(matchId)) {
+        matchId = `${matchId}_${i + 1}`;
+      }
+      seenMatchIds.add(matchId);
+
       matches.push({
-        id: r.match_id || r.id || `m-${i + 1}`,
+        id: matchId,
         seasonId,
         divisionId: divId,
         gameweek: parsedGw,
@@ -623,10 +635,12 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         }
       }
     });
+  } else {
+    matches = [...INITIAL_LEAGUE_DATA.matches];
   }
 
   // 5. Parse Honors (Combining Honors tab with Seasons tab awards)
-  let honors: Honor[] = INITIAL_LEAGUE_DATA.honors;
+  let honors: Honor[] = [...INITIAL_LEAGUE_DATA.honors];
   const rawHonorRows = tabCSVs['Honors'] ? parseCSV(tabCSVs['Honors']) : [];
   if (rawHonorRows.length > 0) {
     honors = rawHonorRows.map((r, i) => {
@@ -693,11 +707,11 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
     }
   });
 
-  // 6. Parse News (Handling rearranged News columns and Blogger cover images)
+  // 6. Parse News (Handling rearranged News columns, Blogger cover images, and chronologic sorting)
   let news: NewsStory[] = INITIAL_LEAGUE_DATA.news;
   const rawNewsRows = tabCSVs['News'] ? parseCSV(tabCSVs['News']) : [];
   if (rawNewsRows.length > 0) {
-    news = rawNewsRows.map((r, i) => {
+    const parsedStories = rawNewsRows.map((r, i) => {
       // Find image URL from image_url, summary, or content
       let imageUrl = r.image_url || r.image || '';
       if (!imageUrl && r.summary && /^https?:\/\//i.test(r.summary.trim())) {
@@ -721,33 +735,66 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         textBody = r.summary;
       }
 
-      // Determine pinned status
-      let isPinned = false;
-      if (r.pinned && /^(true|yes)$/i.test(r.pinned.trim())) {
-        isPinned = true;
-      } else if (r.title && r.title.toLowerCase().includes('1 spot left')) {
-        isPinned = true;
-      }
+      // Determine pinned status - strictly driven by the spreadsheet's pinned column
+      const isPinned = Boolean(r.pinned && /^(true|yes|1)$/i.test(r.pinned.trim()));
 
       return {
         id: r.news_id || r.id || `n-${i + 1}`,
         title: r.title || `Announcement ${i + 1}`,
-        date: r.date || new Date().toLocaleDateString(),
+        date: r.date || '',
         category: (r.category as any) || 'Announcement',
         summary: textBody.slice(0, 160) + (textBody.length > 160 ? '...' : ''),
         content: textBody,
         pinned: isPinned,
         author: r.author && !r.author.startsWith('#') ? r.author : 'BGFutsal League Office',
         imageUrl: imageUrl || undefined,
+        sheetRowIndex: i,
       };
     });
+
+    // Helper to parse dates formatted as 'YYYY/MM/DD', 'YYYY-MM-DD', 'MM/DD/YYYY', etc.
+    const parseDateToMs = (dateStr: string): number => {
+      if (!dateStr) return 0;
+      const clean = dateStr.trim().replace(/\//g, '-');
+      const timestamp = Date.parse(clean);
+      return isNaN(timestamp) ? 0 : timestamp;
+    };
+
+    // Sort news stories so newest articles always appear first:
+    // 1. Sort by date descending (newest publication date first)
+    // 2. If dates match or are missing, preserve reverse spreadsheet row order (bottom row in sheet is newest)
+    news = parsedStories
+      .sort((a, b) => {
+        const timeA = parseDateToMs(a.date);
+        const timeB = parseDateToMs(b.date);
+        if (timeA !== timeB) {
+          return timeB - timeA;
+        }
+        return b.sheetRowIndex - a.sheetRowIndex;
+      })
+      .map(({ sheetRowIndex, ...story }) => story);
   }
+
+  // Final safeguard: Deduplicate matches to guarantee 100% unique IDs across entire database
+  const finalMatches: Match[] = [];
+  const seenFinalMatchIds = new Set<string>();
+  matches.forEach((m, idx) => {
+    let safeId = m.id || `m-${idx + 1}`;
+    if (seenFinalMatchIds.has(safeId)) {
+      safeId = `${safeId}_${idx + 1}`;
+    }
+    seenFinalMatchIds.add(safeId);
+    finalMatches.push({
+      ...m,
+      id: safeId,
+    });
+  });
 
   const updatedDatabase: LeagueDatabase = {
     seasons,
     divisions,
     teams,
-    matches,
+    matches: finalMatches,
     honors,
     news,
   };

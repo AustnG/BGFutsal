@@ -17,6 +17,7 @@ import { Footer } from './components/Footer';
 import { SyncModal } from './components/SyncModal';
 import { StoryModal } from './components/StoryModal';
 import { INITIAL_LEAGUE_DATA } from './data/initialLeagueData';
+import { getTabFromHash, setHashForTab } from './utils/routing';
 
 const STARRED_TEAM_KEY = 'bgfutsal_starred_team_v1';
 
@@ -25,8 +26,27 @@ export default function App() {
   const [data, setData] = useState<LeagueDatabase>(initial.data);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(initial.syncStatus);
 
-  // Active navigation tab (Home is default)
-  const [activeTab, setActiveTab] = useState<MainNavTab>('home');
+  // Active navigation tab synchronized with URL hash (/#/home, /#/seasons, /#/about, /#/rules)
+  const [activeTab, setActiveTab] = useState<MainNavTab>(() => getTabFromHash());
+
+  // Listen to browser Back/Forward navigation or manual hash URL entry
+  useEffect(() => {
+    const handleHashChange = () => {
+      const newTab = getTabFromHash();
+      setActiveTab(newTab);
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+
+  const handleTabChange = (tab: MainNavTab) => {
+    setActiveTab(tab);
+    setHashForTab(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Season & Division Selection
   const currentSeason = data.seasons.find((s) => s.isCurrent) || data.seasons[0];
@@ -191,7 +211,7 @@ export default function App() {
     } else if (sectionId === 'standings') {
       setSeasonHubDisplayMode('table');
     }
-    setActiveTab('seasonHub');
+    handleTabChange('seasonHub');
     if (sectionId) {
       setTimeout(() => {
         const targetMap: Record<string, string> = {
@@ -211,7 +231,7 @@ export default function App() {
   };
 
   const handleNavigateToPage = (page?: 'about' | 'rules') => {
-    setActiveTab(page || 'about');
+    handleTabChange(page || 'about');
   };
 
   return (
@@ -219,7 +239,7 @@ export default function App() {
       {/* 1. Top Bar Navigation (Home, Seasons, About, Rules & FAQs + Mobile Bottom Bar) */}
       <Navbar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
         starredTeam={starredTeam}
         onClearStarredTeam={handleClearStarredTeam}
         openSyncModal={() => setIsSyncModalOpen(true)}
@@ -303,14 +323,10 @@ export default function App() {
 
       <StoryModal story={selectedStory} onClose={() => setSelectedStory(null)} />
 
-      {/* 6. Authority Multi-Column Footer with Emerald Accents */}
+      {/* 6. Clean Streamlined Footer */}
       <Footer
         activeTab={activeTab}
-        onNavigateTab={setActiveTab}
-        onNavigateToSection={handleNavigateToCompetition}
-        openSyncModal={() => setIsSyncModalOpen(true)}
-        lastSynced={syncStatus.lastSynced}
-        dataSource={syncStatus.dataSource}
+        onNavigateTab={handleTabChange}
       />
     </div>
   );

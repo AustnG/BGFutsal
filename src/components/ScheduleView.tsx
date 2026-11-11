@@ -57,14 +57,14 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
   return (
     <div className="space-y-3.5 sm:space-y-4">
-      {/* Gameweek Filter Row with Dark Blue & Green Styling */}
-      <div className="flex items-center justify-between border-b border-slate-200/70 pb-2 sm:pb-2.5">
-        <div className="flex items-center gap-1.5 p-0.5 bg-slate-100/90 rounded-lg border border-slate-200/60 overflow-x-auto custom-scrollbar">
+      {/* Gameweek Filter Row */}
+      <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+        <div className="flex items-center gap-1.5 p-0.5 bg-slate-100 rounded-lg border border-slate-200 overflow-x-auto custom-scrollbar">
           <button
             onClick={() => setSelectedGameweek('all')}
             className={`text-xs px-2.5 py-1 rounded-md transition-colors cursor-pointer whitespace-nowrap ${
               selectedGameweek === 'all'
-                ? 'bg-gradient-to-r from-[#0a1526] to-[#0e213b] text-emerald-400 font-semibold shadow-xs'
+                ? 'bg-slate-900 text-white font-semibold shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 font-medium'
             }`}
           >
@@ -76,7 +76,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               onClick={() => setSelectedGameweek(gw)}
               className={`text-xs px-2.5 py-1 rounded-md transition-colors cursor-pointer whitespace-nowrap ${
                 selectedGameweek === gw
-                  ? 'bg-gradient-to-r from-[#0a1526] to-[#0e213b] text-emerald-400 font-semibold shadow-xs'
+                  ? 'bg-slate-900 text-white font-semibold shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 font-medium'
               }`}
             >
@@ -88,7 +88,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
               onClick={() => setSelectedGameweek('playoffs')}
               className={`text-xs px-2.5 py-1 rounded-md transition-colors cursor-pointer whitespace-nowrap ${
                 selectedGameweek === 'playoffs'
-                  ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white font-semibold shadow-xs'
+                  ? 'bg-amber-600 text-white font-semibold shadow-xs'
                   : 'text-amber-800 bg-amber-50 hover:bg-amber-100 font-medium'
               }`}
             >
@@ -97,15 +97,14 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-500 hidden sm:flex">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          <span>Bowling Green Futsal Arena</span>
+        <div className="text-xs text-slate-500 hidden sm:block">
+          Bowling Green Futsal Arena
         </div>
       </div>
 
-      {/* Matchday Cards with Subtle Elevation and Fine 1px Strokes */}
+      {/* Matchday Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {filteredMatches.map((m) => {
+        {filteredMatches.map((m, idx) => {
           const isFinal = m.status === 'final';
           const isForfeit = m.forfeit && m.forfeit !== 'none';
           const homeColor = getTeamColor(m.homeTeam);
@@ -120,11 +119,11 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
           return (
             <div
-              key={m.id}
-              className={`p-3.5 sm:p-4 rounded-xl border transition-all shadow-xs ${
+              key={`${m.id}-${idx}`}
+              className={`p-3.5 sm:p-4 rounded-xl border transition-colors shadow-xs ${
                 hasStarred
-                  ? 'border-emerald-500/70 bg-gradient-to-br from-emerald-50/50 via-white to-emerald-50/20'
-                  : 'border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-sm'
+                  ? 'border-emerald-500 bg-emerald-50/40'
+                  : 'border-slate-200 bg-white hover:border-slate-300'
               }`}
             >
               {/* Header: Gameweek, Date, Time & Status Indicator */}

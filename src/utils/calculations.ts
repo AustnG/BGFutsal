@@ -183,7 +183,7 @@ export function computeStandings(
   };
 
   // Convert to StandingRow array
-  const rows = Array.from(statsMap.values()).map((s) => {
+  const rows: StandingRow[] = Array.from(statsMap.values()).map((s) => {
     // Last 5 games
     const sortedHistory = [...s.matchHistory].sort((a, b) => b.dateOrder - a.dateOrder);
     const form = sortedHistory.slice(0, 3).map((h) => h.result).reverse();
@@ -208,6 +208,7 @@ export function computeStandings(
       points: s.points,
       form,
       isPlayoffQualified: false,
+      isTied: false,
     };
   });
 
@@ -227,11 +228,33 @@ export function computeStandings(
     return a.teamName.localeCompare(b.teamName);
   });
 
-  // Assign ranks & playoff cutoff
-  rows.forEach((row, idx) => {
-    row.rank = idx + 1;
+  // Assign ranks & playoff cutoff (with standard competition ranking: tied teams share rank, skipping subsequent ranks)
+  for (let idx = 0; idx < rows.length; idx++) {
+    const row = rows[idx];
+    if (idx === 0) {
+      row.rank = 1;
+      row.isTied = false;
+    } else {
+      const prev = rows[idx - 1];
+      const h2h = getHeadToHead(prev.teamId, row.teamId);
+      const isLevel =
+        row.points === prev.points &&
+        row.goalDiff === prev.goalDiff &&
+        row.goalsFor === prev.goalsFor &&
+        h2h.aPoints === h2h.bPoints &&
+        h2h.aGD === 0;
+
+      if (isLevel) {
+        row.rank = prev.rank;
+        row.isTied = true;
+        prev.isTied = true;
+      } else {
+        row.rank = idx + 1;
+        row.isTied = false;
+      }
+    }
     row.isPlayoffQualified = row.rank <= 8;
-  });
+  }
 
   return rows;
 }

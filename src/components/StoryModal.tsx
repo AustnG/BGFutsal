@@ -34,7 +34,7 @@ export const StoryModal: React.FC<StoryModalProps> = ({ story, onClose }) => {
         {/* Modal Header if no image */}
         {!story.imageUrl && (
           <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between shrink-0">
-            <span className="text-xs font-mono uppercase tracking-wider text-emerald-600 font-semibold">
+            <span className="text-xs uppercase tracking-wider text-emerald-700 font-semibold">
               {story.category}
             </span>
             <button
@@ -60,11 +60,11 @@ export const StoryModal: React.FC<StoryModalProps> = ({ story, onClose }) => {
             </span>
           </div>
 
-          <h2 className="text-lg sm:text-xl font-semibold text-[#0a1526] leading-snug tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug tracking-tight text-balance">
             {story.title}
           </h2>
 
-          <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2.5 font-normal pt-1">
+          <div className="text-sm text-slate-700 leading-relaxed space-y-2.5 font-normal pt-1">
             <p>{story.content || story.summary}</p>
           </div>
         </div>
@@ -73,9 +73,9 @@ export const StoryModal: React.FC<StoryModalProps> = ({ story, onClose }) => {
         <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-end shrink-0">
           <button
             onClick={onClose}
-            className="px-3.5 py-1.5 text-xs font-semibold text-[#0a1526] bg-white border border-slate-200 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+            className="px-4 py-1.5 text-xs font-semibold text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
           >
-            Close Story
+            Close story
           </button>
         </div>
       </div>

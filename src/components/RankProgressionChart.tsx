@@ -59,16 +59,13 @@ export const RankProgressionChart: React.FC<RankProgressionChartProps> = ({
   };
 
   return (
-    <div className="bg-[#0a1526] text-white rounded-xl border border-[#162744] p-4 sm:p-5 space-y-3 shadow-xs">
+    <div className="bg-slate-900 text-white rounded-xl border border-slate-800 p-4 sm:p-5 space-y-3 shadow-xs">
       {/* Chart Topline */}
-      <div className="flex items-center justify-between text-xs pb-2.5 border-b border-[#162744]">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]" />
-          <span className="font-semibold text-white uppercase tracking-wider text-xs">
-            {divisionName} Table Progression
-          </span>
-        </div>
-        <span className="text-emerald-400 font-mono text-[11px] font-medium">
+      <div className="flex items-center justify-between text-xs pb-2.5 border-b border-slate-800">
+        <h3 className="font-semibold text-white uppercase tracking-wider text-xs">
+          {divisionName} Table Progression
+        </h3>
+        <span className="text-emerald-400 font-mono text-xs tabular-nums">
           GW 1–{gameweeks[gameweeks.length - 1]}
         </span>
       </div>

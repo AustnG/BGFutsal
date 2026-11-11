@@ -4,7 +4,9 @@ import { StandingRow } from '../types/league';
 
 interface StandingsTableProps {
   standings: StandingRow[];
-  divisionName: string;
+  divisionName?: string;
+  title?: string;
+  hideTitleBar?: boolean;
   starredTeam: string | null;
   onToggleStarTeam: (teamName: string) => void;
 }
@@ -14,6 +16,8 @@ type SortField = 'rank' | 'points' | 'goalDiff' | 'goalsFor' | 'name';
 export const StandingsTable: React.FC<StandingsTableProps> = ({
   standings,
   divisionName,
+  title,
+  hideTitleBar = false,
   starredTeam,
   onToggleStarTeam,
 }) => {
@@ -43,17 +47,19 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
   return (
     <div className="bg-white rounded-xl border border-slate-200/70 overflow-hidden shadow-xs">
       {/* Table Title Bar with Subtle Gradient & Emerald Accent */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#0a1526] via-[#0e213b] to-[#0a1526] text-white px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between border-b border-[#14233c]">
-        {/* Subtle Bottom Accent Gradient Line */}
-        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-emerald-400/35 to-transparent pointer-events-none" />
+      {!hideTitleBar && (
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#0a1526] via-[#0e213b] to-[#0a1526] text-white px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between border-b border-[#14233c]">
+          {/* Subtle Bottom Accent Gradient Line */}
+          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-emerald-400/35 to-transparent pointer-events-none" />
 
-        <div className="flex items-center gap-2 relative z-10">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]" />
-          <h3 className="text-xs font-semibold tracking-wider text-white uppercase">
-            {divisionName} Standings
-          </h3>
+          <div className="flex items-center gap-2 relative z-10">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]" />
+            <h3 className="text-xs font-semibold tracking-wider text-white uppercase">
+              {title || (divisionName ? `${divisionName} Standings` : 'League Standings')}
+            </h3>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Table */}
       <div className="overflow-x-auto custom-scrollbar">
@@ -113,11 +119,14 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 font-normal">
-            {sortedRows.map((row) => {
+            {sortedRows.map((row, idx) => {
               const isPlayoffSpot = row.rank <= 8;
               const isStarred = starredTeam === row.teamName;
               const isWithdrawn = row.status === 'withdrawn';
-              const isEighthCut = row.rank === 8 && sortedRows.length > 8;
+              const isEighthCut =
+                sortedRows.length > 8 &&
+                row.isPlayoffQualified &&
+                !sortedRows[idx + 1]?.isPlayoffQualified;
 
               return (
                 <tr
@@ -137,9 +146,12 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
                         className={`w-1 h-3 rounded-full ${
                           isPlayoffSpot ? 'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.6)]' : 'bg-transparent'
                         }`}
-                        title={isPlayoffSpot ? 'Playoff qualifier' : undefined}
+                        title={isPlayoffSpot ? (row.isTied ? `Tied · Playoff qualifier` : 'Playoff qualifier') : undefined}
                       />
-                      <span className={isPlayoffSpot ? 'text-[#0a1526] font-semibold' : 'text-slate-500'}>
+                      <span
+                        className={isPlayoffSpot ? 'text-[#0a1526] font-semibold' : 'text-slate-500'}
+                        title={row.isTied ? `Tied for position ${row.rank}` : undefined}
+                      >
                         {row.rank}
                       </span>
                     </div>
