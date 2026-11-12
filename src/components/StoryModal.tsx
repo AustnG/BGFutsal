@@ -64,8 +64,12 @@ export const StoryModal: React.FC<StoryModalProps> = ({ story, onClose }) => {
             {story.title}
           </h2>
 
-          <div className="text-sm text-slate-700 leading-relaxed space-y-2.5 font-normal pt-1">
-            <p>{story.content || story.summary}</p>
+          <div className="text-sm text-slate-700 leading-relaxed space-y-3 font-normal pt-1 whitespace-pre-line">
+            {(story.content || story.summary).split('\n\n').map((paragraph, idx) => (
+              <p key={idx} className="leading-relaxed">
+                {paragraph}
+              </p>
+            ))}
           </div>
         </div>
 

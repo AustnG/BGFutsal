@@ -895,7 +895,7 @@ export const INITIAL_LEAGUE_DATA: LeagueDatabase = {
       summary: 'Top 8 teams in each division will qualify for the single-elimination Postseason Tournament starting May 10th.',
       content:
         'With five gameweeks in the books, the playoff picture is rapidly heating up! As a reminder to all captains, the **Top 8 seeds in both the Premier Division and Division 1** will advance to the official single-elimination Postseason Tournament held on Court 1. Quarterfinals will take place on Sunday, May 10, followed by the Semifinals and Championship Finals on Sunday, May 17. Seed tiebreakers will strictly follow Points, Goal Differential, Goals For, and Head-to-Head records.',
-      imageUrl: '/src/assets/images/futsal_story_registration_1793288545724.jpg',
+      imageUrl: '/assets/aistudio/about01_886dfc48.jpg',
     },
     {
       id: 'n-02',
@@ -907,7 +907,7 @@ export const INITIAL_LEAGUE_DATA: LeagueDatabase = {
       summary: 'Volt FC narrowly edge past rivals Apex Ballers in a high-octane 6-4 contest at the Bowling Green Arena.',
       content:
         'Sunday night brought the marquee matchup of Gameweek 1 as reigning finalists Volt FC took on Apex Ballers in front of an electric packed house. The match delivered everything futsal purists love: relentless high pressing, rapid-fire counterattacks, and world-class ball control in tight spaces. Volt FC established an early 3-1 lead through clinical finishing, but Apex roared back with three unanswered strikes before Volt sealed the victory in the dying minutes with two transition goals.',
-      imageUrl: '/src/assets/images/bg_futsal_hero_action_1793288544122.jpg',
+      imageUrl: '/assets/aistudio/001_f6166b79.jpg',
     },
     {
       id: 'n-03',
@@ -919,7 +919,7 @@ export const INITIAL_LEAGUE_DATA: LeagueDatabase = {
       summary: 'A look back at the dramatic Fall 2025 championship finish and what makes Bowling Green futsal special.',
       content:
         'Reflecting on the conclusion of the Fall 2025 campaign, BG City Futsal cemented their legacy as one of Bowling Greens most formidable indoor squads. Their 5-4 championship victory over Volt FC pushed both rosters to their tactical limits. Beyond the scoreline, the mutual respect and community camaraderie between all participating squads remains the heartbeat of BGFutsal.com as we enter our fifth consecutive year.',
-      imageUrl: '/src/assets/images/futsal_story_championship_1793288544971.jpg',
+      imageUrl: '/assets/aistudio/004_90c30f1c.jpg',
     },
     {
       id: 'n-04',
@@ -931,7 +931,7 @@ export const INITIAL_LEAGUE_DATA: LeagueDatabase = {
       summary: 'Spotlighting the incredible reflex saves and distribution that are keeping Division 1 scorelines tighter than ever.',
       content:
         'Playing goalkeeper in futsal is one of the most demanding positions in all of sport. With smaller goals, a heavier low-bounce ball, and shots unleashed from inside 8 meters, reaction times must be razor sharp. Through the first four weeks of Division 1 play, goalkeepers across the bracket have combined for over 220 recorded point-blank saves, setting up a thrilling Golden Glove race down the stretch.',
-      imageUrl: '/src/assets/images/futsal_story_goalkeeper_1793288545793.jpg',
+      imageUrl: '/assets/aistudio/003_1531010d.jpg',
     },
   ],
 };

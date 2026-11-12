@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { ArrowRight, User, Calendar, Clock, MapPin, Sparkles, X } from 'lucide-react';
+import { ArrowRight, User, Calendar, Clock, MapPin, Sparkles, X, Camera } from 'lucide-react';
 import { Division, Match, NewsStory, Season, StandingRow } from '../types/league';
 import { StandingsTable } from './StandingsTable';
 import { SeasonDivisionControls } from './SeasonDivisionControls';
-import { NewsStoriesView } from './NewsStoriesView';
+import { LEAGUE_PHOTOS, MediaPhoto } from '../data/mediaAssets';
+import { ImageLightbox } from './ImageLightbox';
 
 interface HomeViewProps {
   seasons: Season[];
@@ -23,7 +24,7 @@ interface HomeViewProps {
   onToggleStarTeam: (teamName: string) => void;
   matches: Match[];
   onNavigateToCompetition: (subView?: 'standings' | 'schedule' | 'rankChart' | 'playoffs') => void;
-  onNavigateToInfo?: (sub?: 'about' | 'rules') => void;
+  onNavigateToInfo?: (sub?: 'about' | 'rules' | 'newsGallery') => void;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -44,15 +45,26 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onToggleStarTeam,
   matches,
   onNavigateToCompetition,
+  onNavigateToInfo,
 }) => {
-  const [showAllStoriesModal, setShowAllStoriesModal] = useState(false);
+  const [activeGalleryPhoto, setActiveGalleryPhoto] = useState<MediaPhoto | null>(null);
 
   const seasonDivisions = divisions.filter((d) => d.seasonId === selectedSeasonId);
   const activeDivision =
     seasonDivisions.find((d) => d.id === selectedDivisionId) || seasonDivisions[0];
 
-  const heroStory = stories.find((s) => s.pinned) || stories[0];
-  const secondaryStories = stories.filter((s) => s.id !== heroStory?.id).slice(0, 3);
+  // Strictly sort stories by date in descending order (newest first)
+  const sortedStories = [...stories].sort((a, b) => {
+    const timeA = new Date(a.date).getTime() || 0;
+    const timeB = new Date(b.date).getTime() || 0;
+    return timeB - timeA;
+  });
+
+  // Latest article is strictly the hero article at the top
+  const heroStory = sortedStories[0];
+
+  // The next 3 most recent articles fall under "Latest Stories & Updates"
+  const secondaryStories = sortedStories.slice(1, 4);
 
   // Next upcoming fixtures on Arena Main Court
   const upcomingMatches = matches
@@ -247,16 +259,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </h2>
             </div>
             <div className="flex items-center gap-3">
-              {stories.length > 4 && (
-                <button
-                  type="button"
-                  onClick={() => setShowAllStoriesModal(true)}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
-                >
-                  <span>View All Updates ({stories.length})</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => onNavigateToInfo?.('newsGallery')}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
+              >
+                <span>All News & Media ({stories.length})</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
               <span className="text-xs text-slate-400 font-mono font-normal hidden sm:inline">
                 BGFutsal Dispatch
               </span>
@@ -302,38 +312,66 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </section>
       )}
 
-      {/* All Stories Archive Modal */}
-      {showAllStoriesModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm p-3 sm:p-6 lg:p-8 flex items-center justify-center animate-in fade-in duration-200">
-          <div className="bg-slate-50 rounded-2xl border border-slate-200 shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-4 rounded-full bg-emerald-500" />
-                <h3 className="text-base font-bold text-slate-900">League News & Updates Archive</h3>
-                <span className="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
-                  {stories.length} stories
+      {/* 5. MATCH & COMMUNITY PHOTO HIGHLIGHTS */}
+      <section className="space-y-4 pt-2 border-t border-slate-200/60">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-4 rounded-full bg-emerald-500" />
+            <h2 className="text-base sm:text-lg font-semibold text-[#0a1526] tracking-tight">
+              Matchday Moments & Highlights
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onNavigateToInfo?.('newsGallery')}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer self-start sm:self-auto"
+          >
+            <span>Explore News & Gallery ({LEAGUE_PHOTOS.length} Photos)</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          {LEAGUE_PHOTOS.slice(0, 4).map((photo) => (
+            <div
+              key={photo.id}
+              onClick={() => setActiveGalleryPhoto(photo)}
+              className="group cursor-pointer bg-white rounded-xl border border-slate-200/80 overflow-hidden shadow-xs hover:shadow-md hover:border-emerald-500/50 transition-all flex flex-col"
+            >
+              <div className="relative aspect-[4/3] bg-slate-900 overflow-hidden">
+                <img
+                  src={photo.src}
+                  alt={photo.title}
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-75 group-hover:opacity-90 transition-opacity pointer-events-none" />
+                <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-[#071222]/85 backdrop-blur-xs text-[9px] font-mono text-emerald-400 uppercase tracking-wider font-semibold border border-[#1b2d4b]">
+                  {photo.categoryLabel}
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowAllStoriesModal(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-                aria-label="Close archive modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="p-2.5 sm:p-3 space-y-1">
+                <h4 className="text-xs font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-1">
+                  {photo.title}
+                </h4>
+                <div className="flex items-center gap-1 text-[10px] text-slate-500 truncate">
+                  <MapPin className="w-2.5 h-2.5 text-emerald-500 shrink-0" />
+                  <span className="truncate">{photo.location}</span>
+                </div>
+              </div>
             </div>
-            <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar">
-              <NewsStoriesView
-                stories={stories}
-                onOpenStoryModal={(story) => {
-                  onOpenStoryModal(story);
-                }}
-              />
-            </div>
-          </div>
+          ))}
         </div>
-      )}
+      </section>
+
+      {/* Lightbox for Home View Photo Clicks */}
+      <ImageLightbox
+        photo={activeGalleryPhoto}
+        photos={LEAGUE_PHOTOS}
+        onClose={() => setActiveGalleryPhoto(null)}
+        onSelectPhoto={(photo) => setActiveGalleryPhoto(photo)}
+      />
     </div>
   );
 };

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Star, Home, Trophy, Info, BookOpen, Menu, X, RefreshCw, MapPin } from 'lucide-react';
+import { Star, Home, Trophy, Info, BookOpen, Menu, X, RefreshCw, MapPin, Camera, Newspaper } from 'lucide-react';
 import { SyncStatus } from '../types/league';
 import { TAB_TO_HASH } from '../utils/routing';
 
-export type MainNavTab = 'home' | 'seasonHub' | 'about' | 'rules';
+export type MainNavTab = 'home' | 'seasonHub' | 'newsGallery' | 'about' | 'rules';
 
 interface NavbarProps {
   activeTab: MainNavTab;
@@ -57,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Zone 2: Desktop Navigation Links (Centrally Aligned) */}
-            <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+            <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-300">
               <a
                 href={TAB_TO_HASH.home}
                 onClick={(e) => {
@@ -90,6 +90,24 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <span>Seasons</span>
                 {activeTab === 'seasonHub' && (
+                  <span className="absolute -bottom-[21px] inset-x-0 h-0.5 bg-emerald-400 rounded-full" />
+                )}
+              </a>
+
+              <a
+                href={TAB_TO_HASH.newsGallery}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSelectTab('newsGallery');
+                }}
+                className={`hover:text-white transition-colors cursor-pointer whitespace-nowrap py-1 relative ${
+                  activeTab === 'newsGallery'
+                    ? 'text-white font-semibold'
+                    : 'text-slate-300'
+                }`}
+              >
+                <span>News & Gallery</span>
+                {activeTab === 'newsGallery' && (
                   <span className="absolute -bottom-[21px] inset-x-0 h-0.5 bg-emerald-400 rounded-full" />
                 )}
               </a>
@@ -202,6 +220,22 @@ export const Navbar: React.FC<NavbarProps> = ({
               </a>
 
               <a
+                href={TAB_TO_HASH.newsGallery}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSelectTab('newsGallery');
+                }}
+                className={`flex items-center gap-2.5 p-3 rounded-xl border transition-colors cursor-pointer min-h-[44px] ${
+                  activeTab === 'newsGallery'
+                    ? 'bg-[#0f2440] border-emerald-500/50 text-white font-semibold'
+                    : 'bg-[#0a172a] border-[#162744] text-slate-300 hover:text-white'
+                }`}
+              >
+                <Newspaper className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>News & Gallery</span>
+              </a>
+
+              <a
                 href={TAB_TO_HASH.about}
                 onClick={(e) => {
                   e.preventDefault();
@@ -223,7 +257,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   e.preventDefault();
                   handleSelectTab('rules');
                 }}
-                className={`flex items-center gap-2.5 p-3 rounded-xl border transition-colors cursor-pointer min-h-[44px] ${
+                className={`col-span-2 flex items-center gap-2.5 p-3 rounded-xl border transition-colors cursor-pointer min-h-[44px] ${
                   activeTab === 'rules'
                     ? 'bg-[#0f2440] border-emerald-500/50 text-white font-semibold'
                     : 'bg-[#0a172a] border-[#162744] text-slate-300 hover:text-white'

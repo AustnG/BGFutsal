@@ -12,6 +12,7 @@ import { PinnedBanner } from './components/PinnedBanner';
 import { HomeView } from './components/HomeView';
 import { SeasonHubView, TableDisplayMode } from './components/SeasonHubView';
 import { AboutView } from './components/AboutView';
+import { NewsGalleryView } from './components/NewsGalleryView';
 import { RulesFaqView } from './components/RulesFaqView';
 import { Footer } from './components/Footer';
 import { SyncModal } from './components/SyncModal';
@@ -230,7 +231,7 @@ export default function App() {
     }
   };
 
-  const handleNavigateToPage = (page?: 'about' | 'rules') => {
+  const handleNavigateToPage = (page?: 'about' | 'rules' | 'newsGallery') => {
     handleTabChange(page || 'about');
   };
 
@@ -305,10 +306,18 @@ export default function App() {
           />
         )}
 
-        {/* 3. ABOUT: League Overview, Home Court Arena, Tiered Divisions, Leadership */}
+        {/* 3. NEWS & GALLERY: Unified media stream of all historical news records & photo highlights */}
+        {activeTab === 'newsGallery' && (
+          <NewsGalleryView
+            stories={data.news}
+            onOpenStoryModal={(story) => setSelectedStory(story)}
+          />
+        )}
+
+        {/* 4. ABOUT: League Overview, Home Court Arena, Tiered Divisions, Leadership */}
         {activeTab === 'about' && <AboutView />}
 
-        {/* 4. RULES & FAQS: Regulations Handbook, 4-Second Clock, Accumulated Fouls, FAQ Accordion */}
+        {/* 5. RULES & FAQS: Regulations Handbook, 4-Second Clock, Accumulated Fouls, FAQ Accordion */}
         {activeTab === 'rules' && <RulesFaqView />}
       </main>
 

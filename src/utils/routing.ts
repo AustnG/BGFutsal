@@ -3,6 +3,7 @@ import { MainNavTab } from '../components/Navbar';
 export const TAB_TO_HASH: Record<MainNavTab, string> = {
   home: '#/home',
   seasonHub: '#/seasons',
+  newsGallery: '#/news-gallery',
   about: '#/about',
   rules: '#/rules',
 };
@@ -14,6 +15,11 @@ export const HASH_TO_TAB: Record<string, MainNavTab> = {
   '': 'home',
   '#/seasons': 'seasonHub',
   '#/season': 'seasonHub',
+  '#/news-gallery': 'newsGallery',
+  '#/news': 'newsGallery',
+  '#/gallery': 'newsGallery',
+  '#/photos': 'newsGallery',
+  '#/media': 'newsGallery',
   '#/about': 'about',
   '#/rules': 'rules',
   '#/rules-faqs': 'rules',
@@ -41,7 +47,15 @@ export function getTabFromHash(rawHash?: string): MainNavTab {
     return HASH_TO_TAB[cleanPath];
   }
 
-  // Graceful loose substring matching for edge cases (e.g. #seasons or #/about)
+  // Graceful loose substring matching for edge cases
+  if (
+    cleanPath.includes('news') ||
+    cleanPath.includes('gallery') ||
+    cleanPath.includes('photo') ||
+    cleanPath.includes('media')
+  ) {
+    return 'newsGallery';
+  }
   if (cleanPath.includes('season')) return 'seasonHub';
   if (cleanPath.includes('about')) return 'about';
   if (cleanPath.includes('rule') || cleanPath.includes('faq')) return 'rules';
@@ -58,7 +72,6 @@ export function setHashForTab(tab: MainNavTab) {
 
   const targetHash = TAB_TO_HASH[tab] || '#/home';
   if (window.location.hash !== targetHash) {
-    // Check if hash is currently empty and target is home: can keep clean or set target
     window.location.hash = targetHash;
   }
 }

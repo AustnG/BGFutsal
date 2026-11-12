@@ -103,6 +103,18 @@ export const Footer: React.FC<FooterProps> = ({
                 Seasons Hub
               </a>
               <a
+                href={TAB_TO_HASH.newsGallery}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNav('newsGallery');
+                }}
+                className={`hover:text-emerald-400 transition-colors ${
+                  activeTab === 'newsGallery' ? 'text-emerald-400 font-semibold' : ''
+                }`}
+              >
+                News & Gallery
+              </a>
+              <a
                 href={TAB_TO_HASH.about}
                 onClick={(e) => {
                   e.preventDefault();

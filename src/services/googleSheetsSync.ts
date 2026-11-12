@@ -68,54 +68,71 @@ export function extractSpreadsheetId(urlOrId: string): string | null {
 }
 
 /**
- * Robust CSV parser handling multiline quotes, commas, and formatting.
+ * Robust RFC 4180-compliant CSV parser handling multiline quotes, commas, newlines, and formatting.
  */
 export function parseCSV(csvText: string): Record<string, string>[] {
-  const lines = csvText.split(/\r?\n/).filter((l) => l.trim().length > 0);
-  if (lines.length < 2) return [];
+  if (!csvText || !csvText.trim()) return [];
 
-  // Parse header and rows respecting quoted commas and escaped quotes
-  const parseLine = (line: string): string[] => {
-    const result: string[] = [];
-    let current = '';
-    let inQuotes = false;
+  const rowsOfCells: string[][] = [];
+  let currentRow: string[] = [];
+  let currentCell = '';
+  let inQuotes = false;
 
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      if (char === '"') {
-        if (inQuotes && line[i + 1] === '"') {
-          current += '"';
-          i++;
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if (char === ',' && !inQuotes) {
-        result.push(current.trim());
-        current = '';
+  for (let i = 0; i < csvText.length; i++) {
+    const char = csvText[i];
+    const nextChar = csvText[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        currentCell += '"';
+        i++; // skip escaped quote
       } else {
-        current += char;
+        inQuotes = !inQuotes;
       }
+    } else if (char === ',' && !inQuotes) {
+      currentRow.push(currentCell.trim());
+      currentCell = '';
+    } else if ((char === '\r' || char === '\n') && !inQuotes) {
+      if (char === '\r' && nextChar === '\n') {
+        i++; // skip LF after CR
+      }
+      currentRow.push(currentCell.trim());
+      currentCell = '';
+      if (currentRow.some((c) => c.length > 0)) {
+        rowsOfCells.push(currentRow);
+      }
+      currentRow = [];
+    } else {
+      currentCell += char;
     }
-    result.push(current.trim());
-    return result;
-  };
+  }
 
-  const rawHeaders = parseLine(lines[0]);
+  // Flush remaining cell and row
+  if (currentCell.length > 0 || currentRow.length > 0) {
+    currentRow.push(currentCell.trim());
+    if (currentRow.some((c) => c.length > 0)) {
+      rowsOfCells.push(currentRow);
+    }
+  }
+
+  if (rowsOfCells.length < 2) return [];
+
+  const rawHeaders = rowsOfCells[0];
   const headers = rawHeaders.map((h) =>
     h.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')
   );
 
-  const rows: Record<string, string>[] = [];
-  for (let i = 1; i < lines.length; i++) {
-    const values = parseLine(lines[i]);
-    const row: Record<string, string> = {};
+  const result: Record<string, string>[] = [];
+  for (let i = 1; i < rowsOfCells.length; i++) {
+    const values = rowsOfCells[i];
+    const rowObj: Record<string, string> = {};
     headers.forEach((h, idx) => {
-      row[h] = values[idx] !== undefined ? values[idx] : '';
+      rowObj[h] = values[idx] !== undefined ? values[idx] : '';
     });
-    rows.push(row);
+    result.push(rowObj);
   }
 
-  return rows;
+  return result;
 }
 
 /**
@@ -740,7 +757,7 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
   if (rawNewsRows.length > 0) {
     const parsedStories = rawNewsRows.map((r, i) => {
       // Find image URL from image_url, summary, or content
-      let imageUrl = r.image_url || r.image || '';
+      let imageUrl = (r.image_url || r.image || '').trim();
       if (!imageUrl && r.summary && /^https?:\/\//i.test(r.summary.trim())) {
         imageUrl = r.summary.trim();
       }
@@ -748,18 +765,29 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         imageUrl = r.content.trim();
       }
 
-      // Determine story content and summary
-      let textBody = '';
-      if (r.content && !/^https?:\/\//i.test(r.content.trim())) {
-        textBody = r.content;
-      } else if (
-        r.pinned &&
-        r.pinned.length > 5 &&
-        !/^(true|false|yes|no)$/i.test(r.pinned.trim())
-      ) {
-        textBody = r.pinned;
-      } else if (r.summary && !/^https?:\/\//i.test(r.summary.trim())) {
-        textBody = r.summary;
+      let rawContent = (r.content || '').trim();
+      let rawSummary = (r.summary || '').trim();
+
+      // If content or summary was an image url, clear it so text isn't a raw URL
+      if (/^https?:\/\//i.test(rawContent)) {
+        rawContent = '';
+      }
+      if (/^https?:\/\//i.test(rawSummary)) {
+        rawSummary = '';
+      }
+
+      let content = rawContent;
+      let summary = rawSummary;
+
+      // Smart resolution: If user omitted or cleared summary, generate clean teaser from content
+      if (!summary && content) {
+        const firstLine = content.split('\n').map((l) => l.trim()).filter(Boolean)[0] || '';
+        summary = firstLine.length > 160 ? firstLine.slice(0, 157) + '...' : firstLine;
+      } else if (summary && !content) {
+        content = summary;
+      } else if (!summary && !content) {
+        summary = 'Click to read full league announcement.';
+        content = 'No additional details provided.';
       }
 
       // Determine pinned status - strictly driven by the spreadsheet's pinned column
@@ -770,8 +798,8 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         title: r.title || `Announcement ${i + 1}`,
         date: r.date || '',
         category: (r.category as any) || 'Announcement',
-        summary: textBody.slice(0, 160) + (textBody.length > 160 ? '...' : ''),
-        content: textBody,
+        summary,
+        content,
         pinned: isPinned,
         author: r.author && !r.author.startsWith('#') ? r.author : 'BGFutsal League Office',
         imageUrl: imageUrl || undefined,
