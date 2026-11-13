@@ -17,43 +17,43 @@ export const RulesFaqView: React.FC = () => {
   const faqs: FaqItem[] = [
     {
       q: 'How does postseason tournament qualification work?',
-      a: 'At the end of each regular season (9 to 10 matchweeks), the Top 8 teams in each division qualify for their respective single-elimination Postseason Tournament. Seeds are determined strictly by Points, Goal Differential, Goals For, and Head-to-Head records.',
+      a: 'At the end of each regular season, qualifying teams in each division advance to the single-elimination Postseason Tournament. Seeds are determined strictly by Points, Goal Differential, Goals For, and Head-to-Head records.',
       category: 'Tournament',
-    },
-    {
-      q: 'How are game forfeits scored?',
-      a: 'If a squad is unable to field at least 3 players by 10 minutes past kickoff or forfeits prior to the match, the opposing team is officially awarded an automatic 2-0 victory, 3 points, and a +2 goal differential. The forfeiting team receives 0 points and a -2 goal differential.',
-      category: 'Matchday',
-    },
-    {
-      q: 'What footwear and equipment are required?',
-      a: 'All players must wear flat, non-marking indoor court shoes or futsal flats (no turf shoes or outdoor cleats are permitted on the hardwood). Shin guards completely covered by socks are mandatory for player safety. Low-bounce size 4 futsal balls are provided by the league.',
-      category: 'Equipment',
-    },
-    {
-      q: 'What is the 4-second restart rule?',
-      a: 'Restarts (kick-ins, corner kicks, goal clearances, and direct/indirect free kicks) must be executed within 4 seconds of the ball being spotted and signaled by the referee. Exceeding 4 seconds results in an immediate turnover of possession.',
-      category: 'Rules',
-    },
-    {
-      q: 'What is the goalkeeper back-pass restriction?',
-      a: 'A goalkeeper may only play the ball once in their defensive half per possession until the ball touches an opponent or crosses the midfield line. If a teammate passes back to the goalkeeper in their defensive half before an opponent has touched it, an indirect free kick is awarded at the spot.',
-      category: 'Rules',
-    },
-    {
-      q: 'How do accumulated fouls work?',
-      a: 'Each team is allowed 5 accumulated fouls per half. Beginning with a team’s 6th accumulated foul in a half, the opposing squad is awarded a direct penalty kick from the 10-meter second penalty spot without a defensive wall. Foul counts reset at halftime.',
-      category: 'Rules',
-    },
-    {
-      q: 'What are the rules regarding slide tackles?',
-      a: 'Slide tackling an opponent in an attempt to play the ball is strictly prohibited for outfield players to prevent injuries on hardwood courts. Slide tackles will be penalized with a direct free kick and possible caution. Goalkeepers may slide to block shots within their penalty arc provided they do not lead with feet.',
-      category: 'Rules',
     },
     {
       q: 'How are ties handled in the postseason playoffs?',
-      a: 'If a postseason knockout match is tied at the end of regulation time (44 minutes), there is no extra time during quarterfinals or semifinals; teams proceed directly to a 3-kick penalty shootout. In the Championship Trophy Final, one 5-minute golden-goal extra time period is played prior to shootouts.',
+      a: 'If a postseason tournament match is tied at the end of regulation time (40 minutes), there is no overtime—teams proceed straight to a best-of-5 penalty shootout to determine the winner.',
       category: 'Tournament',
+    },
+    {
+      q: 'How many players are on the court and how do substitutions work?',
+      a: 'Teams are composed of six players on the court: five outfield players plus one goalkeeper. Unlimited substitutions are permitted throughout the match at the designated team bench zone.',
+      category: 'Matchday',
+    },
+    {
+      q: 'What is the 5-second restart rule?',
+      a: 'Kick-ins occur whenever the ball goes out of bounds over the sidelines. All restarts (kick-ins, corners, goal clearances, and free kicks) are subject to a 5-second clock to put the ball back into play once the ball is set. Exceeding 5 seconds results in a turnover of possession.',
+      category: 'Rules',
+    },
+    {
+      q: 'How does the foul accumulation rule work?',
+      a: 'Once a team accrues five (5) accumulated fouls in a half, the opposing team is awarded a penalty kick from the penalty spot. After reaching five fouls, every three (3) additional fouls committed by that team results in another penalty kick from the penalty spot. Foul counts reset at halftime.',
+      category: 'Rules',
+    },
+    {
+      q: 'What footwear and equipment are required?',
+      a: 'Players may wear futsal flats or standard non-marking athletic/tennis shoes. Cleats, turf shoes, steel-toe boots, and any footwear that leaves black marks on the hardwood court are strictly prohibited. Shin guards completely covered by socks are mandatory.',
+      category: 'Equipment',
+    },
+    {
+      q: 'How are game forfeits scored?',
+      a: 'If a squad is unable to field the minimum required players past kickoff or forfeits prior to the match, the opposing team is officially awarded an automatic 2-0 victory, 3 points, and a +2 goal differential. The forfeiting team receives 0 points and a -2 goal differential.',
+      category: 'Matchday',
+    },
+    {
+      q: 'What are the rules regarding slide tackles?',
+      a: 'Slide tackling an opponent in an attempt to play the ball is strictly prohibited for outfield players to prevent injuries on hardwood courts. Infractions result in a direct free kick and potential caution. Goalkeepers may slide to block shots within their penalty arc provided they play the ball safely.',
+      category: 'Rules',
     },
   ];
 
@@ -73,14 +73,14 @@ export const RulesFaqView: React.FC = () => {
           </h1>
 
           <p className="text-sm text-slate-300 leading-relaxed font-normal max-w-2xl">
-            Official competition regulations, FIFA futsal rules of the game, and matchday standards for team managers, players, and referees.
+            Official competition regulations, match format guidelines, and game-night standards for team managers, players, and referees at F.O. Moxley Community Center.
           </p>
         </div>
       </section>
 
       {/* 2. THREE KEY RULES: Clean Cards */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-        {/* 4-Second Clock */}
+        {/* 5-Second Clock */}
         <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">
@@ -90,9 +90,9 @@ export const RulesFaqView: React.FC = () => {
               <Clock className="w-3.5 h-3.5" />
             </div>
           </div>
-          <h3 className="text-sm font-semibold text-slate-900">4-Second Clock</h3>
+          <h3 className="text-sm font-semibold text-slate-900">5-Second Clock</h3>
           <p className="text-xs text-slate-600 leading-relaxed font-normal">
-            All kick-ins, corners, and goal clearances must be released within 4 seconds of referee signal.
+            Kick-ins happen on sideline outs. Players have 5 seconds to put the ball back into play once the ball is set.
           </p>
         </div>
 
@@ -106,9 +106,9 @@ export const RulesFaqView: React.FC = () => {
               <Activity className="w-3.5 h-3.5" />
             </div>
           </div>
-          <h3 className="text-sm font-semibold text-slate-900">Accumulated Limit</h3>
+          <h3 className="text-sm font-semibold text-slate-900">Accumulated Fouls</h3>
           <p className="text-xs text-slate-600 leading-relaxed font-normal">
-            5 fouls per half limit. 6th foul awards a direct 10-meter penalty kick without a defensive wall.
+            At 5 team fouls, a penalty kick is awarded from the spot—followed by another penalty every 3 additional fouls.
           </p>
         </div>
 
@@ -122,9 +122,9 @@ export const RulesFaqView: React.FC = () => {
               <ShieldAlert className="w-3.5 h-3.5" />
             </div>
           </div>
-          <h3 className="text-sm font-semibold text-slate-900">Court Flats Only</h3>
+          <h3 className="text-sm font-semibold text-slate-900">Non-Marking Shoes</h3>
           <p className="text-xs text-slate-600 leading-relaxed font-normal">
-            Flat, non-marking indoor court flats only (no turf shoes or cleats on hardwood). Shin guards mandatory.
+            Futsal flats or non-marking tennis shoes allowed. No boots or black-mark soles on the court. Shin guards mandatory.
           </p>
         </div>
       </section>
@@ -139,10 +139,10 @@ export const RulesFaqView: React.FC = () => {
         </div>
         <div className="text-xs sm:text-sm text-slate-600 space-y-2 leading-relaxed font-normal">
           <p>
-            Official FIFA Futsal Laws of the Game apply with localized league safety standards. Matches consist of two 22-minute running halves with a 3-minute halftime. Teams are composed of 5 players (4 outfielders plus 1 goalkeeper) with unlimited flying substitutions made at the designated team bench zone.
+            Matches consist of two 20-minute halves with a 5-minute halftime intermission. Teams are composed of six players on the court—five outfield players plus one goalkeeper—with unlimited substitutions available throughout play.
           </p>
           <p>
-            Kick-ins replace traditional throw-ins when the ball exits the sideline boundary. Outfield players may not initiate sliding tackles on opponents; infractions result in direct free kicks and potential cautions.
+            Kick-ins happen when the ball goes out over the sidelines, with a 5-second clock to put the ball back into play once the ball is set. Once a team accrues five accumulated fouls, the opposing team is awarded a penalty kick from the penalty spot, and every three additional fouls thereafter results in another penalty. In the postseason tournament, tied matches have no overtime and go straight to a best-of-5 penalty shootout.
           </p>
         </div>
       </section>
@@ -199,7 +199,7 @@ export const RulesFaqView: React.FC = () => {
       <section className="flex items-start gap-3.5 p-4 sm:p-5 bg-emerald-50/50 border border-emerald-200 rounded-xl text-xs text-emerald-950 leading-relaxed shadow-2xs">
         <AlertCircle className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
         <p>
-          <strong className="font-semibold text-emerald-900">Have a rule question on game night?</strong> Referees and league directors are on-site at the Bowling Green Futsal Arena scorekeeper desk 30 minutes before every scheduled kickoff to answer captain inquiries.
+          <strong className="font-semibold text-emerald-900">Have a rule question on game night?</strong> Referees and league directors are on-site at the F.O. Moxley Community Center scorekeeper desk prior to scheduled kickoffs to answer captain inquiries.
         </p>
       </section>
     </div>

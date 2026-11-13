@@ -258,19 +258,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 Latest Stories & Updates
               </h2>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => onNavigateToInfo?.('newsGallery')}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer"
-              >
-                <span>All News & Media ({stories.length})</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-              <span className="text-xs text-slate-400 font-mono font-normal hidden sm:inline">
-                BGFutsal Dispatch
-              </span>
-            </div>
+            <button
+              type="button"
+              onClick={() => onNavigateToInfo?.('newsGallery')}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer shrink-0"
+            >
+              <span>All News & Media ({stories.length})</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">

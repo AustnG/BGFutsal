@@ -55,18 +55,18 @@ export const AboutView: React.FC = () => {
           </p>
 
           <p className="text-sm text-slate-300 leading-relaxed font-normal max-w-3xl">
-            Established to deliver authentic, high-tempo 5v5 futsal to South-Central Kentucky. Contested on the regulation hardwood court of F.O. Moxley Community Center under official FIFA futsal laws with low-bounce match balls, non-marking flats, and touchline kick-ins.
+            Established to deliver authentic, high-tempo 6v6 futsal to South-Central Kentucky. Contested on the regulation hardwood court of F.O. Moxley Community Center under Bowling Green Futsal League rules with low-bounce match balls, non-marking indoor shoes, unlimited substitutions, and touchline kick-ins.
           </p>
 
           {/* Quick Metrics Strip */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-800">
             <div className="p-3 bg-[#050e1a] border border-[#172d4c] rounded-xl space-y-0.5">
               <span className="text-[11px] uppercase tracking-wider text-slate-400 block font-medium">Format</span>
-              <span className="text-sm font-semibold text-emerald-400">5v5 Hardwood</span>
+              <span className="text-sm font-semibold text-emerald-400">6v6 (5 + GK)</span>
             </div>
             <div className="p-3 bg-[#050e1a] border border-[#172d4c] rounded-xl space-y-0.5">
               <span className="text-[11px] uppercase tracking-wider text-slate-400 block font-medium">Timing</span>
-              <span className="text-sm font-semibold text-white">2 × 22 Mins (CT)</span>
+              <span className="text-sm font-semibold text-white">2 × 20 Mins (CT)</span>
             </div>
             <div className="p-3 bg-[#050e1a] border border-[#172d4c] rounded-xl space-y-0.5">
               <span className="text-[11px] uppercase tracking-wider text-slate-400 block font-medium">Location</span>
@@ -74,7 +74,7 @@ export const AboutView: React.FC = () => {
             </div>
             <div className="p-3 bg-[#050e1a] border border-[#172d4c] rounded-xl space-y-0.5">
               <span className="text-[11px] uppercase tracking-wider text-slate-400 block font-medium">Tournament</span>
-              <span className="text-sm font-semibold text-emerald-400">Postseason PKs</span>
+              <span className="text-sm font-semibold text-emerald-400">Best-of-5 PKs</span>
             </div>
           </div>
         </div>
@@ -221,10 +221,10 @@ export const AboutView: React.FC = () => {
               </div>
             </div>
             <h3 className="text-base font-semibold text-slate-900">
-              Premier Division & Division 1
+              Division A & Division B
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed font-normal">
-              Structured to guarantee balanced fixtures. Premier Division hosts seasoned competitive clubs, while Division 1 hosts developing adult teams and regional enthusiasts.
+              Structured into competitive tiers to guarantee balanced matchups. Each division features regular season play followed by a single-elimination postseason tournament settled directly by best-of-5 penalties when tied.
             </p>
           </div>
 
@@ -239,10 +239,10 @@ export const AboutView: React.FC = () => {
               </div>
             </div>
             <h3 className="text-base font-semibold text-slate-900">
-              High-Tempo 44-Minute Fixtures
+              High-Tempo 40-Minute Fixtures
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed font-normal">
-              Two 22-minute running halves with 3-minute halftime intermission. All game times are in the Central Time zone (CT). Unlimited flying bench substitutions keep the speed of play rapid.
+              Two 20-minute halves with a 5-minute halftime intermission (Central Time). Teams field 6 players (5 outfielders plus 1 goalkeeper) with unlimited substitutions and a 5-second restart clock on kick-ins and set plays.
             </p>
           </div>
 
@@ -260,7 +260,7 @@ export const AboutView: React.FC = () => {
               Certified Futsal Referees
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed font-normal">
-              Official futsal certified match officials manage every fixture. Accumulated foul thresholds (penalty kicks after 5 fouls) and strict slide tackle restrictions safeguard athletes.
+              Official futsal match officials manage every fixture. Accumulated foul thresholds award a penalty kick from the spot at 5 fouls and every 3 additional fouls thereafter, while non-marking footwear and slide tackle restrictions protect athletes.
             </p>
           </div>
         </div>
