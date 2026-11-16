@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRight, User } from 'lucide-react';
+import { LEAGUE_LOGOS } from '../../data/mediaAssets';
 
 export interface PageHeaderStat {
   label: string;
@@ -35,6 +36,13 @@ interface FeaturePageHeaderProps {
 export type PageHeaderProps = EditorialPageHeaderProps | FeaturePageHeaderProps;
 
 export const PageHeader: React.FC<PageHeaderProps> = (props) => {
+  const featureImageUrl = props.variant === 'feature' ? props.imageUrl?.trim() : undefined;
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [featureImageUrl]);
+
   if (props.variant === 'feature') {
     const {
       badgeLabel,
@@ -42,12 +50,13 @@ export const PageHeader: React.FC<PageHeaderProps> = (props) => {
       kickerMeta,
       title,
       description,
-      imageUrl,
       imageAlt,
       author,
       ctaLabel = 'Read Story',
       onClick,
     } = props;
+
+    const showHeroImage = Boolean(featureImageUrl) && !imgError;
 
     return (
       <section
@@ -60,17 +69,23 @@ export const PageHeader: React.FC<PageHeaderProps> = (props) => {
 
         <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-7 items-center">
           <div className="lg:col-span-7 aspect-video lg:aspect-[16/10] w-full rounded-lg overflow-hidden bg-[#040B16] border border-[var(--color-border-dark)]">
-            {imageUrl ? (
+            {showHeroImage ? (
               <img
-                src={imageUrl}
+                src={featureImageUrl}
                 alt={imageAlt || title}
                 referrerPolicy="no-referrer"
+                onError={() => setImgError(true)}
                 className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
               />
             ) : (
-              <div className="w-full h-full bg-[var(--color-pitch-surface)] flex items-center justify-center">
-                <span className="font-mono text-xs uppercase tracking-widest text-slate-500">
-                  BGFutsal Dispatch
+              <div className="w-full h-full bg-[var(--color-pitch-surface)] flex flex-col items-center justify-center gap-2.5 p-6">
+                <img
+                  src={LEAGUE_LOGOS.whiteSquare}
+                  alt="BG Futsal"
+                  className="w-32 h-32 sm:w-40 sm:h-40 object-contain opacity-95 group-hover:scale-[1.03] transition-transform duration-300"
+                />
+                <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-400">
+                  Official League Dispatch
                 </span>
               </div>
             )}

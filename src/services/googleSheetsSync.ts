@@ -867,6 +867,9 @@ export async function syncWithGoogleSheet(
   if (rawNewsRows.length > 0) {
     const parsedStories = rawNewsRows.map((r, i) => {
       let imageUrl = (r.image_url || r.image || '').trim();
+      if (/^(none|n\/a|na|null|-|—)$/i.test(imageUrl)) {
+        imageUrl = '';
+      }
       if (!imageUrl && r.summary && /^https?:\/\//i.test(r.summary.trim())) {
         imageUrl = r.summary.trim();
       }

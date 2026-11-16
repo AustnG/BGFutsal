@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Star, Home, Trophy, Info, BookOpen, Menu, X, MapPin, Newspaper } from 'lucide-react';
 import { TAB_TO_HASH } from '../utils/routing';
+import { LEAGUE_LOGOS } from '../data/mediaAssets';
 
 export type MainNavTab = 'home' | 'seasonHub' | 'newsGallery' | 'about' | 'rules';
 
@@ -37,7 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className="sticky top-0 z-30 bg-[var(--color-pitch-ink)] border-b border-[var(--color-border-dark)] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-6 h-16">
-          {/* Brand Wordmark */}
+          {/* Brand Logo & Wordmark */}
           <div className="flex items-center shrink-0">
             <a
               href={TAB_TO_HASH.home}
@@ -45,14 +46,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                 e.preventDefault();
                 handleSelectTab('home');
               }}
-              className="text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-md cursor-pointer flex items-baseline gap-2 py-1"
-              aria-label="BGFutsal Home"
+              className="text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-md cursor-pointer flex items-center gap-2.5 py-1"
+              aria-label="BG Futsal Home"
             >
-              <span className="text-xl font-extrabold tracking-[-0.025em] text-white group-hover:text-emerald-400 transition-colors">
-                BGFutsal
-              </span>
-              <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-emerald-400">
-                League
+              <img
+                src={LEAGUE_LOGOS.whiteSquare}
+                alt="BG Futsal crest"
+                className="w-8 h-8 object-contain shrink-0"
+              />
+              <span className="text-lg sm:text-xl font-extrabold tracking-[-0.025em] text-white group-hover:text-emerald-400 transition-colors">
+                BG Futsal
               </span>
             </a>
           </div>

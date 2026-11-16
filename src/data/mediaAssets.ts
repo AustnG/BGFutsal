@@ -11,6 +11,13 @@ export interface MediaPhoto {
   aspectRatio?: 'landscape' | 'portrait' | 'square';
 }
 
+export const LEAGUE_LOGOS = {
+  whiteSquare: '/assets/aistudio/bgif1100x1100-white_d389c790.png',
+  blackSquare: '/assets/aistudio/bgif1100x1100-black_8993d161.png',
+  blackCompact: '/assets/aistudio/bgif600x600_9d1517ce.png',
+  blackWide: '/assets/aistudio/bgif1800x1250_58bc7343.png',
+} as const;
+
 export const LEAGUE_PHOTOS: MediaPhoto[] = [
   {
     id: 'photo-champ-01',

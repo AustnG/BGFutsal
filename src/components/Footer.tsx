@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowUp, MapPin } from 'lucide-react';
 import { MainNavTab } from './Navbar';
 import { TAB_TO_HASH } from '../utils/routing';
+import { LEAGUE_LOGOS } from '../data/mediaAssets';
 
 interface FooterProps {
   activeTab: MainNavTab;
@@ -38,14 +39,16 @@ export const Footer: React.FC<FooterProps> = ({ activeTab, onNavigateTab }) => {
                 e.preventDefault();
                 handleNav('home');
               }}
-              className="inline-flex items-baseline gap-2 group cursor-pointer"
-              aria-label="BGFutsal Home"
+              className="inline-flex items-center gap-2.5 group cursor-pointer"
+              aria-label="BG Futsal Home"
             >
+              <img
+                src={LEAGUE_LOGOS.whiteSquare}
+                alt="BG Futsal crest"
+                className="w-9 h-9 object-contain shrink-0"
+              />
               <span className="text-xl font-extrabold tracking-[-0.025em] text-white group-hover:text-emerald-400 transition-colors">
-                BGFutsal
-              </span>
-              <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-emerald-400 font-semibold">
-                League
+                BG Futsal
               </span>
             </a>
 
@@ -102,7 +105,7 @@ export const Footer: React.FC<FooterProps> = ({ activeTab, onNavigateTab }) => {
         </div>
 
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 text-center sm:text-left">
-          <p>© {new Date().getFullYear()} BGFutsal League. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} BG Futsal. All rights reserved.</p>
           <button
             onClick={scrollToTop}
             className="inline-flex items-center gap-1.5 text-slate-400 hover:text-emerald-400 transition-colors cursor-pointer font-mono text-[11px] uppercase tracking-wider"

@@ -17,7 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import { NewsStory } from '../types/league';
-import { LEAGUE_PHOTOS, MediaPhoto } from '../data/mediaAssets';
+import { LEAGUE_LOGOS, LEAGUE_PHOTOS, MediaPhoto } from '../data/mediaAssets';
 import { StoryModal } from './StoryModal';
 import { ImageLightbox } from './ImageLightbox';
 
@@ -324,8 +324,13 @@ export const NewsGalleryView: React.FC<NewsGalleryViewProps> = ({
                           className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#071324] to-[#0d223f]">
-                          <Newspaper className="w-8 h-8 text-emerald-400/40" />
+                        <div className="w-full h-full flex items-center justify-center bg-[var(--color-pitch-surface)] p-6">
+                          <img
+                            src={LEAGUE_LOGOS.whiteSquare}
+                            alt="BG Futsal"
+                            loading="lazy"
+                            className="w-20 h-20 object-contain opacity-90"
+                          />
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />

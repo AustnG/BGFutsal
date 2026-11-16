@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MapPin, Trophy, Shield, Clock, Users, Award, Sparkles, Navigation, ExternalLink, Heart } from 'lucide-react';
-import { LEAGUE_PHOTOS } from '../data/mediaAssets';
+import { LEAGUE_LOGOS, LEAGUE_PHOTOS } from '../data/mediaAssets';
 import { ImageLightbox } from './ImageLightbox';
 
 export const AboutView: React.FC = () => {
@@ -46,9 +46,16 @@ export const AboutView: React.FC = () => {
             </span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
-            Bowling Green Futsal League
-          </h1>
+          <div className="flex items-center gap-3.5">
+            <img
+              src={LEAGUE_LOGOS.whiteSquare}
+              alt="BG Futsal crest"
+              className="w-12 h-12 sm:w-14 sm:h-14 object-contain shrink-0"
+            />
+            <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
+              Bowling Green Futsal League
+            </h1>
+          </div>
 
           <p className="text-base sm:text-lg font-medium text-emerald-400">
             "Bowling Green's Premier Indoor Soccer League"

@@ -1,6 +1,7 @@
-import React from 'react';
-import { X, Calendar, User, Newspaper, Pin } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, Calendar, User } from 'lucide-react';
 import { NewsStory } from '../types/league';
+import { LEAGUE_LOGOS } from '../data/mediaAssets';
 
 interface StoryModalProps {
   story: NewsStory | null;
@@ -8,41 +9,61 @@ interface StoryModalProps {
 }
 
 export const StoryModal: React.FC<StoryModalProps> = ({ story, onClose }) => {
+  const cleanImageUrl = story?.imageUrl?.trim();
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [cleanImageUrl]);
+
   if (!story) return null;
+
+  const showCoverImage = Boolean(cleanImageUrl) && !imgError;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
         {/* Cover Photo if present */}
-        {story.imageUrl && (
+        {showCoverImage ? (
           <div className="h-48 sm:h-56 w-full relative bg-slate-900 shrink-0">
             <img
-              src={story.imageUrl}
+              src={cleanImageUrl}
               alt={story.title}
               referrerPolicy="no-referrer"
+              onError={() => setImgError(true)}
               className="w-full h-full object-cover"
             />
             <button
               onClick={onClose}
               className="absolute top-3 right-3 bg-black/60 hover:bg-black/80 text-white p-1.5 rounded-full backdrop-blur-xs transition-colors cursor-pointer"
+              aria-label="Close story"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
-        )}
-
-        {/* Modal Header if no image */}
-        {!story.imageUrl && (
-          <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between shrink-0">
-            <span className="text-xs uppercase tracking-wider text-emerald-700 font-semibold">
-              {story.category}
-            </span>
-            <button
-              onClick={onClose}
-              className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
+        ) : (
+          /* Modal Header with White Crest if no cover image */
+          <div className="bg-[var(--color-pitch-ink)] border-b border-[var(--color-border-dark)] shrink-0">
+            <div className="h-[2px] w-full accent-rule-gradient" />
+            <div className="p-4 sm:p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <img
+                  src={LEAGUE_LOGOS.whiteSquare}
+                  alt="BG Futsal"
+                  className="w-8 h-8 object-contain shrink-0"
+                />
+                <span className="font-mono text-xs uppercase tracking-[0.08em] text-emerald-400 font-semibold">
+                  {story.category}
+                </span>
+              </div>
+              <button
+                onClick={onClose}
+                className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer"
+                aria-label="Close story"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
 

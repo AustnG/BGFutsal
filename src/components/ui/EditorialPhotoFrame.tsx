@@ -1,5 +1,6 @@
-import React from 'react';
-import { ArrowRight, Newspaper } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ArrowRight } from 'lucide-react';
+import { LEAGUE_LOGOS } from '../../data/mediaAssets';
 
 interface EditorialPhotoFrameProps {
   src?: string;
@@ -27,6 +28,14 @@ export const EditorialPhotoFrame: React.FC<EditorialPhotoFrameProps> = ({
   onClick,
 }) => {
   const aspectClass = aspect === '16/9' ? 'aspect-video' : 'aspect-[4/3]';
+  const cleanSrc = src?.trim();
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [cleanSrc]);
+
+  const showImage = Boolean(cleanSrc) && !imgError;
 
   return (
     <article
@@ -39,19 +48,27 @@ export const EditorialPhotoFrame: React.FC<EditorialPhotoFrameProps> = ({
     >
       <div>
         <div
-          className={`relative ${aspectClass} bg-[var(--color-pitch-ink)] overflow-hidden border-b border-[var(--color-border-hairline)]`}
+          className={`relative ${aspectClass} overflow-hidden border-b border-[var(--color-border-hairline)] ${
+            showImage ? 'bg-[var(--color-pitch-ink)]' : 'bg-[var(--color-surface-muted)]'
+          }`}
         >
-          {src ? (
+          {showImage ? (
             <img
-              src={src}
+              src={cleanSrc}
               alt={alt}
               loading="lazy"
               referrerPolicy="no-referrer"
+              onError={() => setImgError(true)}
               className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-[var(--color-pitch-surface)]">
-              <Newspaper className="w-8 h-8 text-emerald-400/35" />
+            <div className="w-full h-full flex items-center justify-center p-6">
+              <img
+                src={LEAGUE_LOGOS.blackWide}
+                alt="BG Futsal"
+                loading="lazy"
+                className="max-h-full max-w-[72%] object-contain opacity-85 group-hover:scale-[1.02] transition-transform duration-300"
+              />
             </div>
           )}
         </div>

@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { LEAGUE_LOGOS } from '../data/mediaAssets';
 
 interface Props {
   children: ReactNode;
@@ -40,8 +41,12 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-4">
           <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl space-y-4">
             <div className="flex items-center gap-3 text-emerald-400">
-              <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
-              <h1 className="text-lg font-bold text-white">BGFutsal League Portal</h1>
+              <img
+                src={LEAGUE_LOGOS.whiteSquare}
+                alt="BG Futsal"
+                className="w-8 h-8 object-contain shrink-0"
+              />
+              <h1 className="text-lg font-bold text-white">BG Futsal</h1>
             </div>
             <p className="text-sm text-slate-300">
               An unexpected display issue occurred while initializing the interface.
