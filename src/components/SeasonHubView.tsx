@@ -17,6 +17,7 @@ interface SeasonHubViewProps {
   selectedDivisionId: string;
   onSelectDivision: (id: string) => void;
   standings: StandingRow[];
+  unfilteredStandings?: StandingRow[];
   matches: Match[];
   teams: Team[];
   honors: Honor[];
@@ -38,6 +39,7 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
   selectedDivisionId,
   onSelectDivision,
   standings,
+  unfilteredStandings,
   matches,
   teams,
   honors,
@@ -117,7 +119,6 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
           starredTeam={starredTeam}
           onlyMyTeam={onlyMyTeam}
           onToggleOnlyMyTeam={onToggleOnlyMyTeam}
-          teamCount={standings.length}
           variant="card"
         />
       </section>
@@ -243,9 +244,9 @@ export const SeasonHubView: React.FC<SeasonHubViewProps> = ({
           {showPlayoffBracket && (
             <div className="pt-1">
               <PlayoffBracketView
-                standings={standings}
-                divisionId={activeDivision?.id || 'div-prem-2026'}
-                divisionName={activeDivision?.name || 'Premier Division'}
+                standings={unfilteredStandings || standings}
+                divisionId={activeDivision?.id || selectedDivisionId}
+                divisionName={activeDivision?.name || 'Division'}
                 starredTeam={starredTeam}
                 postseasonMatches={
                   divisionPostseasonMatches.length > 0

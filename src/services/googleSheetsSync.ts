@@ -6,13 +6,29 @@ import {
   Match,
   NewsStory,
   Season,
-  Team,
+  StoryCategory,
+  STORY_CATEGORIES,
   SyncStatus,
+  Team,
 } from '../types/league';
+import { normalizeTeamKey } from '../utils/calculations';
+import { parseFlexibleDateMs } from '../utils/dateTime';
 
 const STORAGE_KEY_DATA = 'bgfutsal_league_data_v1';
 const STORAGE_KEY_SHEET_URL = 'bgfutsal_sheet_url_v1';
 const STORAGE_KEY_LAST_SYNC = 'bgfutsal_last_sync_v1';
+const STORAGE_KEY_DATA_SOURCE = 'bgfutsal_data_source_v1';
+
+const AUTO_TEAM_PALETTE = [
+  '#059669',
+  '#2563EB',
+  '#DC2626',
+  '#D97706',
+  '#7C3AED',
+  '#0891B2',
+  '#BE123C',
+  '#4F46E5',
+];
 
 /**
  * Official Published Google Sheets database endpoints.
@@ -29,36 +45,29 @@ export const DEFAULT_PUBLISHED_GIDS: Record<string, string> = {
   News: '298781161',
 };
 
-/**
- * Checks if a URL is a published web Google Sheet (/spreadsheets/d/e/2PACX-...).
- */
 export function isPublishedGoogleSheet(urlOrId: string): boolean {
   if (!urlOrId) return false;
   return urlOrId.includes('/spreadsheets/d/e/2PACX-') || urlOrId.startsWith('2PACX-');
 }
 
-/**
- * Extracts Google Spreadsheet ID or returns the clean published base URL.
- */
 export function extractSpreadsheetId(urlOrId: string): string | null {
   if (!urlOrId) return null;
   const trimmed = urlOrId.trim();
 
-  // Published web link /spreadsheets/d/e/<PUB_ID>/...
   if (isPublishedGoogleSheet(trimmed)) {
-    const pubMatch = trimmed.match(/(https:\/\/docs\.google\.com\/spreadsheets\/d\/e\/[a-zA-Z0-9-_]+(\/pub)?)/i);
+    const pubMatch = trimmed.match(
+      /(https:\/\/docs\.google\.com\/spreadsheets\/d\/e\/[a-zA-Z0-9-_]+(\/pub)?)/i
+    );
     if (pubMatch && pubMatch[1]) {
       return pubMatch[1].replace(/\/$/, '').replace(/\/pub$/, '') + '/pub';
     }
     return DEFAULT_PUBLISHED_SHEET_BASE;
   }
 
-  // Direct Standard ID check (20-60 alphanumeric characters)
   if (/^[a-zA-Z0-9-_]{20,60}$/.test(trimmed)) {
     return trimmed;
   }
 
-  // Standard docs.google.com/spreadsheets/d/<ID>/...
   const match = trimmed.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/i);
   if (match && match[1]) {
     return match[1];
@@ -67,8 +76,42 @@ export function extractSpreadsheetId(urlOrId: string): string | null {
   return null;
 }
 
+function normalizeStoryCategory(raw?: string): StoryCategory {
+  if (!raw) return 'Announcement';
+  const clean = raw.trim().toLowerCase();
+  const exact = STORY_CATEGORIES.find((cat) => cat.toLowerCase() === clean);
+  if (exact) return exact;
+  if (clean.includes('recap') || clean.includes('match')) return 'Matchday Recap';
+  if (clean.includes('reg')) return 'Registration';
+  if (clean.includes('feature') || clean.includes('story') || clean.includes('final')) {
+    return 'Feature Story';
+  }
+  return 'Announcement';
+}
+
+function parseFiniteNumber(raw: unknown, fallback: number): number {
+  if (raw === undefined || raw === null || String(raw).trim() === '') return fallback;
+  const num = Number(raw);
+  return Number.isFinite(num) ? num : fallback;
+}
+
+function isValidLeagueDatabase(candidate: unknown): candidate is LeagueDatabase {
+  if (!candidate || typeof candidate !== 'object') return false;
+  const db = candidate as Partial<LeagueDatabase>;
+  return (
+    Array.isArray(db.seasons) &&
+    Array.isArray(db.divisions) &&
+    Array.isArray(db.teams) &&
+    Array.isArray(db.matches) &&
+    Array.isArray(db.honors) &&
+    Array.isArray(db.news) &&
+    db.seasons.length > 0 &&
+    db.matches.length > 0
+  );
+}
+
 /**
- * Robust RFC 4180-compliant CSV parser handling multiline quotes, commas, newlines, and formatting.
+ * Robust RFC 4180-compliant CSV parser handling multiline quotes, commas, and newlines.
  */
 export function parseCSV(csvText: string): Record<string, string>[] {
   if (!csvText || !csvText.trim()) return [];
@@ -85,7 +128,7 @@ export function parseCSV(csvText: string): Record<string, string>[] {
     if (char === '"') {
       if (inQuotes && nextChar === '"') {
         currentCell += '"';
-        i++; // skip escaped quote
+        i++;
       } else {
         inQuotes = !inQuotes;
       }
@@ -94,7 +137,7 @@ export function parseCSV(csvText: string): Record<string, string>[] {
       currentCell = '';
     } else if ((char === '\r' || char === '\n') && !inQuotes) {
       if (char === '\r' && nextChar === '\n') {
-        i++; // skip LF after CR
+        i++;
       }
       currentRow.push(currentCell.trim());
       currentCell = '';
@@ -107,7 +150,6 @@ export function parseCSV(csvText: string): Record<string, string>[] {
     }
   }
 
-  // Flush remaining cell and row
   if (currentCell.length > 0 || currentRow.length > 0) {
     currentRow.push(currentCell.trim());
     if (currentRow.some((c) => c.length > 0)) {
@@ -119,7 +161,11 @@ export function parseCSV(csvText: string): Record<string, string>[] {
 
   const rawHeaders = rowsOfCells[0];
   const headers = rawHeaders.map((h) =>
-    h.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')
+    h
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '')
   );
 
   const result: Record<string, string>[] = [];
@@ -135,53 +181,70 @@ export function parseCSV(csvText: string): Record<string, string>[] {
   return result;
 }
 
-/**
- * Fetches a single tab from a Google Sheet via GViz or direct published GID endpoint.
- */
-async function fetchSheetTabCSV(sheetTarget: string, tabName: string): Promise<string> {
+async function fetchSheetTabCSV(
+  sheetTarget: string,
+  tabName: string,
+  signal?: AbortSignal
+): Promise<string> {
   let targetUrl = '';
 
   if (isPublishedGoogleSheet(sheetTarget)) {
+    const isDefaultSheet = sheetTarget.startsWith(DEFAULT_PUBLISHED_SHEET_BASE);
+    if (!isDefaultSheet) {
+      throw new Error(
+        `Published web links (/d/e/2PACX-...) only map to default tab GIDs. Use the standard Google Sheet sharing URL (/spreadsheets/d/<ID>/edit) for custom sheets.`
+      );
+    }
     const gid = DEFAULT_PUBLISHED_GIDS[tabName] ?? '0';
     const baseUrl = sheetTarget.includes('/pub')
       ? sheetTarget.split('?')[0]
       : DEFAULT_PUBLISHED_SHEET_BASE;
     targetUrl = `${baseUrl}?gid=${gid}&single=true&output=csv`;
   } else {
-    // Standard Google Sheet sharing endpoint
     targetUrl = `https://docs.google.com/spreadsheets/d/${sheetTarget}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(
       tabName
     )}`;
   }
 
-  const response = await fetch(targetUrl, { cache: 'no-store' });
+  const response = await fetch(targetUrl, { cache: 'no-store', signal });
   if (!response.ok) {
     throw new Error(`Failed to fetch tab "${tabName}" (HTTP ${response.status})`);
   }
   return await response.text();
 }
 
-/**
- * Loads cached league data or falls back to INITIAL_LEAGUE_DATA with default published URL.
- */
 export function loadInitialData(): { data: LeagueDatabase; syncStatus: SyncStatus } {
   try {
-    const savedUrl =
-      localStorage.getItem(STORAGE_KEY_SHEET_URL) || DEFAULT_PUBLISHED_SHEET_BASE;
+    const savedMode = localStorage.getItem(STORAGE_KEY_DATA_SOURCE);
+    const savedUrl = localStorage.getItem(STORAGE_KEY_SHEET_URL);
     const lastSync = localStorage.getItem(STORAGE_KEY_LAST_SYNC) || null;
     const cachedData = localStorage.getItem(STORAGE_KEY_DATA);
 
+    if (savedMode === 'built-in') {
+      return {
+        data: INITIAL_LEAGUE_DATA,
+        syncStatus: {
+          lastSynced: null,
+          isSyncing: false,
+          error: null,
+          sheetUrl: '',
+          dataSource: 'built-in',
+          validationIssues: [],
+        },
+      };
+    }
+
     if (cachedData) {
-      const parsed = JSON.parse(cachedData) as LeagueDatabase;
-      if (parsed.seasons && parsed.teams && parsed.matches && parsed.matches.length > 0) {
+      const parsed: unknown = JSON.parse(cachedData);
+      if (isValidLeagueDatabase(parsed)) {
         return {
           data: parsed,
           syncStatus: {
             lastSynced: lastSync,
             isSyncing: false,
             error: null,
-            sheetUrl: savedUrl,
-            dataSource: 'google-sheets',
+            sheetUrl: savedUrl || DEFAULT_PUBLISHED_SHEET_BASE,
+            dataSource: savedUrl ? 'google-sheets' : 'built-in',
             validationIssues: [],
           },
         };
@@ -198,31 +261,37 @@ export function loadInitialData(): { data: LeagueDatabase; syncStatus: SyncStatu
       isSyncing: false,
       error: null,
       sheetUrl: DEFAULT_PUBLISHED_SHEET_BASE,
-      dataSource: 'google-sheets',
+      dataSource: 'built-in',
       validationIssues: [],
     },
   };
 }
 
-/**
- * Saves current league data to localStorage.
- */
-export function saveLeagueDataToStorage(data: LeagueDatabase, sheetUrl: string) {
+export function saveLeagueDataToStorage(
+  data: LeagueDatabase,
+  sheetUrl: string,
+  dataSource: 'built-in' | 'google-sheets' = sheetUrl ? 'google-sheets' : 'built-in'
+) {
   try {
     if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
       localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(data));
       localStorage.setItem(STORAGE_KEY_SHEET_URL, sheetUrl);
-      localStorage.setItem(STORAGE_KEY_LAST_SYNC, new Date().toLocaleString());
+      localStorage.setItem(STORAGE_KEY_DATA_SOURCE, dataSource);
+      if (dataSource === 'google-sheets') {
+        localStorage.setItem(STORAGE_KEY_LAST_SYNC, new Date().toLocaleString());
+      } else {
+        localStorage.removeItem(STORAGE_KEY_LAST_SYNC);
+      }
     }
   } catch (err) {
     console.warn('Failed to save to localStorage:', err);
   }
 }
 
-/**
- * Synchronizes with a user's Google Sheet and returns the updated database and health report.
- */
-export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
+export async function syncWithGoogleSheet(
+  sheetUrlOrId: string,
+  signal?: AbortSignal
+): Promise<{
   data: LeagueDatabase;
   validationIssues: string[];
 }> {
@@ -232,12 +301,14 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
   }
 
   const issues: string[] = [];
-
-  // Fetch all 6 tabs in parallel
   const tabNames = ['Seasons', 'Divisions', 'Teams', 'Matches', 'Honors', 'News'];
   const results = await Promise.allSettled(
-    tabNames.map((name) => fetchSheetTabCSV(target, name))
+    tabNames.map((name) => fetchSheetTabCSV(target, name, signal))
   );
+
+  if (signal?.aborted) {
+    throw new DOMException('Sync aborted', 'AbortError');
+  }
 
   const tabCSVs: Record<string, string | null> = {};
   tabNames.forEach((name, idx) => {
@@ -246,23 +317,28 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
       tabCSVs[name] = res.value;
     } else {
       tabCSVs[name] = null;
-      issues.push(`Note: Could not fetch tab "${name}".`);
+      issues.push(`Could not fetch tab "${name}".`);
     }
   });
 
-  // 1. Parse Seasons (Sorted: Current active first, then newest to oldest)
-  let seasons: Season[] = INITIAL_LEAGUE_DATA.seasons;
+  const anyTabSucceeded = Object.values(tabCSVs).some((v) => v !== null);
+  if (!anyTabSucceeded) {
+    throw new Error('Unable to reach any Google Sheets tab. Check permissions or network connection.');
+  }
+
+  // 1. Parse Seasons
   const rawSeasonRows = tabCSVs['Seasons'] ? parseCSV(tabCSVs['Seasons']) : [];
+  let seasons: Season[] =
+    tabCSVs['Seasons'] !== null && rawSeasonRows.length > 0
+      ? []
+      : [...INITIAL_LEAGUE_DATA.seasons];
+
   if (rawSeasonRows.length > 0) {
     seasons = rawSeasonRows.map((r, i) => {
       const id = r.season_id || r.id || `s-${i + 1}`;
       let name = r.name || r.season_name || '';
       if (!name) {
-        if (id.includes(' ')) {
-          name = id;
-        } else {
-          name = `Season ${i + 1}`;
-        }
+        name = id.includes(' ') ? id : `Season ${i + 1}`;
       }
       const isCurrent = (r.is_current || r.current || '').toLowerCase().trim() === 'true';
 
@@ -277,7 +353,6 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
       };
     });
 
-    // Ensure at least one season is marked current if none has is_current = TRUE
     if (!seasons.some((s) => s.isCurrent) && seasons.length > 0) {
       const currentCandidate =
         seasons.find((s) => s.id === 's2026-winter' || s.id.includes('2026')) ||
@@ -287,7 +362,6 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
       }
     }
 
-    // Sort seasons: current active season first, then most recent to oldest
     const getSeasonWeight = (s: Season): number => {
       const yearMatch = (s.id + ' ' + s.name + ' ' + s.startDate).match(/(20\d\d)/);
       const year = yearMatch ? parseInt(yearMatch[1], 10) : 2020;
@@ -308,18 +382,20 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
   }
 
   // 2. Parse Divisions
-  let divisions: Division[] = INITIAL_LEAGUE_DATA.divisions;
   const rawDivRows = tabCSVs['Divisions'] ? parseCSV(tabCSVs['Divisions']) : [];
+  let divisions: Division[] =
+    tabCSVs['Divisions'] !== null ? [] : [...INITIAL_LEAGUE_DATA.divisions];
+
   if (rawDivRows.length > 0) {
     divisions = rawDivRows.map((r, i) => ({
       id: r.division_id || r.id || `div-${i + 1}`,
       seasonId: r.season_id || seasons[0]?.id || 's2026-winter',
       name: r.name || r.division_name || `Division ${i + 1}`,
-      tier: Number(r.tier || r.tier_level || i + 1),
+      tier: parseFiniteNumber(r.tier || r.tier_level, i + 1),
     }));
   }
 
-  // Synthesize division definitions for seasons that do not have explicit Division tab entries
+  // Synthesize missing division entries for seasons without explicit Division rows
   const existingDivSeasonIds = new Set(divisions.map((d) => d.seasonId));
   seasons.forEach((s) => {
     if (!existingDivSeasonIds.has(s.id)) {
@@ -333,7 +409,6 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
     }
   });
 
-  // Helpers to resolve season and division IDs from raw text
   const resolveSeasonId = (rawSeason?: string): string => {
     if (!rawSeason) {
       const curr = seasons.find((s) => s.isCurrent);
@@ -396,13 +471,15 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
   };
 
   // 3. Parse Teams
-  let teams: Team[] = INITIAL_LEAGUE_DATA.teams;
   const rawTeamRows = tabCSVs['Teams'] ? parseCSV(tabCSVs['Teams']) : [];
+  let teams: Team[] =
+    tabCSVs['Teams'] !== null ? [] : [...INITIAL_LEAGUE_DATA.teams];
+
   if (rawTeamRows.length > 0) {
     teams = [];
-    rawTeamRows.forEach((r, i) => {
+    rawTeamRows.forEach((r) => {
       const teamName = (r.name || r.team_id || '').trim();
-      if (!teamName) return; // Skip empty row
+      if (!teamName) return;
 
       const rawSeason = (r.season || r.season_id || '').trim();
       const season = resolveSeasonId(rawSeason);
@@ -425,16 +502,17 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         color: r.teamcolor || r.color || r.jersey_color || r.hex || '#059669',
         status,
         statusNote: r.notes || r.status_note || '',
-        pointsAdjustment: r.points_adjustment ? Number(r.points_adjustment) : 0,
+        pointsAdjustment: parseFiniteNumber(r.points_adjustment, 0),
         adjustmentReason: r.adjustment_reason || r.points_reason || '',
       });
     });
   }
 
-  // Team lookup set for match validation and auto-registration
-  const knownTeamSeasonMap = new Set(teams.map((t) => `${t.seasonId}:::${t.name.trim().toLowerCase()}`));
+  const knownTeamSeasonMap = new Set(
+    teams.map((t) => `${t.seasonId}:::${normalizeTeamKey(t.name)}`)
+  );
 
-  // 4. Parse Matches (Handling user's updated column ordering)
+  // 4. Parse Matches
   let matches: Match[] = [];
   const rawMatchRows = tabCSVs['Matches'] ? parseCSV(tabCSVs['Matches']) : [];
   if (rawMatchRows.length > 0) {
@@ -442,9 +520,10 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
     let lastKnownSeason = seasons[0]?.id || 's2026-winter';
     let previousWasPostseason = false;
     let previousSeasonId = '';
+    let autoColorIndex = 0;
 
     const findExistingTeamName = (season: string, rawName: string): string | null => {
-      const clean = rawName.trim().toLowerCase();
+      const clean = normalizeTeamKey(rawName);
       if (knownTeamSeasonMap.has(`${season}:::${clean}`)) return rawName;
       const simplified = clean
         .split(/[\s_-]+/)
@@ -452,9 +531,7 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         .join(' ');
       for (const t of teams) {
         if (t.seasonId === season) {
-          const tSimp = t.name
-            .trim()
-            .toLowerCase()
+          const tSimp = normalizeTeamKey(t.name)
             .split(/[\s_-]+/)
             .map((w) => w.replace(/s$/, ''))
             .join(' ');
@@ -469,8 +546,6 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
     rawMatchRows.forEach((r, i) => {
       const homeName = (r.home_team || r.hometeam || r.home || '').trim();
       const awayName = (r.away_team || r.awayteam || r.away || '').trim();
-
-      // Skip row if both teams are blank
       if (!homeName && !awayName) return;
 
       let rawSeason = (r.season_id || r.season || '').trim();
@@ -482,36 +557,36 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
       const seasonId = resolveSeasonId(rawSeason);
       const divId = resolveDivisionId(seasonId, r.division_id || r.division, rawSeason);
 
-      // Auto-register any teams from matches not yet explicitly defined in Teams tab
       let resolvedHomeName = findExistingTeamName(seasonId, homeName);
       if (!resolvedHomeName && homeName) {
         resolvedHomeName = homeName;
+        const color = AUTO_TEAM_PALETTE[autoColorIndex++ % AUTO_TEAM_PALETTE.length];
         teams.push({
           id: `${seasonId}-${homeName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
           divisionId: divId,
           seasonId,
           name: homeName,
-          color: '#059669',
+          color,
           status: 'active',
         });
-        knownTeamSeasonMap.add(`${seasonId}:::${homeName.toLowerCase()}`);
+        knownTeamSeasonMap.add(`${seasonId}:::${normalizeTeamKey(homeName)}`);
       }
 
       let resolvedAwayName = findExistingTeamName(seasonId, awayName);
       if (!resolvedAwayName && awayName) {
         resolvedAwayName = awayName;
+        const color = AUTO_TEAM_PALETTE[autoColorIndex++ % AUTO_TEAM_PALETTE.length];
         teams.push({
           id: `${seasonId}-${awayName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
           divisionId: divId,
           seasonId,
           name: awayName,
-          color: '#2563EB',
+          color,
           status: 'active',
         });
-        knownTeamSeasonMap.add(`${seasonId}:::${awayName.toLowerCase()}`);
+        knownTeamSeasonMap.add(`${seasonId}:::${normalizeTeamKey(awayName)}`);
       }
 
-      // Forfeit detection
       let forfeit: 'none' | 'home' | 'away' = 'none';
       const homeForfeit = (r.homeforfeit || r.home_forfeit || '').toLowerCase().trim() === 'true';
       const awayForfeit = (r.awayforfeit || r.away_forfeit || '').toLowerCase().trim() === 'true';
@@ -524,7 +599,6 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         forfeit = 'away';
       }
 
-      // Scores
       let homeScore: number | null = null;
       let awayScore: number | null = null;
       if (r.home_score !== '' && r.home_score !== '-' && !isNaN(Number(r.home_score))) {
@@ -534,23 +608,47 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         awayScore = Number(r.away_score);
       }
 
-      // Penalty Shootout (PKs)
       let homePk: number | null = null;
       let awayPk: number | null = null;
-      const rawHomePk = r.home_pk ?? r.homepk ?? r.home_pks ?? r.homepks ?? r.home_penalty ?? r.home_penalties ?? r.pk_home;
-      const rawAwayPk = r.away_pk ?? r.awaypk ?? r.away_pks ?? r.awaypks ?? r.away_penalty ?? r.away_penalties ?? r.pk_away;
+      const rawHomePk =
+        r.home_pk ??
+        r.homepk ??
+        r.home_pks ??
+        r.homepks ??
+        r.home_penalty ??
+        r.home_penalties ??
+        r.pk_home;
+      const rawAwayPk =
+        r.away_pk ??
+        r.awaypk ??
+        r.away_pks ??
+        r.awaypks ??
+        r.away_penalty ??
+        r.away_penalties ??
+        r.pk_away;
 
-      if (rawHomePk !== undefined && rawHomePk !== null && String(rawHomePk).trim() !== '' && !isNaN(Number(rawHomePk))) {
+      if (
+        rawHomePk !== undefined &&
+        rawHomePk !== null &&
+        String(rawHomePk).trim() !== '' &&
+        !isNaN(Number(rawHomePk))
+      ) {
         homePk = Number(rawHomePk);
       }
-      if (rawAwayPk !== undefined && rawAwayPk !== null && String(rawAwayPk).trim() !== '' && !isNaN(Number(rawAwayPk))) {
+      if (
+        rawAwayPk !== undefined &&
+        rawAwayPk !== null &&
+        String(rawAwayPk).trim() !== '' &&
+        !isNaN(Number(rawAwayPk))
+      ) {
         awayPk = Number(rawAwayPk);
       }
 
-      // Fallback: extract PK shootout from notes or round text if columns were omitted
       if (homePk === null || awayPk === null) {
         const textToSearch = `${r.notes || ''} ${r.round || ''} ${r.status || ''}`;
-        const matchPk1 = textToSearch.match(/(?:pk|pks|penalty|penalties|shootout)[:\s]*\(?(\d+)[\s\-–—:]+(\d+)\)?/i);
+        const matchPk1 = textToSearch.match(
+          /(?:pk|pks|penalty|penalties|shootout)[:\s]*\(?(\d+)[\s\-–—:]+(\d+)\)?/i
+        );
         const matchPk2 = textToSearch.match(/\(?(\d+)[\s\-–—:]+(\d+)\)?\s*(?:pk|pks|penalties|penalty)/i);
         const matchPk = matchPk1 || matchPk2;
         if (matchPk) {
@@ -566,10 +664,12 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
       if (statusVal.includes('postpone')) status = 'postponed';
       if (statusVal.includes('cancel')) status = 'cancelled';
 
-      // Detect Postseason / Playoff matches
       const rawGwStr = (r.gameweek || r.gw || '').toString().trim();
       const rawGwLower = rawGwStr.toLowerCase();
-      const rawRoundStr = (r.round || r.round_name || r.stage || r.match_type || '').toString().trim().toLowerCase();
+      const rawRoundStr = (r.round || r.round_name || r.stage || r.match_type || '')
+        .toString()
+        .trim()
+        .toLowerCase();
       const rawNotesStr = (r.notes || '').toString().trim().toLowerCase();
       const rawTeamsStr = `${homeName} ${awayName}`.toLowerCase();
 
@@ -590,31 +690,32 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         isPlayoffKeyword(rawNotesStr) ||
         isPlayoffKeyword(rawTeamsStr);
 
-      // If gameweek is empty/blank but follows a playoff match in the same season, it belongs to the postseason block
       if (!rawGwStr && previousWasPostseason && previousSeasonId === seasonId) {
         isPostseason = true;
       }
 
-      // Safe numerical gameweek parsing
       let parsedGw = 1;
       const parsedNum = parseInt(rawGwStr, 10);
       if (!isNaN(parsedNum)) {
         parsedGw = parsedNum;
-        if (parsedGw > 10) {
+        if (parsedGw > 10 && !rawRoundStr.includes('regular')) {
           isPostseason = true;
         }
       } else if (isPostseason) {
         parsedGw = 0;
       }
 
-      // Determine round name
       let roundName = '';
       const combinedMeta = `${rawGwLower} ${rawRoundStr} ${rawNotesStr} ${rawTeamsStr}`;
       if (combinedMeta.includes('quarter') || combinedMeta.includes('qf')) {
         roundName = 'Quarterfinal';
       } else if (combinedMeta.includes('semi') || combinedMeta.includes('sf')) {
         roundName = 'Semifinal';
-      } else if (combinedMeta.includes('final') || combinedMeta.includes('championship') || combinedMeta.includes('champ')) {
+      } else if (
+        combinedMeta.includes('final') ||
+        combinedMeta.includes('championship') ||
+        combinedMeta.includes('champ')
+      ) {
         roundName = 'Championship Final';
       } else if (isPostseason) {
         roundName = 'Playoff';
@@ -654,7 +755,6 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
       });
     });
 
-    // Second pass: assign QF / SF / Final to postseason matches in 8-team tournament structure
     const seasonDivMap = new Map<string, Match[]>();
     matches.forEach((m) => {
       const key = `${m.seasonId}:::${m.divisionId}`;
@@ -665,7 +765,6 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
     seasonDivMap.forEach((divMatchList) => {
       const playoffs = divMatchList.filter((m) => m.isPostseason);
       if (playoffs.length > 0) {
-        // Standard single elimination bracket: 4 QFs, 2 SFs, 1 Championship Final
         const chunks = Math.ceil(playoffs.length / 7);
         for (let c = 0; c < chunks; c++) {
           const slice = playoffs.slice(c * 7, (c + 1) * 7);
@@ -679,27 +778,36 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         }
       }
     });
-  } else {
+  } else if (tabCSVs['Matches'] === null) {
     matches = [...INITIAL_LEAGUE_DATA.matches];
   }
 
-  // 5. Parse Honors (Combining Honors tab with Seasons tab awards)
-  let honors: Honor[] = [...INITIAL_LEAGUE_DATA.honors];
+  // 5. Parse Honors (avoid leaking demo honors when live Honors tab is fetched/empty)
   const rawHonorRows = tabCSVs['Honors'] ? parseCSV(tabCSVs['Honors']) : [];
+  let honors: Honor[] =
+    tabCSVs['Honors'] !== null || rawSeasonRows.length > 0 ? [] : [...INITIAL_LEAGUE_DATA.honors];
+
   if (rawHonorRows.length > 0) {
     honors = rawHonorRows.map((r, i) => {
       let awardType: 'division_winner' | 'golden_boot' | 'golden_glove' = 'division_winner';
       const rawAward = (r.award_type || r.award || '').toLowerCase();
       if (rawAward.includes('boot') || rawAward.includes('scorer') || rawAward.includes('goal')) {
         awardType = 'golden_boot';
-      } else if (rawAward.includes('glove') || rawAward.includes('keeper') || rawAward.includes('gk')) {
+      } else if (
+        rawAward.includes('glove') ||
+        rawAward.includes('keeper') ||
+        rawAward.includes('gk')
+      ) {
         awardType = 'golden_glove';
       }
 
+      const seasonId = resolveSeasonId(r.season_id || r.season);
+      const divisionId = resolveDivisionId(seasonId, r.division_id || r.division, r.season_id);
+
       return {
         id: r.honor_id || r.id || `h-${i + 1}`,
-        seasonId: r.season_id || seasons[0]?.id || 's2026-spring',
-        divisionId: r.division_id || divisions[0]?.id || 'div-prem-2026',
+        seasonId,
+        divisionId,
         awardType,
         recipient: r.recipient || r.winner_name || r.name || '',
         teamName: r.team_name || r.team || '',
@@ -708,10 +816,10 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
     });
   }
 
-  // Harvest all awards from the Seasons tab
   rawSeasonRows.forEach((r) => {
-    const seasonId = r.season_id;
-    if (!seasonId) return;
+    const rawSeasonId = r.season_id;
+    if (!rawSeasonId) return;
+    const seasonId = resolveSeasonId(rawSeasonId);
     const divId = divisions.find((d) => d.seasonId === seasonId)?.id || `${seasonId}-main`;
 
     if (r.seasonwinner) {
@@ -751,12 +859,13 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
     }
   });
 
-  // 6. Parse News (Handling rearranged News columns, Blogger cover images, and chronologic sorting)
-  let news: NewsStory[] = INITIAL_LEAGUE_DATA.news;
+  // 6. Parse News
   const rawNewsRows = tabCSVs['News'] ? parseCSV(tabCSVs['News']) : [];
+  let news: NewsStory[] =
+    tabCSVs['News'] !== null && rawNewsRows.length > 0 ? [] : [...INITIAL_LEAGUE_DATA.news];
+
   if (rawNewsRows.length > 0) {
     const parsedStories = rawNewsRows.map((r, i) => {
-      // Find image URL from image_url, summary, or content
       let imageUrl = (r.image_url || r.image || '').trim();
       if (!imageUrl && r.summary && /^https?:\/\//i.test(r.summary.trim())) {
         imageUrl = r.summary.trim();
@@ -768,18 +877,12 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
       let rawContent = (r.content || '').trim();
       let rawSummary = (r.summary || '').trim();
 
-      // If content or summary was an image url, clear it so text isn't a raw URL
-      if (/^https?:\/\//i.test(rawContent)) {
-        rawContent = '';
-      }
-      if (/^https?:\/\//i.test(rawSummary)) {
-        rawSummary = '';
-      }
+      if (/^https?:\/\//i.test(rawContent)) rawContent = '';
+      if (/^https?:\/\//i.test(rawSummary)) rawSummary = '';
 
       let content = rawContent;
       let summary = rawSummary;
 
-      // Smart resolution: If user omitted or cleared summary, generate clean teaser from content
       if (!summary && content) {
         const firstLine = content.split('\n').map((l) => l.trim()).filter(Boolean)[0] || '';
         summary = firstLine.length > 160 ? firstLine.slice(0, 157) + '...' : firstLine;
@@ -790,14 +893,13 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
         content = 'No additional details provided.';
       }
 
-      // Determine pinned status - strictly driven by the spreadsheet's pinned column
       const isPinned = Boolean(r.pinned && /^(true|yes|1)$/i.test(r.pinned.trim()));
 
       return {
         id: r.news_id || r.id || `n-${i + 1}`,
         title: r.title || `Announcement ${i + 1}`,
         date: r.date || '',
-        category: (r.category as any) || 'Announcement',
+        category: normalizeStoryCategory(r.category),
         summary,
         content,
         pinned: isPinned,
@@ -807,30 +909,18 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
       };
     });
 
-    // Helper to parse dates formatted as 'YYYY/MM/DD', 'YYYY-MM-DD', 'MM/DD/YYYY', etc.
-    const parseDateToMs = (dateStr: string): number => {
-      if (!dateStr) return 0;
-      const clean = dateStr.trim().replace(/\//g, '-');
-      const timestamp = Date.parse(clean);
-      return isNaN(timestamp) ? 0 : timestamp;
-    };
-
-    // Sort news stories so newest articles always appear first:
-    // 1. Sort by date descending (newest publication date first)
-    // 2. If dates match or are missing, preserve reverse spreadsheet row order (bottom row in sheet is newest)
     news = parsedStories
       .sort((a, b) => {
-        const timeA = parseDateToMs(a.date);
-        const timeB = parseDateToMs(b.date);
+        const timeA = parseFlexibleDateMs(a.date);
+        const timeB = parseFlexibleDateMs(b.date);
         if (timeA !== timeB) {
           return timeB - timeA;
         }
         return b.sheetRowIndex - a.sheetRowIndex;
       })
-      .map(({ sheetRowIndex, ...story }) => story);
+      .map(({ sheetRowIndex: _rowIdx, ...story }) => story);
   }
 
-  // Final safeguard: Deduplicate matches to guarantee 100% unique IDs across entire database
   const finalMatches: Match[] = [];
   const seenFinalMatchIds = new Set<string>();
   matches.forEach((m, idx) => {
@@ -854,7 +944,7 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
     news,
   };
 
-  saveLeagueDataToStorage(updatedDatabase, target);
+  saveLeagueDataToStorage(updatedDatabase, target, 'google-sheets');
 
   return {
     data: updatedDatabase,
@@ -862,9 +952,6 @@ export async function syncWithGoogleSheet(sheetUrlOrId: string): Promise<{
   };
 }
 
-/**
- * Generates sample CSV template text for any Google Sheet tab.
- */
 export function generateStarterTemplateCSV(tabName: string): string {
   switch (tabName) {
     case 'Seasons':
@@ -878,7 +965,7 @@ export function generateStarterTemplateCSV(tabName: string): string {
     case 'Honors':
       return 'honor_id,season_id,division_id,award_type,recipient,team_name,stat_detail\nh-01,s2025-fall,div-prem-2025,division_winner,BG City Futsal,BG City Futsal,10-1-1 Championship Winner\n';
     case 'News':
-      return 'news_id,date,title,category,pinned,author,summary,content,image_url\n001,2025/04/04,2025 Spring Season Champions!,Finals,TRUE,League Office,Champions crowned,Full recap...,https://example.com/champs.jpg\n';
+      return 'news_id,date,title,category,pinned,author,summary,content,image_url\n001,2025/04/04,2025 Spring Season Champions!,Feature Story,TRUE,League Office,Champions crowned,Full recap...,https://example.com/champs.jpg\n';
     default:
       return '';
   }

@@ -16,33 +16,32 @@ export const PinnedBanner: React.FC<PinnedBannerProps> = ({
   if (!pinnedStory) return null;
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 text-white py-2.5 px-4 sm:px-6 shadow-md border-b border-white/10 animate-in fade-in slide-in-from-top-1 duration-200">
-      {/* Subtle top sheen */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
+    <div className="bg-[var(--color-pitch-surface)] text-white border-b border-[var(--color-border-dark)]">
+      <div className="h-[2px] w-full accent-rule-gradient" />
 
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 text-xs relative z-10">
-        <div className="flex items-center gap-2.5 truncate min-w-0">
-          <span className="inline-flex items-center gap-1 bg-black/20 backdrop-blur-xs border border-white/25 text-white font-bold uppercase tracking-wider text-[10px] px-2.5 py-0.5 rounded-md shrink-0 shadow-xs">
-            <Bell className="w-3 h-3 text-white" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-4 text-xs">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="inline-flex items-center gap-1.5 bg-[var(--color-pitch-ink)] border border-[var(--color-border-dark)] text-emerald-400 font-mono font-semibold uppercase tracking-[0.08em] text-[10px] px-2 py-0.5 rounded shrink-0">
+            <Bell className="w-3 h-3" />
             <span>Notice</span>
           </span>
-          <span className="text-white/60 font-bold">·</span>
-          <span className="text-white font-medium truncate drop-shadow-xs text-xs sm:text-sm">
+          <span className="text-slate-600 font-mono">·</span>
+          <span className="text-slate-100 font-medium truncate text-xs sm:text-sm">
             {pinnedStory.title}
           </span>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => onReadStory(pinnedStory)}
-            className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 active:bg-white/40 text-white font-semibold text-xs px-3 py-1 rounded-lg backdrop-blur-xs transition-all cursor-pointer shadow-xs border border-white/20"
+            className="inline-flex items-center gap-1.5 bg-[var(--color-pitch-ink)] hover:border-emerald-500/70 text-emerald-400 hover:text-emerald-300 font-semibold text-xs px-2.5 py-1 rounded-md border border-[var(--color-border-dark)] transition-colors cursor-pointer"
           >
             <span>Details</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={onDismiss}
-            className="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/20 cursor-pointer transition-colors"
+            className="text-slate-400 hover:text-white p-1 rounded-md hover:bg-[var(--color-pitch-ink)] cursor-pointer transition-colors"
             title="Dismiss notice"
             aria-label="Dismiss notice"
           >

@@ -1,8 +1,128 @@
-import { Match, StandingRow, Team, PlayoffMatch } from '../types/league';
+import { Match, PlayoffMatch, StandingRow, Team } from '../types/league';
+
+/**
+ * Canonical team name key used across standings, schedules, and starred-team comparisons.
+ */
+export function normalizeTeamKey(name?: string | null): string {
+  if (!name) return '';
+  return name.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+export function isSameTeamName(a?: string | null, b?: string | null): boolean {
+  const keyA = normalizeTeamKey(a);
+  const keyB = normalizeTeamKey(b);
+  return Boolean(keyA && keyB && keyA === keyB);
+}
+
+export interface ResolvedMatchOutcome {
+  isFinal: boolean;
+  isForfeit: boolean;
+  homeGoals: number | null;
+  awayGoals: number | null;
+  hasPk: boolean;
+  winnerSide: 'home' | 'away' | 'draw' | null;
+}
+
+/**
+ * Single source of truth for resolving scores, 2-0 forfeits, PK shootouts, and winners.
+ */
+export function resolveMatchOutcome(m: Match): ResolvedMatchOutcome {
+  const isFinal = m.status === 'final';
+  const isForfeit = Boolean(m.forfeit && m.forfeit !== 'none');
+
+  if (!isFinal) {
+    return {
+      isFinal: false,
+      isForfeit: false,
+      homeGoals: null,
+      awayGoals: null,
+      hasPk: false,
+      winnerSide: null,
+    };
+  }
+
+  if (m.forfeit === 'home') {
+    return {
+      isFinal: true,
+      isForfeit: true,
+      homeGoals: 0,
+      awayGoals: 2,
+      hasPk: false,
+      winnerSide: 'away',
+    };
+  }
+
+  if (m.forfeit === 'away') {
+    return {
+      isFinal: true,
+      isForfeit: true,
+      homeGoals: 2,
+      awayGoals: 0,
+      hasPk: false,
+      winnerSide: 'home',
+    };
+  }
+
+  if (
+    m.homeScore !== null &&
+    m.homeScore !== undefined &&
+    m.awayScore !== null &&
+    m.awayScore !== undefined
+  ) {
+    const homeGoals = Number(m.homeScore);
+    const awayGoals = Number(m.awayScore);
+
+    if (!Number.isFinite(homeGoals) || !Number.isFinite(awayGoals)) {
+      return {
+        isFinal: false,
+        isForfeit: false,
+        homeGoals: null,
+        awayGoals: null,
+        hasPk: false,
+        winnerSide: null,
+      };
+    }
+
+    const hasPk =
+      homeGoals === awayGoals &&
+      m.homePk !== null &&
+      m.homePk !== undefined &&
+      m.awayPk !== null &&
+      m.awayPk !== undefined;
+
+    let winnerSide: 'home' | 'away' | 'draw' = 'draw';
+    if (homeGoals > awayGoals) {
+      winnerSide = 'home';
+    } else if (awayGoals > homeGoals) {
+      winnerSide = 'away';
+    } else if (hasPk) {
+      if (Number(m.homePk) > Number(m.awayPk)) winnerSide = 'home';
+      else if (Number(m.awayPk) > Number(m.homePk)) winnerSide = 'away';
+    }
+
+    return {
+      isFinal: true,
+      isForfeit: false,
+      homeGoals,
+      awayGoals,
+      hasPk,
+      winnerSide,
+    };
+  }
+
+  return {
+    isFinal: false,
+    isForfeit: false,
+    homeGoals: null,
+    awayGoals: null,
+    hasPk: false,
+    winnerSide: null,
+  };
+}
 
 /**
  * Computes official league standings for a division according to 3-1-0 points,
- * 2-0 forfeit wins, tiebreaker determinism (PTS > GD > GF > H2H), and Top 8 playoff qualification.
+ * 2-0 forfeit wins, tiebreaker determinism (PTS > GD > GF > H2H > Name), and Top 8 playoff qualification.
  */
 export function computeStandings(
   teams: Team[],
@@ -14,9 +134,8 @@ export function computeStandings(
     (t) => t.divisionId === divisionId && (!seasonId || t.seasonId === seasonId)
   );
   const teamMap = new Map<string, Team>();
-  divisionTeams.forEach((t) => teamMap.set(t.name.trim().toLowerCase(), t));
+  divisionTeams.forEach((t) => teamMap.set(normalizeTeamKey(t.name), t));
 
-  // Initialize stats accumulator for each team in division
   const statsMap = new Map<
     string,
     {
@@ -33,6 +152,11 @@ export function computeStandings(
   >();
 
   divisionTeams.forEach((team) => {
+    const safeAdjustment =
+      typeof team.pointsAdjustment === 'number' && Number.isFinite(team.pointsAdjustment)
+        ? team.pointsAdjustment
+        : 0;
+
     statsMap.set(team.id, {
       team,
       played: 0,
@@ -41,13 +165,12 @@ export function computeStandings(
       lost: 0,
       goalsFor: 0,
       goalsAgainst: 0,
-      points: team.pointsAdjustment || 0,
+      points: safeAdjustment,
       matchHistory: [],
     });
   });
 
-  // Filter completed matches for this division and season
-  // Postseason knockout games are excluded so they do not distort regular season points/records
+  // Postseason knockout games are excluded so they do not distort regular season records
   const divisionMatches = matches.filter(
     (m) =>
       m.divisionId === divisionId &&
@@ -56,14 +179,19 @@ export function computeStandings(
       !m.isPostseason
   );
 
-  // Helper to find team id by name fuzzy/trimmed
+  // Strict exact-normalized lookup (avoids substring collisions like "Bosna" vs "Bosna Jr")
   const findTeamId = (name: string): string | undefined => {
-    const key = name.trim().toLowerCase();
-    const found = teamMap.get(key);
-    if (found) return found.id;
-    // Partial substring fallback
+    const key = normalizeTeamKey(name);
+    if (!key) return undefined;
+    const direct = teamMap.get(key);
+    if (direct) return direct.id;
+
+    // Safe punctuation-insensitive fallback (no substring matching)
+    const stripped = key.replace(/[^a-z0-9 ]/g, '');
     for (const [k, v] of teamMap.entries()) {
-      if (k.includes(key) || key.includes(k)) return v.id;
+      if (k.replace(/[^a-z0-9 ]/g, '') === stripped) {
+        return v.id;
+      }
     }
     return undefined;
   };
@@ -71,50 +199,24 @@ export function computeStandings(
   divisionMatches.forEach((m, matchIndex) => {
     const homeId = findTeamId(m.homeTeam);
     const awayId = findTeamId(m.awayTeam);
-
     if (!homeId || !awayId) return;
 
     const homeStats = statsMap.get(homeId);
     const awayStats = statsMap.get(awayId);
-
     if (!homeStats || !awayStats) return;
 
-    let hGoals = 0;
-    let aGoals = 0;
-    let hResult: 'W' | 'D' | 'L' = 'D';
-    let aResult: 'W' | 'D' | 'L' = 'D';
-
-    // Check for forfeit first
-    if (m.forfeit === 'home') {
-      // Home forfeited, away gets 2-0 win
-      hGoals = 0;
-      aGoals = 2;
-      hResult = 'L';
-      aResult = 'W';
-    } else if (m.forfeit === 'away') {
-      // Away forfeited, home gets 2-0 win
-      hGoals = 2;
-      aGoals = 0;
-      hResult = 'W';
-      aResult = 'L';
-    } else if (m.homeScore !== null && m.homeScore !== undefined && m.awayScore !== null && m.awayScore !== undefined) {
-      hGoals = Number(m.homeScore);
-      aGoals = Number(m.awayScore);
-      if (hGoals > aGoals) {
-        hResult = 'W';
-        aResult = 'L';
-      } else if (hGoals < aGoals) {
-        hResult = 'L';
-        aResult = 'W';
-      } else {
-        hResult = 'D';
-        aResult = 'D';
-      }
-    } else {
-      return; // Skip unplayed
+    const outcome = resolveMatchOutcome(m);
+    if (!outcome.isFinal || outcome.homeGoals === null || outcome.awayGoals === null) {
+      return;
     }
 
-    // Update Home
+    const hGoals = outcome.homeGoals;
+    const aGoals = outcome.awayGoals;
+    const hResult: 'W' | 'D' | 'L' =
+      hGoals > aGoals ? 'W' : hGoals < aGoals ? 'L' : 'D';
+    const aResult: 'W' | 'D' | 'L' =
+      aGoals > hGoals ? 'W' : aGoals < hGoals ? 'L' : 'D';
+
     homeStats.played += 1;
     homeStats.goalsFor += hGoals;
     homeStats.goalsAgainst += aGoals;
@@ -127,9 +229,11 @@ export function computeStandings(
     } else {
       homeStats.lost += 1;
     }
-    homeStats.matchHistory.push({ dateOrder: (m.gameweek || 1) * 100 + matchIndex, result: hResult });
+    homeStats.matchHistory.push({
+      dateOrder: (m.gameweek || 1) * 100 + matchIndex,
+      result: hResult,
+    });
 
-    // Update Away
     awayStats.played += 1;
     awayStats.goalsFor += aGoals;
     awayStats.goalsAgainst += hGoals;
@@ -142,10 +246,12 @@ export function computeStandings(
     } else {
       awayStats.lost += 1;
     }
-    awayStats.matchHistory.push({ dateOrder: (m.gameweek || 1) * 100 + matchIndex, result: aResult });
+    awayStats.matchHistory.push({
+      dateOrder: (m.gameweek || 1) * 100 + matchIndex,
+      result: aResult,
+    });
   });
 
-  // Calculate Head-to-Head between any two teams
   const getHeadToHead = (teamAId: string, teamBId: string) => {
     let aPoints = 0;
     let bPoints = 0;
@@ -155,19 +261,13 @@ export function computeStandings(
       const hId = findTeamId(m.homeTeam);
       const aId = findTeamId(m.awayTeam);
       if ((hId === teamAId && aId === teamBId) || (hId === teamBId && aId === teamAId)) {
-        let hG = m.homeScore ?? 0;
-        let aG = m.awayScore ?? 0;
-        if (m.forfeit === 'home') {
-          hG = 0;
-          aG = 2;
-        } else if (m.forfeit === 'away') {
-          hG = 2;
-          aG = 0;
+        const outcome = resolveMatchOutcome(m);
+        if (!outcome.isFinal || outcome.homeGoals === null || outcome.awayGoals === null) {
+          return;
         }
-
         const isAHome = hId === teamAId;
-        const aGoals = isAHome ? hG : aG;
-        const bGoals = isAHome ? aG : hG;
+        const aGoals = isAHome ? outcome.homeGoals : outcome.awayGoals;
+        const bGoals = isAHome ? outcome.awayGoals : outcome.homeGoals;
 
         if (aGoals > bGoals) aPoints += 3;
         else if (aGoals < bGoals) bPoints += 3;
@@ -182,11 +282,13 @@ export function computeStandings(
     return { aPoints, bPoints, aGD };
   };
 
-  // Convert to StandingRow array
   const rows: StandingRow[] = Array.from(statsMap.values()).map((s) => {
-    // Last 5 games
     const sortedHistory = [...s.matchHistory].sort((a, b) => b.dateOrder - a.dateOrder);
     const form = sortedHistory.slice(0, 3).map((h) => h.result).reverse();
+    const safeAdjustment =
+      typeof s.team.pointsAdjustment === 'number' && Number.isFinite(s.team.pointsAdjustment)
+        ? s.team.pointsAdjustment
+        : 0;
 
     return {
       rank: 1,
@@ -196,7 +298,7 @@ export function computeStandings(
       divisionId: s.team.divisionId,
       status: s.team.status,
       statusNote: s.team.statusNote,
-      pointsAdjustment: s.team.pointsAdjustment || 0,
+      pointsAdjustment: safeAdjustment,
       adjustmentReason: s.team.adjustmentReason,
       played: s.played,
       won: s.won,
@@ -212,23 +314,16 @@ export function computeStandings(
     };
   });
 
-  // Sort rows deterministically: PTS -> GD -> GF -> H2H -> Name
   rows.sort((a, b) => {
-    // 1. Points
     if (b.points !== a.points) return b.points - a.points;
-    // 2. Goal Differential
     if (b.goalDiff !== a.goalDiff) return b.goalDiff - a.goalDiff;
-    // 3. Goals For
     if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-    // 4. Head-to-Head
     const h2h = getHeadToHead(a.teamId, b.teamId);
     if (h2h.aPoints !== h2h.bPoints) return h2h.bPoints - h2h.aPoints;
     if (h2h.aGD !== 0) return -h2h.aGD;
-    // 5. Team name
     return a.teamName.localeCompare(b.teamName);
   });
 
-  // Assign ranks & playoff cutoff (with standard competition ranking: tied teams share rank, skipping subsequent ranks)
   for (let idx = 0; idx < rows.length; idx++) {
     const row = rows[idx];
     if (idx === 0) {
@@ -289,9 +384,7 @@ export function computeRankTimeline(
     gameweeks.push(w);
   }
 
-  // Calculate cumulative standings at each gameweek
   const weeklyStandings: Map<number, Map<string, number>> = new Map();
-
   gameweeks.forEach((gw) => {
     const matchesUpToGw = divisionMatches.filter((m) => (m.gameweek || 1) <= gw);
     const standings = computeStandings(teams, matchesUpToGw, divisionId, seasonId);
@@ -300,7 +393,6 @@ export function computeRankTimeline(
     weeklyStandings.set(gw, rankMap);
   });
 
-  // Construct team paths
   const teamPaths = divisionTeams.map((team) => {
     const ranks = gameweeks.map((gw) => {
       const r = weeklyStandings.get(gw)?.get(team.id);
@@ -321,7 +413,6 @@ export function computeRankTimeline(
 
 /**
  * Generates an 8-team single-elimination playoff bracket for a division.
- * Uses real playoff matches from Google Sheets if available; otherwise seeds 1 vs 8, 4 vs 5, 2 vs 7, 3 vs 6.
  */
 export function computePlayoffs(
   standings: StandingRow[],
@@ -330,14 +421,12 @@ export function computePlayoffs(
 ): PlayoffMatch[] {
   const top8 = standings.slice(0, 8);
 
-  const getSeed = (seedNum: number): StandingRow | undefined => {
-    return top8[seedNum - 1];
-  };
+  const getSeed = (seedNum: number): StandingRow | undefined => top8[seedNum - 1];
 
   const findStandingByTeam = (teamName?: string): StandingRow | undefined => {
-    if (!teamName) return undefined;
-    const clean = teamName.trim().toLowerCase();
-    return standings.find((s) => s.teamName.trim().toLowerCase() === clean);
+    const key = normalizeTeamKey(teamName);
+    if (!key) return undefined;
+    return standings.find((s) => normalizeTeamKey(s.teamName) === key);
   };
 
   const getSeedNumber = (teamName?: string, defaultSeed: number = 1): number => {
@@ -346,7 +435,58 @@ export function computePlayoffs(
     return standing ? standing.rank : defaultSeed;
   };
 
-  // If actual postseason matches were recorded in the database, map them into the bracket
+  const buildPlayoffEntry = (
+    m: Match | undefined,
+    round: PlayoffMatch['round'],
+    matchNumber: number,
+    defaultSeedA: number,
+    defaultSeedB: number,
+    fallbackTeamAName: string,
+    fallbackTeamBName: string,
+    fallbackDate: string,
+    fallbackTime: string,
+    fallbackTeamAStanding?: StandingRow,
+    fallbackTeamBStanding?: StandingRow
+  ): PlayoffMatch => {
+    const homeStanding = m ? findStandingByTeam(m.homeTeam) : fallbackTeamAStanding;
+    const awayStanding = m ? findStandingByTeam(m.awayTeam) : fallbackTeamBStanding;
+
+    let winner: StandingRow | undefined;
+    let winnerName: string | undefined;
+
+    if (m) {
+      const outcome = resolveMatchOutcome(m);
+      if (outcome.winnerSide === 'home') {
+        winner = homeStanding;
+        winnerName = m.homeTeam;
+      } else if (outcome.winnerSide === 'away') {
+        winner = awayStanding;
+        winnerName = m.awayTeam;
+      }
+    }
+
+    return {
+      id: m?.id || `${divisionId}-${round.toLowerCase()}-${matchNumber}`,
+      round,
+      matchNumber,
+      seedA: m ? getSeedNumber(m.homeTeam, defaultSeedA) : defaultSeedA,
+      seedB: m ? getSeedNumber(m.awayTeam, defaultSeedB) : defaultSeedB,
+      teamA: homeStanding,
+      teamB: awayStanding,
+      teamAName: m?.homeTeam || fallbackTeamAName,
+      teamBName: m?.awayTeam || fallbackTeamBName,
+      scoreA: m?.homeScore,
+      scoreB: m?.awayScore,
+      pkA: m?.homePk,
+      pkB: m?.awayPk,
+      status: m?.status || 'upcoming',
+      winner,
+      winnerName,
+      date: m?.date || fallbackDate,
+      time: m?.time || fallbackTime,
+    };
+  };
+
   if (actualPostseasonMatches.length > 0) {
     let qfList = actualPostseasonMatches.filter((m) => m.roundName === 'Quarterfinal');
     let sfList = actualPostseasonMatches.filter((m) => m.roundName === 'Semifinal');
@@ -354,7 +494,6 @@ export function computePlayoffs(
       (m) => m.roundName?.includes('Final') || m.roundName?.includes('Championship')
     );
 
-    // Fallback if 7 matches in sequence without specific round tags
     if (qfList.length === 0 && actualPostseasonMatches.length >= 4) {
       qfList = actualPostseasonMatches.slice(0, 4);
       sfList = actualPostseasonMatches.slice(4, 6);
@@ -370,185 +509,66 @@ export function computePlayoffs(
 
     const playoffMatches: PlayoffMatch[] = [];
 
-    // 4 Quarterfinals
     for (let i = 0; i < 4; i++) {
-      const m = qfList[i];
       const defaults = defaultSeedPairs[i];
-      const homeStanding = m ? findStandingByTeam(m.homeTeam) : getSeed(defaults.seedA);
-      const awayStanding = m ? findStandingByTeam(m.awayTeam) : getSeed(defaults.seedB);
-
-      let winner: StandingRow | undefined = undefined;
-      let winnerName: string | undefined = undefined;
-      if (m && m.status === 'final') {
-        if (m.forfeit === 'home') {
-          winner = awayStanding;
-          winnerName = m.awayTeam;
-        } else if (m.forfeit === 'away') {
-          winner = homeStanding;
-          winnerName = m.homeTeam;
-        } else if (m.homeScore !== null && m.homeScore !== undefined && m.awayScore !== null && m.awayScore !== undefined) {
-          if (m.homeScore > m.awayScore) {
-            winner = homeStanding;
-            winnerName = m.homeTeam;
-          } else if (m.awayScore > m.homeScore) {
-            winner = awayStanding;
-            winnerName = m.awayTeam;
-          } else if (m.homePk !== null && m.homePk !== undefined && m.awayPk !== null && m.awayPk !== undefined) {
-            if (m.homePk > m.awayPk) {
-              winner = homeStanding;
-              winnerName = m.homeTeam;
-            } else if (m.awayPk > m.homePk) {
-              winner = awayStanding;
-              winnerName = m.awayTeam;
-            }
-          }
-        }
-      }
-
-      playoffMatches.push({
-        id: m?.id || `${divisionId}-qf-${i + 1}`,
-        round: 'Quarterfinal',
-        matchNumber: i + 1,
-        seedA: m ? getSeedNumber(m.homeTeam, defaults.seedA) : defaults.seedA,
-        seedB: m ? getSeedNumber(m.awayTeam, defaults.seedB) : defaults.seedB,
-        teamA: homeStanding,
-        teamB: awayStanding,
-        teamAName: m?.homeTeam || homeStanding?.teamName || `Seed ${defaults.seedA}`,
-        teamBName: m?.awayTeam || awayStanding?.teamName || `Seed ${defaults.seedB}`,
-        scoreA: m?.homeScore,
-        scoreB: m?.awayScore,
-        pkA: m?.homePk,
-        pkB: m?.awayPk,
-        status: m?.status || 'upcoming',
-        winner,
-        winnerName,
-        date: m?.date || 'Sun, May 10',
-        time: m?.time || `${18 + i}:00`,
-      });
+      const seedAStanding = getSeed(defaults.seedA);
+      const seedBStanding = getSeed(defaults.seedB);
+      playoffMatches.push(
+        buildPlayoffEntry(
+          qfList[i],
+          'Quarterfinal',
+          i + 1,
+          defaults.seedA,
+          defaults.seedB,
+          seedAStanding?.teamName || `Seed ${defaults.seedA}`,
+          seedBStanding?.teamName || `Seed ${defaults.seedB}`,
+          'Sun, May 10',
+          `${18 + i}:00`,
+          seedAStanding,
+          seedBStanding
+        )
+      );
     }
 
-    // 2 Semifinals
     const sfDefaults = [
       { seedA: 1, seedB: 4 },
       { seedA: 2, seedB: 3 },
     ];
-
     for (let i = 0; i < 2; i++) {
-      const m = sfList[i];
       const defaults = sfDefaults[i];
-      const homeStanding = m ? findStandingByTeam(m.homeTeam) : undefined;
-      const awayStanding = m ? findStandingByTeam(m.awayTeam) : undefined;
-
-      let winner: StandingRow | undefined = undefined;
-      let winnerName: string | undefined = undefined;
-      if (m && m.status === 'final') {
-        if (m.forfeit === 'home') {
-          winner = awayStanding;
-          winnerName = m.awayTeam;
-        } else if (m.forfeit === 'away') {
-          winner = homeStanding;
-          winnerName = m.homeTeam;
-        } else if (m.homeScore !== null && m.homeScore !== undefined && m.awayScore !== null && m.awayScore !== undefined) {
-          if (m.homeScore > m.awayScore) {
-            winner = homeStanding;
-            winnerName = m.homeTeam;
-          } else if (m.awayScore > m.homeScore) {
-            winner = awayStanding;
-            winnerName = m.awayTeam;
-          } else if (m.homePk !== null && m.homePk !== undefined && m.awayPk !== null && m.awayPk !== undefined) {
-            if (m.homePk > m.awayPk) {
-              winner = homeStanding;
-              winnerName = m.homeTeam;
-            } else if (m.awayPk > m.homePk) {
-              winner = awayStanding;
-              winnerName = m.awayTeam;
-            }
-          }
-        }
-      }
-
-      playoffMatches.push({
-        id: m?.id || `${divisionId}-sf-${i + 1}`,
-        round: 'Semifinal',
-        matchNumber: 5 + i,
-        seedA: m ? getSeedNumber(m.homeTeam, defaults.seedA) : defaults.seedA,
-        seedB: m ? getSeedNumber(m.awayTeam, defaults.seedB) : defaults.seedB,
-        teamA: homeStanding,
-        teamB: awayStanding,
-        teamAName: m?.homeTeam || (i === 0 ? 'Winner QF 1' : 'Winner QF 3'),
-        teamBName: m?.awayTeam || (i === 0 ? 'Winner QF 2' : 'Winner QF 4'),
-        scoreA: m?.homeScore,
-        scoreB: m?.awayScore,
-        pkA: m?.homePk,
-        pkB: m?.awayPk,
-        status: m?.status || 'upcoming',
-        winner,
-        winnerName,
-        date: m?.date || 'Sun, May 17',
-        time: m?.time || `${18 + i}:00`,
-      });
+      playoffMatches.push(
+        buildPlayoffEntry(
+          sfList[i],
+          'Semifinal',
+          5 + i,
+          defaults.seedA,
+          defaults.seedB,
+          i === 0 ? 'Winner QF 1' : 'Winner QF 3',
+          i === 0 ? 'Winner QF 2' : 'Winner QF 4',
+          'Sun, May 17',
+          `${18 + i}:00`
+        )
+      );
     }
 
-    // 1 Championship Final
-    const finalM = finalList[0];
-    const finalHomeStanding = finalM ? findStandingByTeam(finalM.homeTeam) : undefined;
-    const finalAwayStanding = finalM ? findStandingByTeam(finalM.awayTeam) : undefined;
-
-    let finalWinner: StandingRow | undefined = undefined;
-    let finalWinnerName: string | undefined = undefined;
-    if (finalM && finalM.status === 'final') {
-      if (finalM.forfeit === 'home') {
-        finalWinner = finalAwayStanding;
-        finalWinnerName = finalM.awayTeam;
-      } else if (finalM.forfeit === 'away') {
-        finalWinner = finalHomeStanding;
-        finalWinnerName = finalM.homeTeam;
-      } else if (finalM.homeScore !== null && finalM.homeScore !== undefined && finalM.awayScore !== null && finalM.awayScore !== undefined) {
-        if (finalM.homeScore > finalM.awayScore) {
-          finalWinner = finalHomeStanding;
-          finalWinnerName = finalM.homeTeam;
-        } else if (finalM.awayScore > finalM.homeScore) {
-          finalWinner = finalAwayStanding;
-          finalWinnerName = finalM.awayTeam;
-        } else if (finalM.homePk !== null && finalM.homePk !== undefined && finalM.awayPk !== null && finalM.awayPk !== undefined) {
-          if (finalM.homePk > finalM.awayPk) {
-            finalWinner = finalHomeStanding;
-            finalWinnerName = finalM.homeTeam;
-          } else if (finalM.awayPk > finalM.homePk) {
-            finalWinner = finalAwayStanding;
-            finalWinnerName = finalM.awayTeam;
-          }
-        }
-      }
-    }
-
-    playoffMatches.push({
-      id: finalM?.id || `${divisionId}-final`,
-      round: 'Championship',
-      matchNumber: 7,
-      seedA: finalM ? getSeedNumber(finalM.homeTeam, 1) : 1,
-      seedB: finalM ? getSeedNumber(finalM.awayTeam, 2) : 2,
-      teamA: finalHomeStanding,
-      teamB: finalAwayStanding,
-      teamAName: finalM?.homeTeam || 'Finalist 1',
-      teamBName: finalM?.awayTeam || 'Finalist 2',
-      scoreA: finalM?.homeScore,
-      scoreB: finalM?.awayScore,
-      pkA: finalM?.homePk,
-      pkB: finalM?.awayPk,
-      status: finalM?.status || 'upcoming',
-      winner: finalWinner,
-      winnerName: finalWinnerName,
-      date: finalM?.date || 'Sun, May 17',
-      time: finalM?.time || '20:30',
-    });
+    playoffMatches.push(
+      buildPlayoffEntry(
+        finalList[0],
+        'Championship',
+        7,
+        1,
+        2,
+        'Finalist 1',
+        'Finalist 2',
+        'Sun, May 17',
+        '20:30'
+      )
+    );
 
     return playoffMatches;
   }
 
-  // Projected bracket based on top 8 standings
-  const matches: PlayoffMatch[] = [
-    // Quarterfinals
+  return [
     {
       id: `${divisionId}-qf-1`,
       round: 'Quarterfinal',
@@ -601,8 +621,6 @@ export function computePlayoffs(
       date: 'Sun, May 10',
       time: '21:00',
     },
-
-    // Semifinals
     {
       id: `${divisionId}-sf-1`,
       round: 'Semifinal',
@@ -629,8 +647,6 @@ export function computePlayoffs(
       date: 'Sun, May 17',
       time: '19:00',
     },
-
-    // Championship Final
     {
       id: `${divisionId}-final`,
       round: 'Championship',
@@ -645,6 +661,4 @@ export function computePlayoffs(
       time: '20:30',
     },
   ];
-
-  return matches;
 }

@@ -1,12 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import {
-  DEFAULT_PUBLISHED_SHEET_BASE,
-  loadInitialData,
-  saveLeagueDataToStorage,
-  syncWithGoogleSheet,
-} from './services/googleSheetsSync';
-import { LeagueDatabase, NewsStory, SyncStatus } from './types/league';
-import { computeStandings } from './utils/calculations';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useLeagueSync } from './hooks/useLeagueSync';
+import { NewsStory } from './types/league';
+import { computeStandings, isSameTeamName } from './utils/calculations';
 import { Navbar, MainNavTab } from './components/Navbar';
 import { PinnedBanner } from './components/PinnedBanner';
 import { HomeView } from './components/HomeView';
@@ -17,24 +12,25 @@ import { RulesFaqView } from './components/RulesFaqView';
 import { Footer } from './components/Footer';
 import { SyncModal } from './components/SyncModal';
 import { StoryModal } from './components/StoryModal';
-import { INITIAL_LEAGUE_DATA } from './data/initialLeagueData';
 import { getTabFromHash, setHashForTab } from './utils/routing';
 
 const STARRED_TEAM_KEY = 'bgfutsal_starred_team_v1';
 
 export default function App() {
-  const [initial] = useState(() => loadInitialData());
-  const [data, setData] = useState<LeagueDatabase>(initial.data);
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>(initial.syncStatus);
+  const { data, syncStatus, syncSheet, resetToBuiltIn } = useLeagueSync();
 
-  // Active navigation tab synchronized with URL hash (/#/home, /#/seasons, /#/about, /#/rules)
   const [activeTab, setActiveTab] = useState<MainNavTab>(() => getTabFromHash());
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(
+    () => typeof window !== 'undefined' && window.location.hash.toLowerCase().startsWith('#/sync')
+  );
 
-  // Listen to browser Back/Forward navigation or manual hash URL entry
   useEffect(() => {
     const handleHashChange = () => {
-      const newTab = getTabFromHash();
-      setActiveTab(newTab);
+      if (window.location.hash.toLowerCase().startsWith('#/sync')) {
+        setIsSyncModalOpen(true);
+        return;
+      }
+      setActiveTab(getTabFromHash());
     };
 
     window.addEventListener('hashchange', handleHashChange);
@@ -50,20 +46,26 @@ export default function App() {
   };
 
   // Season & Division Selection
-  const currentSeason = data.seasons.find((s) => s.isCurrent) || data.seasons[0];
-  const [selectedSeasonId, setSelectedSeasonId] = useState<string>(
-    currentSeason?.id || 's2026-winter'
+  const currentSeason = useMemo(
+    () => data.seasons.find((s) => s.isCurrent) || data.seasons[0],
+    [data.seasons]
   );
 
-  // Active Season for current view:
-  // Homepage always showcases the active/latest season.
-  // Seasons Hub respects user's selected season.
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string>(
+    currentSeason?.id || 's2026-spring'
+  );
+
+  // Homepage always showcases the active season; Seasons Hub respects user selection
   const effectiveSeasonId =
     activeTab === 'home' ? currentSeason?.id || selectedSeasonId : selectedSeasonId;
 
-  const seasonDivisions = data.divisions.filter((d) => d.seasonId === effectiveSeasonId);
+  const currentDivisions = useMemo(
+    () => data.divisions.filter((d) => d.seasonId === effectiveSeasonId),
+    [data.divisions, effectiveSeasonId]
+  );
+
   const [selectedDivisionId, setSelectedDivisionId] = useState<string>(
-    seasonDivisions[0]?.id || ''
+    currentDivisions[0]?.id || ''
   );
 
   // Quick Team Search & "My Team" Bookmark
@@ -73,14 +75,13 @@ export default function App() {
   });
   const [onlyMyTeam, setOnlyMyTeam] = useState<boolean>(false);
 
-  // Modals & Pinned Story Banner
-  const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
   const [selectedStory, setSelectedStory] = useState<NewsStory | null>(null);
   const [bannerDismissed, setBannerDismissed] = useState<boolean>(false);
+  const [seasonHubDisplayMode, setSeasonHubDisplayMode] = useState<TableDisplayMode>('table');
 
   // Keep selectedSeasonId valid when data loads from Google Sheets
   useEffect(() => {
-    const active = data.seasons.find((s) => s.isCurrent);
+    const active = data.seasons.find((s) => s.isCurrent) || data.seasons[0];
     if (active && (!selectedSeasonId || !data.seasons.some((s) => s.id === selectedSeasonId))) {
       setSelectedSeasonId(active.id);
     }
@@ -88,18 +89,16 @@ export default function App() {
 
   // Sync active division if season changes or divisions load
   useEffect(() => {
-    const divs = data.divisions.filter((d) => d.seasonId === effectiveSeasonId);
-    if (divs.length > 0) {
-      const exists = divs.some((d) => d.id === selectedDivisionId);
+    if (currentDivisions.length > 0) {
+      const exists = currentDivisions.some((d) => d.id === selectedDivisionId);
       if (!exists) {
-        setSelectedDivisionId(divs[0].id);
+        setSelectedDivisionId(currentDivisions[0].id);
       }
     }
-  }, [effectiveSeasonId, data.divisions, selectedDivisionId]);
+  }, [currentDivisions, selectedDivisionId]);
 
-  // Star / Unstar Team
   const handleToggleStarTeam = (teamName: string) => {
-    if (starredTeam === teamName) {
+    if (isSameTeamName(starredTeam, teamName)) {
       setStarredTeam(null);
       localStorage.removeItem(STARRED_TEAM_KEY);
       setOnlyMyTeam(false);
@@ -115,98 +114,48 @@ export default function App() {
     setOnlyMyTeam(false);
   };
 
-  // Google Sheets Live Sync Handler
-  const handleSyncGoogleSheet = async (sheetUrl: string) => {
-    setSyncStatus((prev) => ({ ...prev, isSyncing: true, error: null }));
-    try {
-      const result = await syncWithGoogleSheet(sheetUrl);
-      setData(result.data);
-      setSyncStatus({
-        lastSynced: new Date().toLocaleString(),
-        isSyncing: false,
-        error: null,
-        sheetUrl,
-        dataSource: 'google-sheets',
-        validationIssues: result.validationIssues,
-      });
-    } catch (err: any) {
-      setSyncStatus((prev) => ({
-        ...prev,
-        isSyncing: false,
-        error: err.message || 'Failed to sync with Google Sheet. Please check permissions.',
-      }));
-    }
-  };
-
-  // Automatic Background Sync: Automatically polls and syncs from connected Google Sheet
-  useEffect(() => {
-    const configuredSheetUrl =
-      (import.meta as any).env?.VITE_GOOGLE_SHEET_URL ||
-      syncStatus.sheetUrl ||
-      localStorage.getItem('bgfutsal_sheet_url_v1') ||
-      DEFAULT_PUBLISHED_SHEET_BASE;
-
-    if (configuredSheetUrl) {
-      handleSyncGoogleSheet(configuredSheetUrl);
-
-      // Poll periodically every 60 seconds so spreadsheet edits automatically update the app
-      const pollInterval = setInterval(() => {
-        handleSyncGoogleSheet(configuredSheetUrl);
-      }, 60000);
-
-      return () => clearInterval(pollInterval);
-    }
-  }, [syncStatus.sheetUrl]);
-
-  const handleResetToBuiltIn = () => {
-    setData(INITIAL_LEAGUE_DATA);
-    saveLeagueDataToStorage(INITIAL_LEAGUE_DATA, '');
-    setSyncStatus({
-      lastSynced: null,
-      isSyncing: false,
-      error: null,
-      sheetUrl: '',
-      dataSource: 'built-in',
-      validationIssues: [],
-    });
-  };
-
-  // Filtered Divisions & Standings strictly scoped by season
-  const currentDivisions = data.divisions.filter((d) => d.seasonId === effectiveSeasonId);
-  const effectiveDivisionId =
-    currentDivisions.find((d) => d.id === selectedDivisionId)?.id ||
-    currentDivisions[0]?.id ||
-    '';
-
-  const currentSeasonTeams = data.teams.filter((t) => t.seasonId === effectiveSeasonId);
-  const currentSeasonMatches = data.matches.filter((m) => m.seasonId === effectiveSeasonId);
-
-  const activeDivisionStandings = computeStandings(
-    currentSeasonTeams,
-    currentSeasonMatches,
-    effectiveDivisionId,
-    effectiveSeasonId
+  const effectiveDivisionId = useMemo(
+    () =>
+      currentDivisions.find((d) => d.id === selectedDivisionId)?.id ||
+      currentDivisions[0]?.id ||
+      '',
+    [currentDivisions, selectedDivisionId]
   );
 
-  // Apply Search & My Team filters to standings
-  const filteredStandings = activeDivisionStandings.filter((row) => {
-    if (onlyMyTeam && starredTeam) {
-      return row.teamName === starredTeam;
-    }
-    if (searchQuery) {
-      return row.teamName.toLowerCase().includes(searchQuery.toLowerCase());
-    }
-    return true;
-  });
+  const currentSeasonMatches = useMemo(
+    () => data.matches.filter((m) => m.seasonId === effectiveSeasonId),
+    [data.matches, effectiveSeasonId]
+  );
 
-  // Pinned announcement story
-  const pinnedStory = data.news.find((n) => n.pinned);
+  // Memoized division standings (unfiltered, used for playoff seedings + base table)
+  const activeDivisionStandings = useMemo(
+    () =>
+      computeStandings(
+        data.teams,
+        data.matches,
+        effectiveDivisionId,
+        effectiveSeasonId
+      ),
+    [data.teams, data.matches, effectiveDivisionId, effectiveSeasonId]
+  );
 
-  // Standings / Trajectory display mode for Season Hub
-  const [seasonHubDisplayMode, setSeasonHubDisplayMode] = useState<TableDisplayMode>('table');
+  const filteredStandings = useMemo(() => {
+    return activeDivisionStandings.filter((row) => {
+      if (onlyMyTeam && starredTeam) {
+        return isSameTeamName(row.teamName, starredTeam);
+      }
+      if (searchQuery) {
+        return row.teamName.toLowerCase().includes(searchQuery.toLowerCase());
+      }
+      return true;
+    });
+  }, [activeDivisionStandings, onlyMyTeam, starredTeam, searchQuery]);
 
-  // Navigation handlers from Home shortcuts
-  const handleNavigateToCompetition = (sectionId?: 'standings' | 'schedule' | 'rankChart' | 'playoffs') => {
+  const pinnedStory = useMemo(() => data.news.find((n) => n.pinned), [data.news]);
+
+  const handleNavigateToCompetition = (
+    sectionId?: 'standings' | 'schedule' | 'rankChart' | 'playoffs'
+  ) => {
     if (sectionId === 'rankChart') {
       setSeasonHubDisplayMode('trajectory');
     } else if (sectionId === 'standings') {
@@ -236,18 +185,14 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
-      {/* 1. Top Bar Navigation (Home, Seasons, About, Rules & FAQs + Mobile Bottom Bar) */}
+    <div className="min-h-screen bg-[var(--color-canvas)] text-[var(--color-ink)] flex flex-col font-sans">
       <Navbar
         activeTab={activeTab}
         setActiveTab={handleTabChange}
         starredTeam={starredTeam}
         onClearStarredTeam={handleClearStarredTeam}
-        openSyncModal={() => setIsSyncModalOpen(true)}
-        syncStatus={syncStatus}
       />
 
-      {/* 2. Pinned Organizer Notice Banner */}
       {!bannerDismissed && pinnedStory && (
         <PinnedBanner
           pinnedStory={pinnedStory}
@@ -256,9 +201,7 @@ export default function App() {
         />
       )}
 
-      {/* 3. Main Body Content Viewport */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 pb-8 sm:pb-12">
-        {/* 1. HOME: News & Stories + Matchday Pulse + Live Standings with Co-located Controls */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pb-10 sm:pb-14">
         {activeTab === 'home' && (
           <HomeView
             seasons={data.seasons}
@@ -282,7 +225,6 @@ export default function App() {
           />
         )}
 
-        {/* 2. SEASONS HUB: Consolidated Standings, Schedule, Trajectory Chart, Honors & Postseason Playoffs with Co-located Controls */}
         {activeTab === 'seasonHub' && (
           <SeasonHubView
             seasons={data.seasons}
@@ -292,6 +234,7 @@ export default function App() {
             selectedDivisionId={effectiveDivisionId}
             onSelectDivision={setSelectedDivisionId}
             standings={filteredStandings}
+            unfilteredStandings={activeDivisionStandings}
             matches={data.matches}
             teams={data.teams}
             honors={data.honors}
@@ -306,7 +249,6 @@ export default function App() {
           />
         )}
 
-        {/* 3. NEWS & GALLERY: Unified media stream of all historical news records & photo highlights */}
         {activeTab === 'newsGallery' && (
           <NewsGalleryView
             stories={data.news}
@@ -314,29 +256,27 @@ export default function App() {
           />
         )}
 
-        {/* 4. ABOUT: League Overview, Home Court Arena, Tiered Divisions, Leadership */}
         {activeTab === 'about' && <AboutView />}
 
-        {/* 5. RULES & FAQS: Regulations Handbook, 4-Second Clock, Accumulated Fouls, FAQ Accordion */}
         {activeTab === 'rules' && <RulesFaqView />}
       </main>
 
-      {/* 5. Modals */}
       <SyncModal
         isOpen={isSyncModalOpen}
-        onClose={() => setIsSyncModalOpen(false)}
+        onClose={() => {
+          setIsSyncModalOpen(false);
+          if (window.location.hash.toLowerCase().startsWith('#/sync')) {
+            setHashForTab(activeTab);
+          }
+        }}
         syncStatus={syncStatus}
-        onSync={handleSyncGoogleSheet}
-        onResetToBuiltIn={handleResetToBuiltIn}
+        onSync={syncSheet}
+        onResetToBuiltIn={resetToBuiltIn}
       />
 
       <StoryModal story={selectedStory} onClose={() => setSelectedStory(null)} />
 
-      {/* 6. Clean Streamlined Footer */}
-      <Footer
-        activeTab={activeTab}
-        onNavigateTab={handleTabChange}
-      />
+      <Footer activeTab={activeTab} onNavigateTab={handleTabChange} />
     </div>
   );
 }

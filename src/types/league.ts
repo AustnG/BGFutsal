@@ -2,7 +2,15 @@ export type TeamStatus = 'active' | 'withdrawn' | 'joined_midseason';
 export type MatchStatus = 'final' | 'upcoming' | 'postponed' | 'cancelled';
 export type ForfeitType = 'none' | 'home' | 'away';
 export type AwardType = 'division_winner' | 'golden_boot' | 'golden_glove';
-export type StoryCategory = 'Announcement' | 'Matchday Recap' | 'Registration' | 'Feature Story';
+
+export const STORY_CATEGORIES = [
+  'Announcement',
+  'Matchday Recap',
+  'Registration',
+  'Feature Story',
+] as const;
+
+export type StoryCategory = (typeof STORY_CATEGORIES)[number];
 
 export interface Season {
   id: string;
