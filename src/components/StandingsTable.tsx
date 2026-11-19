@@ -142,7 +142,6 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
               </tr>
             ) : (
               sortedRows.map((row, idx) => {
-                const isLeader = row.rank === 1;
                 const isPlayoffSpot = row.rank <= 8;
                 const isStarred = isSameTeamName(starredTeam, row.teamName);
                 const isWithdrawn = row.status === 'withdrawn';
@@ -164,21 +163,17 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
                         : 'hover:bg-slate-50'
                     } ${isEighthCut ? 'border-b-2 border-emerald-600' : ''}`}
                   >
-                    {/* Rank with Reserved Leader Gradient or Playoff Marker */}
+                    {/* Rank with Playoff Qualifier Marker */}
                     <td className="py-2.5 sm:py-3 px-3 sm:px-4 text-center">
                       <div className="flex items-center justify-center gap-2 font-mono text-xs tabular-nums">
                         <span
                           className={`w-1 h-3.5 rounded-xs ${
-                            isLeader
-                              ? 'accent-rule-gradient'
-                              : isPlayoffSpot
+                            isPlayoffSpot
                               ? 'bg-[var(--color-brand-green)]'
                               : 'bg-transparent'
                           }`}
                           title={
-                            isLeader
-                              ? 'Division Leader · Playoff qualifier'
-                              : isPlayoffSpot
+                            isPlayoffSpot
                               ? row.isTied
                                 ? 'Tied · Playoff qualifier'
                                 : 'Playoff qualifier'
@@ -223,11 +218,6 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
                           <span className="text-[var(--color-ink)] font-semibold text-xs sm:text-sm truncate block">
                             {row.teamName}
                           </span>
-                          {isLeader && (
-                            <span className="hidden sm:inline-block px-1.5 py-0.5 rounded font-mono text-[9px] uppercase tracking-wider font-bold text-white accent-rule-gradient shrink-0">
-                              #1
-                            </span>
-                          )}
                           {isWithdrawn && (
                             <span className="font-mono text-[10px] uppercase tracking-wider text-rose-600 shrink-0">
                               Withdrawn
@@ -302,10 +292,6 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
       {/* Footer Key */}
       <div className="bg-[var(--color-surface-muted)] px-4 sm:px-5 py-2 border-t border-[var(--color-border-hairline)] flex flex-wrap items-center justify-between gap-2 text-[11px] text-[var(--color-ink-subtle)] font-mono">
         <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-1 rounded-xs accent-rule-gradient" />
-            <span>League Leader</span>
-          </span>
           <span className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-xs bg-[var(--color-brand-green)]" />
             <span>Top 8 Playoff Zone</span>

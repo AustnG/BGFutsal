@@ -123,11 +123,10 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-[var(--color-border-dark)] bg-[var(--color-pitch-ink)] px-4 py-4 space-y-3">
-          <div className="grid grid-cols-2 gap-2 text-xs font-medium">
-            {NAV_ITEMS.map((item, idx) => {
+          <div className="grid grid-cols-1 gap-2 text-xs font-medium">
+            {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
-              const isFullSpan = idx === NAV_ITEMS.length - 1;
               return (
                 <a
                   key={item.id}
@@ -136,9 +135,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     e.preventDefault();
                     handleSelectTab(item.id);
                   }}
-                  className={`flex items-center gap-2.5 p-3 rounded-lg border transition-colors cursor-pointer min-h-[44px] ${
-                    isFullSpan ? 'col-span-2' : ''
-                  } ${
+                  className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border transition-colors cursor-pointer min-h-[44px] w-full ${
                     isActive
                       ? 'bg-[var(--color-pitch-surface)] border-emerald-500/60 text-white font-semibold'
                       : 'bg-[#040B16] border-[var(--color-border-dark)] text-slate-300 hover:text-white'

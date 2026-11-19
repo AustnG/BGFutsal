@@ -2,6 +2,7 @@ import React from 'react';
 import { Trophy } from 'lucide-react';
 import { Match, StandingRow } from '../types/league';
 import { computePlayoffs } from '../utils/calculations';
+import { formatMatchTimeCT } from '../utils/dateTime';
 
 interface PlayoffBracketViewProps {
   standings: StandingRow[];
@@ -25,8 +26,13 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
   const finalMatch = playoffMatches.find((m) => m.round === 'Championship');
 
   const formatBracketTime = (time?: string) => {
-    if (!time) return '';
-    return time.toUpperCase().includes('CT') ? time : `${time} CT`;
+    if (!time || !time.trim()) return '';
+    return formatMatchTimeCT(time);
+  };
+
+  const formatBracketDateTime = (date?: string, time?: string) => {
+    const formattedTime = formatBracketTime(time);
+    return [date, formattedTime].filter(Boolean).join(' · ') || 'TBD';
   };
 
   return (
@@ -83,7 +89,7 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                           </span>
                         )}
                       </div>
-                      <span className="font-mono tabular-nums">{m.date ? `${m.date} · ${formatBracketTime(m.time)}` : formatBracketTime(m.time)}</span>
+                      <span className="font-mono tabular-nums">{formatBracketDateTime(m.date, m.time)}</span>
                     </div>
 
                     <div className="flex items-center justify-between font-medium text-slate-900">
@@ -170,7 +176,7 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                           </span>
                         )}
                       </div>
-                      <span className="font-mono tabular-nums">{m.date ? `${m.date} · ${formatBracketTime(m.time)}` : formatBracketTime(m.time)}</span>
+                      <span className="font-mono tabular-nums">{formatBracketDateTime(m.date, m.time)}</span>
                     </div>
 
                     <div className="flex items-center justify-between font-medium text-slate-900">
@@ -265,7 +271,7 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                         )}
                       </div>
                       <span className="text-slate-400 font-normal font-mono tabular-nums">
-                        {finalMatch?.date ? `${finalMatch.date} · ${formatBracketTime(finalMatch.time)}` : 'TBD'}
+                        {formatBracketDateTime(finalMatch?.date, finalMatch?.time)}
                       </span>
                     </div>
 

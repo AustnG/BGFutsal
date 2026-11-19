@@ -34,11 +34,49 @@ export function parseFlexibleDateMs(dateStr?: string, fallbackYear?: number | st
 }
 
 /**
- * Standardizes match kickoff time strings with Central Time (CT) indicator.
+ * Standardizes match kickoff time strings into 12-hour AM/PM Central Time (CT) format.
  */
 export function formatMatchTimeCT(time?: string): string {
   if (!time || !time.trim()) return 'TBD';
   const trimmed = time.trim();
+  if (/^tbd$/i.test(trimmed)) return 'TBD';
+
+  // Strip any existing CT/CST/CDT indicator before normalizing
+  const withoutTz = trimmed.replace(/\s*(?:CST|CDT|CT)\s*$/i, '').trim();
+  const match = withoutTz.match(/^(\d{1,2})(?::(\d{2}))?(?::\d{2})?\s*(a\.?m\.?|p\.?m\.?)?$/i);
+
+  if (match) {
+    const rawHours = parseInt(match[1], 10);
+    const minutes = match[2] ? parseInt(match[2], 10) : 0;
+    const rawMeridiem = match[3] ? match[3].replace(/\./g, '').toUpperCase() : null;
+
+    if (!Number.isNaN(rawHours) && !Number.isNaN(minutes) && minutes >= 0 && minutes <= 59) {
+      let hour12: number;
+      let meridiem: 'AM' | 'PM';
+
+      if (rawMeridiem === 'AM' || rawMeridiem === 'PM') {
+        if (rawHours >= 1 && rawHours <= 12) {
+          hour12 = rawHours;
+          meridiem = rawMeridiem;
+        } else if (rawHours === 0) {
+          hour12 = 12;
+          meridiem = 'AM';
+        } else {
+          hour12 = rawHours % 12 || 12;
+          meridiem = rawHours >= 12 ? 'PM' : 'AM';
+        }
+      } else if (rawHours >= 0 && rawHours <= 23) {
+        meridiem = rawHours >= 12 ? 'PM' : 'AM';
+        hour12 = rawHours % 12 || 12;
+      } else {
+        return trimmed.toUpperCase().includes('CT') ? trimmed : `${trimmed} CT`;
+      }
+
+      const mm = String(minutes).padStart(2, '0');
+      return `${hour12}:${mm} ${meridiem} CT`;
+    }
+  }
+
   return trimmed.toUpperCase().includes('CT') ? trimmed : `${trimmed} CT`;
 }
 

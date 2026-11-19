@@ -29,7 +29,7 @@ export const AboutView: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-8 sm:space-y-10 max-w-5xl mx-auto">
+    <div className="space-y-8 sm:space-y-10">
       {/* 1. HERO SPOTLIGHT: Deep Slate Feature Card */}
       <section className="bg-gradient-to-br from-[#071324] via-[#0b1f3a] to-[#06111f] text-white rounded-2xl p-6 sm:p-8 border border-[#162d4e] shadow-md relative overflow-hidden">
         <div className="absolute -top-24 -right-24 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />

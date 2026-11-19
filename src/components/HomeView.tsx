@@ -101,12 +101,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
         />
       )}
 
-      {/* 2. MATCHDAY PULSE: Next on Arena Main Court */}
+      {/* 2. UPCOMING MATCHES */}
       {upcomingMatches.length > 0 && (
         <section className="space-y-3.5">
           <SectionHeader
-            title="Next on Arena Main Court"
-            kicker="Central Time (CT) · F.O. Moxley"
+            title="Upcoming Matches"
             accent="green"
             rightSlot={
               <button
@@ -127,6 +126,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               return (
                 <MatchTickerCard
                   key={m.id}
+                  variant="featured"
                   metaLeft={m.isPostseason ? m.roundName || 'Playoff' : `GW ${m.gameweek || 1}`}
                   metaRight={formatMatchTimeCT(m.time)}
                   statusLabel="Upcoming"
@@ -145,7 +145,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <section id="sec-standings" className="space-y-3.5">
         <SectionHeader
           title="Current Standings & Form"
-          countLabel={activeDivision?.name}
           accent="leader"
           rightSlot={
             <a

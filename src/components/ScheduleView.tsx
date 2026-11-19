@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Star, CheckCircle2, Clock } from 'lucide-react';
 import { Match, Team } from '../types/league';
+import { formatMatchTimeCT, getMatchSortTimestamp } from '../utils/dateTime';
+
+export { getMatchSortTimestamp };
 
 interface ScheduleViewProps {
   matches: Match[];
@@ -11,56 +14,6 @@ interface ScheduleViewProps {
   onToggleStarTeam: (teamName: string) => void;
   searchQuery: string;
 }
-
-// Helper to parse match date and time into a millisecond timestamp for chronological sorting
-export const getMatchSortTimestamp = (m: Match): number => {
-  if (!m.date) {
-    const base = m.isPostseason ? 9999999999000 : 0;
-    return base + (m.gameweek || 0) * 86400000;
-  }
-
-  let cleanDate = m.date.trim();
-  // Strip day of week prefix if present (e.g. "Sun, ", "Mon, ")
-  cleanDate = cleanDate.replace(/^[A-Za-z]+,\s*/, '');
-
-  // If no 4-digit year in string, deduce year from seasonId or current year
-  if (!/\b\d{4}\b/.test(cleanDate)) {
-    const yearMatch = m.seasonId ? m.seasonId.match(/\d{4}/) : null;
-    const year = yearMatch ? yearMatch[0] : new Date().getFullYear();
-    cleanDate = `${cleanDate}, ${year}`;
-  }
-
-  let timestamp = Date.parse(cleanDate);
-  if (isNaN(timestamp)) {
-    // Handle slash format e.g. "2026/02/07"
-    const slashCleaned = cleanDate.replace(/\//g, '-');
-    timestamp = Date.parse(slashCleaned);
-  }
-
-  if (isNaN(timestamp)) {
-    const base = m.isPostseason ? 9999999999000 : 0;
-    return base + (m.gameweek || 0) * 86400000;
-  }
-
-  // Parse kickoff time
-  if (m.time) {
-    const timeMatch = m.time.trim().match(/(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/i);
-    if (timeMatch) {
-      let hours = parseInt(timeMatch[1], 10);
-      const minutes = parseInt(timeMatch[2], 10);
-      const meridiem = timeMatch[3] ? timeMatch[3].toUpperCase() : null;
-      if (meridiem === 'PM' && hours < 12) hours += 12;
-      if (meridiem === 'AM' && hours === 12) hours = 0;
-      timestamp += (hours * 3600 + minutes * 60) * 1000;
-    }
-  }
-
-  if (m.isPostseason) {
-    timestamp += 1000;
-  }
-
-  return timestamp;
-};
 
 export const ScheduleView: React.FC<ScheduleViewProps> = ({
   matches,
@@ -192,11 +145,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             (hasPk && m.awayPk! > m.homePk!)
           );
 
-          const formattedTime = m.time
-            ? m.time.toUpperCase().includes('CT')
-              ? m.time
-              : `${m.time} CT`
-            : 'TBD';
+          const formattedTime = formatMatchTimeCT(m.time);
 
           return (
             <div

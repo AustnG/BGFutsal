@@ -20,7 +20,7 @@ export interface MatchTickerCardProps {
   home: MatchTeamSide;
   away: MatchTeamSide;
   isStarredMatch?: boolean;
-  variant?: 'default' | 'compact' | 'championship';
+  variant?: 'default' | 'compact' | 'championship' | 'featured';
   footerSlot?: React.ReactNode;
 }
 
@@ -37,9 +37,14 @@ export const MatchTickerCard: React.FC<MatchTickerCardProps> = ({
 }) => {
   const isChamp = variant === 'championship';
   const isCompact = variant === 'compact';
+  const isFeatured = variant === 'featured';
 
   const cardSurface = isChamp
     ? 'bg-[var(--color-pitch-ink)] border-[var(--color-border-dark)] text-white'
+    : isFeatured
+    ? isStarredMatch
+      ? 'bg-gradient-to-br from-emerald-100/80 via-teal-50/70 to-blue-50/85 border-emerald-500 ring-1 ring-emerald-500/25 text-[var(--color-ink)]'
+      : 'bg-gradient-to-br from-emerald-50/90 via-teal-50/45 to-blue-50/85 border-emerald-200/90 hover:border-emerald-400 text-[var(--color-ink)]'
     : isStarredMatch
     ? 'bg-emerald-50/40 border-emerald-500 text-[var(--color-ink)]'
     : 'bg-[var(--color-surface)] border-[var(--color-border-hairline)] hover:border-[var(--color-border-strong)] text-[var(--color-ink)]';
@@ -51,7 +56,9 @@ export const MatchTickerCard: React.FC<MatchTickerCardProps> = ({
     : statusTone === 'pk'
     ? 'text-amber-800 bg-amber-50 border-amber-200'
     : statusTone === 'upcoming'
-    ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+    ? isFeatured
+      ? 'text-white bg-emerald-600 border-emerald-700/25'
+      : 'text-emerald-700 bg-emerald-50 border-emerald-200'
     : statusTone === 'final'
     ? 'text-slate-600 bg-slate-100 border-slate-200'
     : 'text-slate-500 bg-slate-100 border-slate-200';
@@ -80,6 +87,8 @@ export const MatchTickerCard: React.FC<MatchTickerCardProps> = ({
       ? side.isWinner
         ? 'bg-emerald-50 text-emerald-800 border-emerald-200 font-bold'
         : 'bg-slate-100 text-slate-600 border-slate-200/70 font-medium'
+      : isFeatured
+      ? 'text-emerald-700/60 bg-white/75 border-emerald-200/60'
       : 'text-slate-400 border-transparent';
 
     return (
@@ -125,11 +134,18 @@ export const MatchTickerCard: React.FC<MatchTickerCardProps> = ({
       className={`relative overflow-hidden rounded-lg border transition-colors ${cardSurface}`}
     >
       {isChamp && <div className="h-[2px] w-full accent-rule-gradient" />}
+      {isFeatured && (
+        <div className="h-[3px] w-full bg-gradient-to-r from-emerald-600 via-teal-500 to-blue-600" />
+      )}
 
       <div className={isCompact ? 'p-3 space-y-2' : 'p-3.5 sm:p-4 space-y-2.5'}>
         <div
           className={`flex items-center justify-between gap-2 font-mono text-[10px] sm:text-[11px] tabular-nums pb-2 border-b ${
-            isChamp ? 'border-[var(--color-border-dark)]' : 'border-slate-100'
+            isChamp
+              ? 'border-[var(--color-border-dark)]'
+              : isFeatured
+              ? 'border-emerald-200/70'
+              : 'border-slate-100'
           }`}
         >
           <div className="flex items-center gap-1.5 min-w-0 truncate">
@@ -142,8 +158,16 @@ export const MatchTickerCard: React.FC<MatchTickerCardProps> = ({
             </span>
             {metaRight && (
               <>
-                <span className={isChamp ? 'text-slate-600' : 'text-slate-300'}>·</span>
-                <span className={isChamp ? 'text-slate-400' : 'text-[var(--color-ink-subtle)]'}>
+                <span className={isChamp ? 'text-slate-600' : isFeatured ? 'text-emerald-300' : 'text-slate-300'}>·</span>
+                <span
+                  className={
+                    isChamp
+                      ? 'text-slate-400'
+                      : isFeatured
+                      ? 'text-emerald-700 font-semibold'
+                      : 'text-[var(--color-ink-subtle)]'
+                  }
+                >
                   {metaRight}
                 </span>
               </>
@@ -167,7 +191,11 @@ export const MatchTickerCard: React.FC<MatchTickerCardProps> = ({
         {footerSlot && (
           <div
             className={`pt-2 border-t text-xs ${
-              isChamp ? 'border-[var(--color-border-dark)]' : 'border-slate-100'
+              isChamp
+                ? 'border-[var(--color-border-dark)]'
+                : isFeatured
+                ? 'border-emerald-200/70'
+                : 'border-slate-100'
             }`}
           >
             {footerSlot}

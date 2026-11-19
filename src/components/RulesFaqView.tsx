@@ -58,7 +58,7 @@ export const RulesFaqView: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-8 sm:space-y-10 max-w-4xl mx-auto">
+    <div className="space-y-8 sm:space-y-10">
       {/* 1. HERO SPOTLIGHT: Deep Slate Card */}
       <section className="bg-slate-900 text-white rounded-2xl p-6 sm:p-8 border border-slate-800 shadow-sm">
         <div className="space-y-3">
